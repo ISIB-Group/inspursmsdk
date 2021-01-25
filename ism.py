@@ -148,43 +148,33 @@ def main(params):
     try:
         resultJson = targetMed(client, args)
     except Exception as e:
-        # 保留日志
-        import traceback
-        utool_path = os.path.dirname(os.path.abspath(__file__))
-        # print(utool_path)
-        log_path = os.path.join(utool_path, "log")
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-        # TIME
-        localtime = time.localtime()
-        f_localdate = time.strftime("%Y-%m-%d", localtime)
-        f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
-
-        log_file = os.path.join(log_path, f_localdate)
-        args.items()
-        res_info = "[" + args.subcommand + "]" + traceback.format_exc()
-        with open(log_file, 'a+') as logfile:
-            utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
-            logfile.write(utoollog)
-            logfile.write("\n")
+        # # 保留日志
+        # import traceback
+        # utool_path = os.path.dirname(os.path.abspath(__file__))
+        # # print(utool_path)
+        # log_path = os.path.join(utool_path, "log")
+        # if not os.path.exists(log_path):
+        #     os.makedirs(log_path)
+        # # TIME
+        # localtime = time.localtime()
+        # f_localdate = time.strftime("%Y-%m-%d", localtime)
+        # f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
+        #
+        # log_file = os.path.join(log_path, f_localdate)
+        # args.items()
+        # res_info = "[" + args.subcommand + "]" + traceback.format_exc()
+        # with open(log_file, 'a+') as logfile:
+        #     utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
+        #     logfile.write(utoollog)
+        #     logfile.write("\n")
 
         res['State'] = "Failure"
         res['Message'] = ["Error occurs, request failed..."]
-        # res['log_file'] = [log_file]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return res
     # 打印state在前面
     sortedRes = collections.OrderedDict()
-    # sortedRes["proposed"] = params
     sortedRes["State"] = resultJson.State
     sortedRes["Message"] = resultJson.Message
-    # print(json.dumps(sortedRes, default=lambda o: o.__dict__, indent=4, ensure_ascii=True))
     return sortedRes
 
 
