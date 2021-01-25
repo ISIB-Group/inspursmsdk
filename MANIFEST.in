@@ -1,0 +1,14 @@
+include inspur_sm_sdk/command/bios/M4.xml
+include inspur_sm_sdk/command/bios/M5.xml
+include inspur_sm_sdk/command/bios/NF5180M5.xml
+include inspur_sm_sdk/command/bios/NF5280M5.xml
+include inspur_sm_sdk/command/bios/SA5112M5.xml
+include inspur_sm_sdk/command/bios/SA5212M5.xml
+include inspur_sm_sdk/conf/NF5180M5.yml
+include inspur_sm_sdk/conf/NF5280M5.yml
+include inspur_sm_sdk/conf/SA5112M5.yml
+include inspur_sm_sdk/conf/SA5212M5.yml
+include inspur_sm_sdk/route/route.yml
+include __init__.py
+include ism.py
+include README.md

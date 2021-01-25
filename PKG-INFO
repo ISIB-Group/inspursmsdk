@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: inspur_sm_sdk
+Version: 1.0.0
+Summary: inspur server manager api
+Home-page: https://github.com/ISIB_Group/inspur_sm_sdk
+Author: Wangbaoshan
+Author-email: wangbaoshan@inspur.com
+License: Expat License
+Description: Inspur_sm_sdk is a support tool for ansible.inspur.sm
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
