@@ -1,2 +1,11 @@
-# inspur_sm_sdk
-Inspur_sm_sdk is a support tool for ansible.inspur.sm
+# inspursmsdk
+inspursmsdk is a support tool for ansible.inspur.sm
+
+## External requirements
+
+Circumstance instruction:
+inspursmsdk relies on the Ipmitool tool.
+
+Main steps:
+install inspursmsdk
+yum istall ipmitool

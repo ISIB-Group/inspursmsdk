@@ -23,14 +23,14 @@ def version():
 
 with io.open('README.md') as readme:
     setup(
-        name='inspur_sm_sdk',
+        name='inspursmsdk',
         version=version(),
         description='inspur server manager api',
         long_description=readme.read(),
         license='Expat License',
         author='Wangbaoshan',
         author_email='wangbaoshan@inspur.com',
-        url='https://github.com/ISIB_Group/inspur_sm_sdk',
+        url='https://github.com/ISIB-Group/inspursmsdk',
         classifiers=[
             'Programming Language :: Python',
             'Programming Language :: Python :: 3',
