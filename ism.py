@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 ERR_dict = {
@@ -64,63 +64,25 @@ def main(params):
     productName, firmwareVersion = hostTypeClient.getProductNameByIPMI(args)
     if productName is None:
         res['State'] = "Not Support"
-        res['Message'] = [
-            "cannot get productName",
-            productName,
-            firmwareVersion]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
+        res['Message'] = ["cannot get productName"]
         return res
     elif productName in ERR_dict:
         res['State'] = "Failure"
         res['Message'] = [ERR_dict.get(productName)]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return res
     if firmwareVersion is None:
         res['State'] = "Failure"
         res['Message'] = ["cannot get BMC version"]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return
     configutil = configUtil.configUtil()
     impl = configutil.getRouteOption(productName, firmwareVersion)
     if 'Error' in impl:
         res['State'] = "Failure"
         res['Message'] = [impl]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return res
     if 'M5' not in impl and 'T6' not in impl:
         res['State'] = "Failure"
         res['Message'] = ['Not Support']
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return res
     module_impl = 'inspur_sm_sdk.interface.' + impl
     obj = import_module(module_impl)
@@ -129,13 +91,6 @@ def main(params):
     if args.subcommand is None:
         res['State'] = "Failure"
         res['Message'] = ["please input a subcommand"]
-        print(
-            json.dumps(
-                res,
-                default=lambda o: o.__dict__,
-                sort_keys=False,
-                indent=4,
-                ensure_ascii=True))
         return res
     targetMed = getattr(obj, args.subcommand)
     client = RequestClient.RequestClient()
