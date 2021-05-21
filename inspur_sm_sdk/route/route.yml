@@ -20,8 +20,11 @@ NF5280M5:
     4.38: NF5280M5_436
 SP7-2104P:
     common: NF5180M5
-
-
-
-    
-    
+NF5688M6:
+    common: CommonM6
+NF5280M6:
+    common: CommonM6
+NF5488A5:
+    common: NF5280M5
+NF5468A5:
+    common: NF5280M5

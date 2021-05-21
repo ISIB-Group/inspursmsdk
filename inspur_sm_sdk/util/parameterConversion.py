@@ -104,7 +104,11 @@ settime = {
     'server1': 'NTPServer1',
     'server2': 'NTPServer2',
     'server3': 'NTPServer3',
+    'server4': 'NTPServer4',
+    'server5': 'NTPServer5',
+    'server6': 'NTPServer6',
     'syn_cycle': 'NTPSynCycle',
+    'max_variety': 'NTPMAXvariety'
 }
 
 setpriv = {
@@ -135,6 +139,7 @@ setsnmptrap = {
     'system_name': 'systemName',
     'system_id': 'systemID',
     'trap_port': 'SNMPtrapPort',
+    'host_id': 'hostid',
 }
 
 geteventlog = {
@@ -185,13 +190,37 @@ setvirtualmedia = {
 setconnectmedia = {'image_type': 'image_Type', 'op_type': 'opType', 'image_name': 'image_name'}
 
 setkvm = {
+    'client_type': 'clienttype',
     'kvm_encryption': 'kvmencryption',
     'media_attach': 'vmediaattach',
     'keyboard_language': 'keyboardlanguage',
     'retry_count': 'retrycount',
     'retry_time_interval': 'retrytimeinterval',
     'local_monitor_off': 'localmonitoroff',
-    'automatic_off': 'automaticoff'
+    'automatic_off': 'automaticoff',
+    'non_secure': 'nonsecure',
+    'ssh_vnc': 'sshvnc',
+    'stunnel_vnc': 'stunnelvnc'
+}
+
+setsmtpcom = {
+    'server_ip': 'serverIP',
+    'server_port': 'serverPort',
+    'server_secure_port': 'serverSecurePort',
+    'server_auth': 'serverAuthentication',
+    'server_username': 'serverUsername',
+    'server_password': 'serverPassword',
+    'ssl_tls_enable': 'SSLTLSEnable',
+    'star_tls_enable': 'STARTTLSEnable',
+    'host_name': 'hostName',
+    'serial_number': 'serialNumber',
+    'asset_tag': 'assetTag',
+    'event_level': 'eventLevel',
+}
+
+setsmtpdest = {
+    'id': 'destinationid',
+    'status': 'enabled',
 }
 
 
@@ -227,6 +256,8 @@ def getParam(dictobj):
         'setconnectmedia': setconnectmedia,
         'setkvm': setkvm,
         'edituser': edituser,
+        'setsmtpcom': setsmtpcom,
+        'setsmtpdest': setsmtpdest,
     }
     if 'subcommand' in dictobj:
         subcommand = dictobj['subcommand']

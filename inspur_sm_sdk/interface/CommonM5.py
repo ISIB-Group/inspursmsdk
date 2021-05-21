@@ -26,7 +26,7 @@ from inspur_sm_sdk.interface.ResEntity import (ResultBean, CapabilitiesBean, CPU
                                      Controller, DiskBean, Disk, NetworkBondBean, NetworkLinkBean,
                                      LogicDisk, LogicDiskBean, DNSBean, NCSIM5Bean, SessionBean,
                                      SensorBean, Sensor, PowerConsumptionBean, SuspendBean, VirtualMediaBean,
-                                     MediaDiskBean, MediaInstanceBean)
+                                     MediaDiskBean, MediaInstanceBean, GPUBean, Gpu)
 
 # sys.path.append(os.path.abspath("../command"))
 
@@ -410,6 +410,239 @@ raidlevels = {
     17: 'RAID10'
 }
 
+PcieLocateOnRiser = {
+    "G0P0": "GPU0PCIE0",
+    "G1P1": "GPU1PCIE1",
+    "G2P2": "GPU2PCIE2",
+    "G3P3": "GPU3PCIE3",
+    "G4P4": "GPU4PCIE4",
+    "G5P5": "GPU5PCIE5",
+    "G6P6": "GPU6PCIE6",
+    "G7P7": "GPU7PCIE7",
+    "G8P8": "GPU8PCIE8",
+    "G9P9": "GPU9PCIE9",
+    "G10P10": "GPU10PCIE10",
+    "G11P11": "GPU11PCIE11",
+    "G12P12": "GPU12PCIE12",
+    "G13P13": "GPU13PCIE13",
+    "G14P14": "GPU14PCIE14",
+    "G15P15": "GPU15PCIE15",
+    "P0S0": "PCIE0SLOT0",
+    "P1S1": "PCIE1SLOT1",
+    "P2S2": "PCIE2SLOT2",
+    "P3S3": "PCIE3SLOT3",
+    "P4S4": "PCIE4SLOT4",
+    "P5S5": "PCIE5SLOT5",
+    "P6S6": "PCIE6SLOT6",
+    "P7S7": "PCIE7SLOT7",
+    "P8S8": "PCIE8SLOT8",
+    "P9S9": "PCIE9SLOT9",
+    "P10S10": "PCIE10SLOT10",
+    "P11S11": "PCIE11SLOT11",
+    "P12S12": "PCIE12SLOT12",
+    "P13S13": "PCIE13SLOT13",
+    "P14S14": "PCIE14SLOT14",
+    "P15S15": "PCIE15SLOT15",
+    "R0": "RAID0",
+    "R1": "RAID1",
+    "R2": "RAID2",
+    "R3": "RAID3",
+    "R4": "RAID4",
+    "R5": "RAID5",
+    "R6": "RAID6",
+    "R10": "RAID10",
+    "R50": "RAID50",
+    "O0": "ONboard0",
+    "O1": "ONboard1",
+    "O2": "ONboard2",
+    "O3": "ONboard3",
+    "O4": "ONboard4",
+    "O5": "ONboard5",
+    "O6": "ONboard6",
+    "O7": "ONboard7",
+    "O8": "ONboard8",
+    "O9": "ONboard9",
+    "O10": "ONboard10",
+    "O11": "ONboard11",
+    "N0": "NVME0",
+    "N1": "NVME1",
+    "N2": "NVME2",
+    "N3": "NVME3",
+    "N4": "NVME4",
+    0: "Up",
+    1: "Middle",
+    2: "Down",
+    3: "NVMe_0",
+    4: "NVMe_1",
+    5: "NVMe_2",
+    6: "NVMe_3",
+    7: "J37_NVMe",
+    8: "J38_NVMe",
+    9: "J44_NVMe",
+    10: "J43_NVMe",
+    11: "PCIE0_CPU0_NVME0",
+    12: "PCIE0_CPU0_NVME1",
+    13: "PCIE1_CPU0/1_NVME0",
+    14: "PCIE1_CPU0/1_NVME1",
+    0xFF: "None",
+    "G0": "GPU0",
+    "G1": "GPU1",
+    "G2": "GPU2",
+    "G3": "GPU3",
+    "G4": "GPU4",
+    "G5": "GPU5",
+    "G6": "GPU6",
+    "G7": "GPU7",
+    "G8": "GPU8",
+    "G9": "GPU9",
+    "G10": "GPU10",
+    "G11": "GPU11",
+    "G12": "GPU12",
+    "G13": "GPU13",
+    "G14": "GPU14",
+    "G15": "GPU15"
+}
+
+ListSlotOnRiser = {
+    0: "Up",
+    1: "Middle",
+    2: "Down",
+    3: "NVMe_0",
+    4: "NVMe_1",
+    5: "NVMe_2",
+    6: "NVMe_3",
+    7: "J37_NVMe",
+    8: "J38_NVMe",
+    9: "J44_NVMe",
+    10: "J43_NVMe",
+    11: "PCIE0_CPU0_NVME0",
+    12: "PCIE0_CPU0_NVME1",
+    13: "PCIE1_CPU0/1_NVME0",
+    14: "PCIE1_CPU0/1_NVME1",
+    0xFF: "None"
+}
+
+ListRiserModel = {
+    0: "X16",
+    1: "X8+X16",
+    2: "X8+X4+X4+X4+X4",
+    0xFF: "No Riser"
+}
+
+class DICTVALUE():
+
+    def getPcieLocateOnRiser(self, var):
+        if var == 0:
+            return 'J4'
+        elif var == 1:
+            return 'J3'
+        elif var == 2:
+            return 'J5'
+        elif var == 3:
+            return 'J6'
+        elif var == 4:
+            return 'J7'
+        elif var == 5:
+            return 'J8'
+        # elif var == 7:
+        #     return 'J37_NVMe'
+        # elif var == 8:
+        #     return 'J38_NVMe'
+        # elif var == 9:
+        #     return 'J44_NVMe'
+        elif var == 10:
+            return 'J2'
+        elif var == 255:
+            return 'None'
+        else:
+            return "Unknown"
+
+    def getRiserType_5280M5(self, var):
+        if var == 0:
+            return 'X16'
+        elif var == 1:
+            return 'RiserType1-X8+X8+X8'
+        elif var == 2:
+            return 'RiserType2-X8+X16'
+        elif var == 3:
+            return 'RiserType3-X8+X8'
+        elif var == 4:
+            return 'RiserType4-X16'
+        elif var == 5:
+            return 'RiserType5-X8+X16'
+        elif var == 6:
+            return 'RiserType6-X8+X16'
+        elif var == 7:
+            return 'RiserType7-X16'
+        elif var == 8:
+            return 'RiserType8-X16+X16+X16'
+        elif var == 9:
+            return 'RiserType9-X16'
+        elif var == 10:
+            return 'RiserType10-X16'
+        elif var == 11:
+            return 'RiserType11-X16'
+        elif var == 12:
+            return 'RiserType12-X16+X16'
+        elif var == 255:
+            return 'No Riser'
+        else:
+            return 'Unknown'
+
+    def getPresentStatus(self, var):
+        if var == 1:
+            return 'Yes'
+        else:
+            return 'No'
+
+    def getDeviceType(self, var):
+        if var == 0:
+            return 'Device was built before Class Code definitions were finalized'
+        elif var == 1:
+            return 'Mass storage controller'
+        elif var == 2:
+            return 'Network controller'
+        elif var == 3:
+            return 'Display controller'
+        elif var == 4:
+            return 'Multimedia device'
+        elif var == 5:
+            return 'Memory controller'
+        elif var == 6:
+            return 'Bridge device'
+        elif var == 7:
+            return 'Simple communication controller'
+        elif var == 8:
+            return 'Base system peripherals'
+        elif var == 9:
+            return 'utinp device'
+        elif var == 10:
+            return 'Docking stations'
+        elif var == 11:
+            return 'Processors'
+        elif var == 12:
+            return 'Serial bus controller'
+        elif var == 13:
+            return 'Wireless controller'
+        elif var == 14:
+            return 'intelligent I/O controller'
+        elif var == 15:
+            return 'Satellite communication controllers'
+        elif var == 16:
+            return 'Encryption/Decryption controllers'
+        elif var == 17:
+            return 'Data acquisition and signal processing controllers'
+        elif var == 18:
+            return 'Processing accelerators'
+        elif var == 19:
+            return 'Non-Essential Instrumentation'
+        elif var == 64:
+            return 'Coprocessor'
+        elif var == 255:
+            return 'Device does not fit in any defines classes'
+        else:
+            return 'Unknown DeviceType '+str(var)
+
 
 class CommonM5(Base):
 
@@ -607,7 +840,28 @@ class CommonM5(Base):
 
         # logout
         RestFunc.logout(client)
+        return result
 
+    def getgpu(self, client, args):
+        """
+        get GPUs info
+        :param client:
+        :param args:
+        :return:
+        """
+        # login
+        headers = RestFunc.login(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        # get
+        result = getGPU(client, args)
+        # logout
+        RestFunc.logout(client)
         return result
 
     def getmemory(self, client, args):
@@ -3021,18 +3275,6 @@ class CommonM5(Base):
             RestFunc.logout(client)
             return result
 
-    def getthreshold(self, client, args):
-        """
-        get predictive failure threshold
-        :param client:
-        :param args:
-        :return:
-        """
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message([])
-        return result
-
     def getpwrcap(self, client, args):
         res = ResultBean()
         res.State("Not Support")
@@ -4943,12 +5185,6 @@ class CommonM5(Base):
                                 result.Message([
                                     'Failed to call BMC interface api/maintenance/firmware/verification, response is none'])
                             elif verification.get('code') == 0 and verification.get('data') is not None:
-                                if args.override == 0:
-                                    preserve = 1
-                                elif args.override == 1:
-                                    preserve = 0
-                                else:
-                                    preserve = 0
                                 # preserve 锁定为0 通过preserveBMCConfigM5进行配置改写
                                 preserve = 0
                                 flash = RestFunc.updateBMCByRest(
@@ -8240,6 +8476,12 @@ class CommonM5(Base):
                 ["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
+        if args.setting == 'all':
+            override = 1
+        elif args.setting == 'none':
+            override = 0
+        else:
+            override = args.override
         # overide 1改写  0保留    list [fru,sdr]中的为保留的
         res = RestFunc.restoreDefaults(client, args.override)
         if res.get('code') == 0 and res.get('data') is not None:
@@ -8647,6 +8889,19 @@ class CommonM5(Base):
         RestFunc.logout(client)
         return result
 
+    def setsmtpcom(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M5 model does not support this feature.'])
+        return result
+
+
+    def setsmtpdest(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M5 model does not support this feature.'])
+        return result
+
 
 def getWeek(binr):
     bin_dict = {1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thur', 5: 'Fri', 6: 'Sat', 7: 'Sun'}
@@ -8796,7 +9051,7 @@ def setSMTP(client, args):
             if len(primary_username) < 4 or len(primary_username) > 64:
                 smtpResult.State("Failure")
                 smtpResult.Message(
-                    ['primary SMTP user name lenth be 4 to 64 bits.'])
+                    ['primary SMTP user name length be 4 to 64 bits.'])
                 return smtpResult
             if not RegularCheckUtil.checkSMTPName(primary_username):
                 smtpResult.State("Failure")
@@ -8809,7 +9064,7 @@ def setSMTP(client, args):
             if len(primary_password) < 4 or len(primary_password) > 64:
                 smtpResult.State("Failure")
                 smtpResult.Message(
-                    ['primary SMTP password lenth be 4 to 64 bits.'])
+                    ['primary SMTP password length be 4 to 64 bits.'])
                 return smtpResult
             if not RegularCheckUtil.checkSMTPPassword(primary_password):
                 smtpResult.State("Failure")
@@ -8898,7 +9153,7 @@ def setSMTP(client, args):
             if len(secondary_username) < 4 or len(secondary_username) > 64:
                 smtpResult.State("Failure")
                 smtpResult.Message(
-                    ['secondary SMTP user name lenth be 4 to 64 bits.'])
+                    ['secondary SMTP user name length be 4 to 64 bits.'])
                 return smtpResult
             if not RegularCheckUtil.checkSMTPName(secondary_username):
                 smtpResult.State("Failure")
@@ -8911,7 +9166,7 @@ def setSMTP(client, args):
             if len(secondary_password) < 4 or len(secondary_password) > 64:
                 smtpResult.State("Failure")
                 smtpResult.Message(
-                    ['secondary SMTP password lenth be 4 to 64 bits.'])
+                    ['secondary SMTP password length be 4 to 64 bits.'])
                 return smtpResult
             if not RegularCheckUtil.checkSMTPPassword(secondary_password):
                 smtpResult.State("Failure")
@@ -9030,6 +9285,10 @@ def setservice(client, args):
         'solssh': 8,
         'snmp': 9
     }
+    if args.servicename == 'vnc':
+        result.State("Not Support")
+        result.Message(['The M5 model does not support this feature.'])
+        return result
     dictraw = IpmiFunc.getM5WebByIpmi(client)
     webInfo = {}
     if "code" in dictraw and dictraw["code"] == 0:
@@ -11656,7 +11915,7 @@ def showLogicalInfo_LSI(client, args):
                 if 'targetId' in item:
                     ldiskDict['Virtual Drive ID'] = item['targetId']
                 if 'size' in item:
-                    ldiskDict['Virtual Drive ID'] = item['targetId']
+                    ldiskDict['Capacity (GB)'] = item['size']
                 if 'state' in item:
                     ldiskDict['State'] = state(item['state'])
                 if 'stripSize' in item:
@@ -16333,6 +16592,11 @@ def setVirtualMedia(client, args):
         mount_type = {0: 'CD',
                       1: 'FD',
                       2: 'HD'}
+        if args.mountType in mount_type.values():
+            for key, value in mount_type.items():
+                if args.mountType == value:
+                    args.mountType = key
+                    break
         if args.mountType == 0:
             pass
         elif args.mountType is None:
@@ -16636,6 +16900,175 @@ def setKVM(client, args):
     else:
         result.State('Failure')
         result.Message('get KVM infomation failed')
+    return result
+
+
+def getGPU(client, args):
+    result = ResultBean()
+    gpu_res = RestFunc.getGpuInfoByRest(client)
+    gpu_info = GPUBean()
+    if gpu_res.get("code") == 0:
+        gpu_list = gpu_res.get("data")
+        if len(gpu_list) == 0:
+            result.State('Failure')
+            result.Message('no GPU exist.')
+            return
+        totalpower = 0
+        for gpu in gpu_list:
+            if "power" in gpu:
+                totalpower = totalpower + gpu.get("power", 0)
+        gpu_info.GPUPower(str(totalpower))
+        list = []
+        for gpu in gpu_list:
+            if gpu == {}:
+                continue
+            cpu_singe = Gpu()
+            cpu_singe.CommonName("GPU" + str(gpu.get("id")))
+            cpu_singe.VendorID(gpu.get("vendor"))
+            cpu_singe.Model(gpu.get("model"))
+            cpu_singe.SN(gpu.get("SN"))
+            cpu_singe.FW(gpu.get("fw"))
+            cpu_singe.Power(gpu.get("power"))
+            list.append(cpu_singe)
+        gpu_info.GPU(list)
+    elif gpu_res.get("code") == 2:
+        gpu_res = RestFunc.getGPU(client)
+        if 'code' in gpu_res:
+            state = gpu_res['code']
+            if state == 0:
+                data = gpu_res['data']
+                if 'GPU_Power' not in data:
+                    gpu_info.GPUPower('None')
+                else:
+                    gpu_info.GPUPower(str(data.get('GPU_Power').get('Reading')))
+                    data.pop('GPU_Power')
+            else:
+                result.State('Failure')
+                result.Message('get GPU infomation failed.')
+                return result
+        else:
+            result.State('Failure')
+            result.Message('get GPU infomation failed.')
+            return result
+        pcie_res = RestFunc.getPcieInfoByRest(client)
+        try:
+            res = printGPUInfo(pcie_res, args, data)
+            if res.State == 'Success':
+                gpu_info.GPU(res.Message[0])
+        except:
+            result.State('Failure')
+            result.Message('GPU information request failed!')
+            return result
+    else:
+        result.State('Failure')
+        result.Message('GPU information request failed!' + gpu_res.get("Data"))
+    result.State('Success')
+    result.Message([gpu_info])
+    return result
+
+
+def printGPUInfo(responds, args, gpuinfo):
+    result = ResultBean()
+    args.hostType = args.hostPlatform
+    if responds is None:
+        result.State('Failure')
+        result.Message('GPU information request failed!')
+        return result
+    elif responds.status_code == 200:
+        result = responds.json()
+        dict = DICTVALUE()  # 实例化对象
+        num_result = 0
+        list = {}
+        for pcie_info in result:
+            if len(pcie_info.keys()) > 0:
+                PCIELocationOnRiser = ''
+                RiserType = ''
+                BoardLocation = ''
+                if "NF5180M5" in args.hostType or "SA5112M5" in args.hostType:
+                    if 'location' in pcie_info:
+                        if pcie_info['location'] != '':
+                            PCIELocationOnRiser = dict.getPcieLocateOnRiser(pcie_info['location'])
+                    if 'riser_type' in pcie_info:
+                        if pcie_info['riser_type'] != '':
+                            RiserType = ListRiserModel.get(pcie_info['riser_type'], 'Unknown')
+                elif "NF5468M5" in args.hostType or "NF5568M5" in args.hostType or "NF5488M5" in args.hostType or "NF5888M5" in args.hostType:
+                    if 'DeviceLocator' in pcie_info:
+                        if pcie_info['DeviceLocator'] != '':
+                            BoardLocation = pcie_info['DeviceLocator']
+                    elif 'location' in pcie_info:
+                        if pcie_info['location'] != '':
+                            BoardLocation = PcieLocateOnRiser.get(pcie_info['location'], str(pcie_info['location']))
+                    if 'riser_type' in pcie_info:
+                        if pcie_info['riser_type'] != '':
+                            RiserType = dict.getRiserType_5280M5(pcie_info['riser_type'])
+                else:
+                    if 'location' in pcie_info:
+                        if pcie_info['location'] != '':
+                            PCIELocationOnRiser = ListSlotOnRiser.get(pcie_info['location'], str(pcie_info['location']))
+                    if 'riser_type' in pcie_info:
+                        if pcie_info['riser_type'] != '':
+                            RiserType = dict.getRiserType_5280M5(pcie_info['riser_type'])
+                if 'pcie_slot_name' in pcie_info:
+                    if pcie_info.get('pcie_slot_name') is None:
+                        BoardLocation = str(None)
+                    else:
+                        BoardLocation = str(pcie_info['pcie_slot_name'])
+
+                if 'GPU' in BoardLocation:
+                    gpu_info = Gpu()
+                    num_result += 1
+                    if 'id' in pcie_info:
+                        gpu_info.CommonName(str(BoardLocation[3:4]))
+                    if PCIELocationOnRiser != '':
+                        gpu_info.PCIELocationOnRiser(PCIELocationOnRiser)
+                    if  '' != RiserType:
+                        gpu_info.RiserType(RiserType)
+                    gpu_info.BoardLocation(BoardLocation)
+                    if 'present' in pcie_info and pcie_info['present'] != '':
+                        gpu_info.PresentStatus(dict.getPresentStatus(pcie_info['present']))
+                    if 'dev_type' in pcie_info and pcie_info['dev_type'] != '':
+                        gpu_info.DeviceType(dict.getDeviceType(pcie_info['dev_type']))
+                    gpu_info.DeviceID(PCI_IDS_DEVICE_LIST.get(pcie_info.get('device_id'), str(hex(pcie_info.get('device_id')))) if pcie_info.get(
+                                               'device_id') is not None else None)
+                    gpu_info.VendorID(pcie_info.get('vendor_name', PCI_IDS_LIST.get(pcie_info.get('vendor_id'),str(hex(pcie_info.get('vendor_id'))))
+                                                if pcie_info.get('vendor_id') is not None else None))
+                    if 'max_link_speed' in pcie_info:
+                        gpu_info.RatedLinkSpeed("GEN" + str(pcie_info['max_link_speed']))
+                    if 'max_link_width' in pcie_info:
+                        gpu_info.RatedLinkWidth("X" + str(pcie_info['max_link_width']))
+                    if 'current_link_speed' in pcie_info:
+                        gpu_info.CurrentLinkSpeed("GEN" + str(pcie_info['current_link_speed']))
+                    if 'current_link_width' in pcie_info:
+                        gpu_info.CurrentLinkWidth("X" + str(pcie_info['current_link_width']))
+                    if 'bus_num' in pcie_info:
+                        gpu_info.BusNumber(str(pcie_info['bus_num']))
+                    if 'dev_num' in pcie_info:
+                        gpu_info.DeviceNumber(str(pcie_info['dev_num']))
+                    if 'func_num' in pcie_info:
+                        gpu_info.FunctionNumber(str(pcie_info['func_num']))
+                    tag = False
+                    gpuname = ''
+                    for gpukey in gpuinfo.keys():
+                        if gpukey in BoardLocation:
+                            gpuname = gpukey
+                            tag = True
+                            break
+                    if tag:
+                        gpu_info.GPUTemp(gpuinfo[gpuname].get('Reading', 'None'))
+                    else:
+                        gpu_info.GPUTemp('None')
+                    list.append(gpu_info)
+        if num_result == 0:
+            result.State('Failure')
+            result.Message('GPU count number is 0.')
+        result.State('Success')
+        result.Message([list])
+    elif responds.status_code == 404:
+        result.State('Failure')
+        result.Message('GPU information request failed!')
+    else:
+        result.State('Failure')
+        result.Message('Error in getting GPU information.')
     return result
 
 
