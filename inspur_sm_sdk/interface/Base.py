@@ -62,134 +62,83 @@ class Base(IBase):
         fru = IpmiFunc.getAllFruByIpmi(client)
         res = ResultBean()
         if fru:
-            if fru.get('code') == 0 and fru.get('data') is not None:
-                FRUlist = []
-                for product in fru.get('data'):
-                    # print(product)
-                    #frubean = FruBean()
-                    frubean = collections.OrderedDict()
-                    if product['fru_id']:
-                        frubean["FRUID"] = product['fru_id']
-                    else:
-                        frubean["FRUID"] = None
-
-                    if product['fru_name']:
-                        frubean["FRUName"] = product['fru_name']
-                    else:
-                        frubean["FRUName"] = None
-
-                    if product['chassis_type']:
-                        frubean["ChassisType"] = product['chassis_type']
-                    else:
-                        frubean["ChassisType"] = None
-
-                    if product['chassis_part_number']:
-                        frubean["ChassisPartNumber"] = product['chassis_part_number']
-                    else:
-                        frubean["ChassisPartNumber"] = None
-
-                    if product['chassis_serial']:
-                        frubean["ChassisSerial"] = product['chassis_serial']
-                    else:
-                        frubean["ChassisSerial"] = None
-
-                    if product['chassis_extra']:
-                        if ";" not in product['chassis_extra']:
-                            frubean["ChassisExtra"] = product['chassis_extra']
-                        else:
-                            celist = product['chassis_extra'].split(";")
-                            # frubean["ChassisExtra1"] = celist[0]
-                            # frubean["ChassisExtra2"] = celist[1]
-                            # if len(celist) == 3:
-                            #     frubean["ChassisExtra3"] = celist[2]
-                            for i in range(len(celist)):
-                                frubean["ChassisExtra" +
-                                        str(i + 1)] = celist[i]
-
-                    if product['board_mfg_date']:
-                        frubean["BoardMfgDate"] = product['board_mfg_date']
-                    else:
-                        frubean["BoardMfgDate"] = None
-
-                    if product['board_mfg']:
-                        frubean["BoardMfg"] = product['board_mfg']
-                    else:
-                        frubean["BoardMfg"] = None
-
-                    if product['board_product']:
-                        frubean["BoardProduct"] = product['board_product']
-                    else:
-                        frubean["BoardProduct"] = None
-
-                    if product['board_serial']:
-                        frubean["BoardSerial"] = product['board_serial']
-                    else:
-                        frubean["BoardSerial"] = None
-                    if product['board_part_number']:
-                        frubean["BoardPartNumber"] = product['board_part_number']
-                    else:
-                        frubean["BoardPartNumber"] = None
-
-                    if product['board_extra']:
-                        if ";" not in product['board_extra']:
-                            frubean["BoardExtra"] = product['board_extra']
-                        else:
-                            belist = product['board_extra'].split(";")
-                            # frubean["BoardExtra1"] = belist[0]
-                            # frubean["BoardExtra2"] = belist[1]
-                            # if len(belist) == 3:
-                            #     frubean["BoardExtra3"] = belist[2]
-                            for i in range(len(belist)):
-                                frubean["BoardExtra" + str(i + 1)] = belist[i]
-
-                    if product['product_manufacturer']:
-                        frubean["ProductManufacturer"] = product['product_manufacturer']
-                    else:
-                        frubean["ProductManufacturer"] = None
-
-                    if product['product_name']:
-                        frubean["ProductName"] = product['product_name']
-                    else:
-                        frubean["ProductName"] = None
-
-                    if product['product_part_number']:
-                        frubean["ProductPartNumber"] = product['product_part_number']
-                    else:
-                        frubean["ProductPartNumber"] = None
-
-                    if product['product_version']:
-                        frubean["ProductVersion"] = product['product_version']
-                    else:
-                        frubean["ProductVersion"] = None
-
-                    if product['product_serial']:
-                        frubean["ProductSerial"] = product['product_serial']
-                    else:
-                        frubean["ProductSerial"] = None
-
-                    if product['product_asset_tag']:
-                        frubean["ProductAssetTag"] = product['product_asset_tag']
-                    else:
-                        frubean["ProductAssetTag"] = None
-
-                    if product['product_extra']:
-                        if ";" not in product['product_extra']:
-                            frubean["ProductExtra"] = product['product_extra']
-                        else:
-                            pelist = product['product_extra'].split(";")
-                            # frubean["ProductExtra1"] = pelist[0]
-                            # frubean["ProductExtra2"] = pelist[1]
-                            for i in range(len(pelist)):
-                                frubean["ProductExtra" +
-                                        str(i + 1)] = pelist[i]
-
-                    FRUlist.append(frubean)
-                FRU = [{"FRU": FRUlist}]
-                res.State('Success')
-                res.Message(FRU)
+            FRUlist = []
+            product = fru
+            frubean = collections.OrderedDict()
+            if product['Product Name']:
+                frubean["FRUName"] = product['Product Name']
             else:
-                res.State('Failure')
-                res.Message('Can not get Fru information')
+                frubean["FRUName"] = None
+
+            if product['Chassis Type']:
+                frubean["ChassisType"] = product['Chassis Type']
+            else:
+                frubean["ChassisType"] = None
+
+            if product['Chassis Part Number']:
+                frubean["ChassisPartNumber"] = product['Chassis Part Number']
+            else:
+                frubean["ChassisPartNumber"] = None
+
+            if product['Chassis Serial']:
+                frubean["ChassisSerial"] = product['Chassis Serial']
+            else:
+                frubean["ChassisSerial"] = None
+
+            if product['Board Mfg']:
+                frubean["BoardMfg"] = product['Board Mfg']
+            else:
+                frubean["BoardMfg"] = None
+
+            if product['Board Product']:
+                frubean["BoardProduct"] = product['Board Product']
+            else:
+                frubean["BoardProduct"] = None
+
+            if product['Board Serial']:
+                frubean["BoardSerial"] = product['Board Serial']
+            else:
+                frubean["BoardSerial"] = None
+
+            if product['Board Part Number']:
+                frubean["BoardPartNumber"] = product['Board Part Number']
+            else:
+                frubean["BoardPartNumber"] = None
+
+            if product['Product Manufacturer']:
+                frubean["ProductManufacturer"] = product['Product Manufacturer']
+            else:
+                frubean["ProductManufacturer"] = None
+
+            if product['Product Name']:
+                frubean["ProductName"] = product['Product Name']
+            else:
+                frubean["ProductName"] = None
+
+            if product['Product Part Number']:
+                frubean["ProductPartNumber"] = product['Product Part Number']
+            else:
+                frubean["ProductPartNumber"] = None
+
+            if product['Product Version']:
+                frubean["ProductVersion"] = product['Product Version']
+            else:
+                frubean["ProductVersion"] = None
+
+            if product['Product Serial']:
+                frubean["ProductSerial"] = product['Product Serial']
+            else:
+                frubean["ProductSerial"] = None
+
+            if product['Product Asset Tag']:
+                frubean["ProductAssetTag"] = product['Product Asset Tag']
+            else:
+                frubean["ProductAssetTag"] = None
+
+            FRUlist.append(frubean)
+            FRU = [{"FRU": FRUlist}]
+            res.State('Success')
+            res.Message(FRU)
         else:
             res.State('Failure')
             res.Message('Can not get Fru information')

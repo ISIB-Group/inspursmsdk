@@ -370,10 +370,11 @@ def getAllFruByIpmi(client):
     if line_list is None or len(line_list) == 0:
         return JSON
     for line in line_list:
-        str_tul = str(line).split(':')
-        name = str_tul[0].strip()
-        value = str_tul[1].strip()
-        JSON[name] = value
+        if ':' in line:
+            str_tul = str(line).split(':')
+            name = str_tul[0].strip()
+            value = str_tul[1].strip()
+            JSON[name] = value
     return JSON
 
 
@@ -1146,6 +1147,7 @@ def setFirewallByIpmi(client, state):
     cmd_set = 'raw 0x3c 0x3a 0x15 ' + state_raw
     return sendRawByIpmi(client, cmd_set)
 
+
 def getFirmwareVersoinByIpmi(client):
     JSON ={}
     cmd_get = 'raw 0x3c 0x37 '+hex(int(0))
@@ -1159,6 +1161,68 @@ def getFirmwareVersoinByIpmi(client):
     version = cmd_str[4:10]
     bmcversion = str(int(version[0:2],16))+'.'+str(int(version[2:4],16))
     return bmcversion
+
+
+# 获取设备信息
+def getM6DeviceNumByIpmi(client,data):
+    '''
+    get Device Number info
+    :param client:
+    :return: Device Number
+    '''
+    cmd_get = 'raw 0x3c 0x2b ' + data
+    Num_Info = sendRawByIpmi(client, cmd_get)
+    Num = {}
+    if Num_Info['code'] == 0:
+        data_list = Num_Info['data'].split(' ')
+        if len(data_list) == 2:
+            Num['code'] = 0
+            Num['data'] = {}
+            Num['data']['DevNum'] = int(data_list[0],16)
+            if data_list[1] == 'ff':
+                Num['data']['DevConfNum'] = int(data_list[0], 16)
+            else:
+                Num['data']['DevConfNum'] = int(data_list[1],16)
+        elif len(data_list) == 3:
+            Num['code'] = 0
+            Num['data'] = {}
+            Num['data']['DevNum'] = int(data_list[1],16)
+            if data_list[2] == 'ff':
+                Num['data']['DevConfNum'] = int(data_list[1], 16)
+            else:
+                Num['data']['DevConfNum'] = int(data_list[2],16)
+        else:
+            Num['code'] = 1
+            Num['data'] = Num_Info['data']
+    else:
+        return Num_Info
+
+
+def getMcInfoByIpmi(client):
+    '''
+    get Product FRU  information
+    :param client:
+    :return product FRU  information:
+    '''
+    JSON = {}
+    result = getLinesRawByIpmi(client, 'mc info')
+    if result['code'] != 0:
+        return result
+    line_list = result['data']
+    data = {}
+    for line in line_list:
+        if 'Firmware Revision' in line:
+            str_tul = str(line).split(':')
+            value = str_tul[1].strip()
+            data['firmware_revision'] = value
+        elif 'Aux Firmware Rev Info' in line:
+            value = line_list[line_list.index(line) + 1].strip()
+            data['aux_firmware_rev_info'] = value[2:]
+            break
+    JSON['code'] = 0
+    JSON['data'] = data
+    return JSON
+
 
 # 设置service
 def __setService(

@@ -883,6 +883,12 @@ class Cpu():
     def Socket(self, value):
         self.dict['Socket'] = value
 
+    def PROCID(self):
+        return self.dict['PROCID']
+
+    def PROCID(self, value):
+        self.dict['PROCID'] = value
+
     def PPIN(self):
         return self.dict['PPIN']
 
@@ -894,7 +900,6 @@ class Cpu():
 
     def TDP(self, value):
         self.dict['TDP'] = value
-
     def State(self):
         return self.dict['State']
 
@@ -923,6 +928,12 @@ class MemoryBean():
 
     def Maximum(self, value):
         self.dict['Maximum'] = value
+
+    def Present(self):
+        return self.dict['Present']
+
+    def Present(self, value):
+        self.dict['Present'] = value
 
     def TotalSystemMemoryGiB(self):
         return self.dict['TotalSystemMemoryGiB']
@@ -3641,6 +3652,12 @@ class BackplaneBean():
     def Present(self, value):
         self.dict['Present'] = value
 
+    def Location(self):
+        return self.dict['Location']
+
+    def Location(self, value):
+        self.dict['Location'] = value
+
 
 class HardBoardBean():
     def __init__(self):
@@ -4666,3 +4683,276 @@ class MediaInstanceBean():
 
     def PowerSaveMode(self, value):
         self.dict['PowerSaveMode'] = value
+
+
+class UserRuleBean():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def Id(self):
+        return self.dict['Id']
+
+    def Id(self, value):
+        self.dict['Id'] = value
+
+    def Enable(self):
+        return self.dict['Enable']
+
+    def Enable(self, value):
+        self.dict['Enable'] = value
+
+    def Minlength(self):
+        return self.dict['Minlength']
+
+    def Minlength(self, value):
+        self.dict['Minlength'] = value
+
+    def ComplexityEnable(self):
+        return self.dict['ComplexityEnable']
+
+    def ComplexityEnable(self, value):
+        self.dict['ComplexityEnable'] = value
+
+    def UppercaseLetters(self):
+        return self.dict['UppercaseLetters']
+
+    def UppercaseLetters(self, value):
+        self.dict['UppercaseLetters'] = value
+
+    def LowercaseLetters(self):
+        return self.dict['LowercaseLetters']
+
+    def LowercaseLetters(self, value):
+        self.dict['LowercaseLetters'] = value
+
+    def ComplexityNumber(self):
+        return self.dict['ComplexityNumber']
+
+    def ComplexityNumber(self, value):
+        self.dict['ComplexityNumber'] = value
+
+    def SpecialCharacters(self):
+        return self.dict['SpecialCharacters']
+
+    def SpecialCharacters(self, value):
+        self.dict['SpecialCharacters'] = value
+
+    def ValidPeriod(self):
+        return self.dict['ValidPeriod']
+
+    def ValidPeriod(self, value):
+        self.dict['ValidPeriod'] = value
+
+    def HistoryRecords(self):
+        return self.dict['HistoryRecords']
+
+    def HistoryRecords(self, value):
+        self.dict['HistoryRecords'] = value
+
+    def RetryTimes(self):
+        return self.dict['RetryTimes']
+
+    def RetryTimes(self, value):
+        self.dict['RetryTimes'] = value
+
+    def LockTime(self):
+        return self.dict['LockTime']
+
+    def LockTime(self, value):
+        self.dict['LockTime'] = value
+
+
+class HardBoardBean():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def Id(self):
+        return self.dict['Id']
+
+    def Id(self, value):
+        self.dict['Id'] = value
+
+    def Model(self):
+        return self.dict['Model']
+
+    def Model(self, value):
+        self.dict['Model'] = value
+
+    def Capacity(self):
+        return self.dict['Capacity']
+
+    def Capacity(self, value):
+        self.dict['Capacity'] = value
+
+    def Location(self):
+        return self.dict['Location']
+
+    def Location(self, value):
+        self.dict['Location'] = value
+
+    def SN(self):
+        return self.dict['SN']
+
+    def SN(self, value):
+        self.dict['SN'] = value
+
+    def Present(self):
+        return self.dict['Present']
+
+    def Present(self, value):
+        self.dict['Present'] = value
+
+
+class GPUBean():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def GPUPower(self):
+        return self.dict['GPUPower']
+
+    def GPUPower(self, value):
+        self.dict['GPUPower'] = value
+
+    def GPU(self):
+        return self.dict['GPU']
+
+    def GPU(self, value):
+        self.dict['GPU'] = value
+
+
+class Gpu():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def CommonName(self):
+        return self.dict['CommonName']
+
+    def CommonName(self, value):
+        self.dict['CommonName'] = value
+
+    def Location(self):
+        return self.dict['Location']
+
+    def Location(self, value):
+        self.dict['Location'] = value
+
+    def Model(self):
+        return self.dict['Model']
+
+    def Model(self, value):
+        self.dict['Model'] = value
+
+    def Manufacturer(self):
+        return self.dict['Manufacturer']
+
+    def Manufacturer(self, value):
+        self.dict['Manufacturer'] = value
+
+    def SN(self):
+        return self.dict['SN']
+
+    def SN(self, value):
+        self.dict['SN'] = value
+
+    def FW(self):
+        return self.dict['FW']
+
+    def FW(self, value):
+        self.dict['FW'] = value
+
+    def Power(self):
+        return self.dict['Power']
+
+    def Power(self, value):
+        self.dict['Power'] = value
+
+    def PCIELocationOnRiser(self):
+        return self.dict['PCIELocationOnRiser']
+
+    def PCIELocationOnRiser(self, value):
+        self.dict['PCIELocationOnRiser'] = value
+
+    def RiserType(self):
+        return self.dict['RiserType']
+
+    def RiserType(self, value):
+        self.dict['RiserType'] = value
+
+    def BoardLocation(self):
+        return self.dict['BoardLocation']
+
+    def BoardLocation(self, value):
+        self.dict['BoardLocation'] = value
+
+    def PresentStatus(self):
+        return self.dict['PresentStatus']
+
+    def PresentStatus(self, value):
+        self.dict['PresentStatus'] = value
+
+    def DeviceType(self):
+        return self.dict['DeviceType']
+
+    def DeviceType(self, value):
+        self.dict['DeviceType'] = value
+
+    def DeviceID(self):
+        return self.dict['DeviceID']
+
+    def DeviceID(self, value):
+        self.dict['DeviceID'] = value
+
+    def VendorID(self):
+        return self.dict['VendorID']
+
+    def VendorID(self, value):
+        self.dict['VendorID'] = value
+
+    def RatedLinkSpeed(self):
+        return self.dict['RatedLinkSpeed']
+
+    def RatedLinkSpeed(self, value):
+        self.dict['RatedLinkSpeed'] = value
+
+    def RatedLinkWidth(self):
+        return self.dict['RatedLinkWidth']
+
+    def RatedLinkWidth(self, value):
+        self.dict['RatedLinkWidth'] = value
+
+    def CurrentLinkSpeed(self):
+        return self.dict['CurrentLinkSpeed']
+
+    def CurrentLinkSpeed(self, value):
+        self.dict['CurrentLinkSpeed'] = value
+
+    def CurrentLinkWidth(self):
+        return self.dict['CurrentLinkWidth']
+
+    def CurrentLinkWidth(self, value):
+        self.dict['CurrentLinkWidth'] = value
+
+    def BusNumber(self):
+        return self.dict['BusNumber']
+
+    def BusNumber(self, value):
+        self.dict['BusNumber'] = value
+
+    def DeviceNumber(self):
+        return self.dict['DeviceNumber']
+
+    def DeviceNumber(self, value):
+        self.dict['DeviceNumber'] = value
+
+    def FunctionNumber(self):
+        return self.dict['FunctionNumber']
+
+    def FunctionNumber(self, value):
+        self.dict['FunctionNumber'] = value
+
+    def GPUTemp(self):
+        return self.dict['GPUTemp']
+
+    def GPUTemp(self, value):
+        self.dict['GPUTemp'] = value
+

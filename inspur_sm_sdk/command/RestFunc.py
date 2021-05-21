@@ -11,6 +11,7 @@ import base64
 import collections
 from Crypto.Cipher import Blowfish
 import copy
+import json
 try:
     from requests_toolbelt.multipart import encoder
 
@@ -636,7 +637,6 @@ def getM5FanModeByRest(client):
         JSON['data'] = formatError("api/settings/fans-mode", response)
     return JSON
 
-
 def getCpuInfoByRest(client):
     JSON = {}
     response = client.request("GET", "api/status/cpu_info", client.getHearder(), None, None, None, None)
@@ -652,6 +652,20 @@ def getCpuInfoByRest(client):
         JSON['data'] = formatError("api/status/cpu_info", response)
     return JSON
 
+def getGpuInfoByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/gpu/gpu_info", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/gpu/gpu_info, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/gpu/gpu_info", response)
+    return JSON
 
 def getSensorsInfoByRest(client):
     JSON = {}
@@ -668,6 +682,23 @@ def getSensorsInfoByRest(client):
         JSON['data'] = formatError("api/sensors", response)
     return JSON
 
+def getGPU(client):
+    res = getSensorsInfoByRest(client)
+    state = res['code']
+    if state == 0:
+        data = res['data']['Sensor']
+        JSON = {}
+        for item_json in data:
+            unit = item_json['Unit']
+            name = item_json['name']
+            if 'deg_c' == unit and 'GPU' in name and '_Temp' in name:
+                gpu_name = name.replace('_Temp', '')
+                JSON[gpu_name] = item_json
+            elif 'GPU_Power' == name:
+                JSON['GPU_Power'] = item_json
+        res['State'] = 0
+        res['Data'] = JSON
+    return res
 
 def getMemoryInfoByRest(client):
     JSON = {}
@@ -1787,13 +1818,19 @@ def importBiosCfgByRest(client, filepath):
         return JSON
 
     try:
-        with open(filepath, 'r') as f:
-            # content = f.read().decode("utf8")
-            content = f.read()
-            data = '------{0}{1}Content-Disposition: form-data; name="fwUpload"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
-
-            upload = client.request("POST", "api/uploadportbiossetup", data=data, headers=header)
+        if sys.version_info < (3, 0):
+            with open(filepath.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
+                header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryF4ZROI7nayCrLnwy"
+        else:
+            data = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryF4ZROI7nayCrLnwy'
+            )
+            header["Content-Type"] = data.content_type
+        upload = client.request("POST", "api/uploadportbiossetup", data=data, headers=header)
     except BaseException:
         JSON["code"] = 3
         JSON["data"] = "Please check the file content and check if there is Chinese in the path."
@@ -1922,12 +1959,19 @@ def importTwoBiosCfgByRest(client, filepath):
         JSON["data"] = "please input file with suffix .json/.conf."
         return JSON
     try:
-        with open(filepath, 'rb') as f:
-            content = f.read()
-            data1 = '------{0}{1}Content-Disposition: form-data; name="fwUpload"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryrHy3txxyGHxjfO4K', '\r\n', content, file_name)
-            hearder["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryrHy3txxyGHxjfO4K"
-            upload = client.request("POST", "api/uploadportbiossetup", data=data1,  json=data1, headers=hearder)
+        if sys.version_info < (3, 0):
+            with open(filepath.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data1 = '------{0}{1}Content-Disposition: form-data; name="fwUpload"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryrHy3txxyGHxjfO4K', '\r\n', content, file_name)
+                hearder["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryrHy3txxyGHxjfO4K"
+        else:
+            data1 = encoder.MultipartEncoder(
+                fields={'fwUpload': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryrHy3txxyGHxjfO4K'
+            )
+            hearder["Content-Type"] = data1.content_type
+        upload = client.request("POST", "api/uploadportbiossetup", data=data1,  json=data1, headers=hearder)
     except BaseException:
         JSON["code"] = 3
         JSON["data"] = "Please check the file content and check if there is Chinese in the path."
@@ -2333,7 +2377,7 @@ def getOnekeylogProgressByRestM6(client):
 def generateOnekeylogByRestM6(client):
     # getinfo
     JSON = {}
-    response = client.request("GET", "api/logs/onekeylog/trigger", client.getHearder())
+    response = client.request("POST", "api/logs/onekeylog/trigger", client.getHearder(), json={})
     if response is None:
         JSON['code'] = 1
         JSON['data'] = 'Failed to call BMC interface api/logs/onekeylog/trigger, response is none'
@@ -2581,6 +2625,22 @@ def Encrypt(code):
     cryptedStr = cryptedStr.decode('utf-8')
     return cryptedStr
 
+
+def Encrypt(key, code):
+    l = len(code)
+    if l % 8 != 0:
+        code = code + '\0' * (8 - (l % 8))
+    code = code.encode('utf-8')
+    if sys.version_info < (3, 0):
+        cl = Blowfish.new(key, Blowfish.MODE_ECB)
+    else:
+        cl = Blowfish.new(key.encode('utf-8'), Blowfish.MODE_ECB)
+    encode = cl.encrypt(code)
+    cryptedStr = base64.b64encode(encode)
+    cryptedStr = cryptedStr.decode('utf-8')
+    return cryptedStr
+
+
 def getSnmpM5ByRest(client):
     JSON = {}
     response = client.request("GET", "api/settings/netsnmpconf", client.getHearder(), None, None, None, None)
@@ -2750,7 +2810,7 @@ def getSynctimeByRest(client):
 
 def setSynctimeByRest(client, data):
     # getinf
-    response = client.request("POST", "api/settings/synctime", client.getHearder(), data=data, json=data)
+    response = client.request("POST", "api/settings/synctime", client.getHearder(), data=None, json=data)
     JSON = {}
     if response is None:
         JSON['code'] = 1
@@ -3614,6 +3674,10 @@ def downloadDowntimeScreenshot(client, filepath):
         except BaseException:
             JSON['code'] = 1
             JSON['data'] = formatError("api/settings/download_image", response)
+    elif response.status_code == 500:
+        res = json.loads(response.text)
+        JSON['code'] = 1
+        JSON['data'] = res.get('error', formatError("api/settings/download_image", response))
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/settings/download_image", response)
@@ -3682,6 +3746,10 @@ def downloadManualCaptureScreen(client, filepath):
         except BaseException:
             JSON['code'] = 1
             JSON['data'] = formatError("api/settings/manual_capture_image", response)
+    elif response.status_code == 500:
+        res = json.loads(response.text)
+        JSON['code'] = 1
+        JSON['data'] = res.get('error', formatError("api/settings/download_image", response))
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/settings/manual_capture_image", response)
@@ -3788,7 +3856,10 @@ def getLDAPgroupM6(client):
             JSON['data'] = formatError("api/settings/ldap-users", response)
     else:
         JSON['code'] = 1
-        JSON['data'] = formatError("api/settings/ldap-users", response)
+        if 'LDAP not enabled' in response.text:
+            JSON['data'] = 'LDAP not enabled, unable to get LDAP group information.'
+        else:
+            JSON['data'] = formatError("api/settings/ldap-users", response.json)
     return JSON
 
 
@@ -3888,7 +3959,10 @@ def getADgroupM6(client):
             JSON['data'] = formatError("api/settings/active-directory-users", response)
     else:
         JSON['code'] = 1
-        JSON['data'] = formatError("api/settings/active-directory-users", response)
+        if 'AD not enabled' in response.text:
+            JSON['data'] = 'AD not enabled, unable to get AD group information.'
+        else:
+            JSON['data'] = formatError("api/settings/active-directory-users", response)
     return JSON
 
 
@@ -4134,13 +4208,19 @@ def importBmcRestoreByRest(client, filepath):
         return JSON
 
     try:
-        with open(filepath, 'r') as f:
-            # content = f.read().decode("utf8")
-            content = f.read()
-            data = '------{0}{1}Content-Disposition: form-data; name="config"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
-
-            upload = client.request("POST", "api/maintenance/upload_restore", data=data, headers=header)
+        if sys.version_info < (3, 0):
+            with open(filepath.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
+                header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryF4ZROI7nayCrLnwy"
+        else:
+            data = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryF4ZROI7nayCrLnwy'
+            )
+            header["Content-Type"] = data.content_type
+        upload = client.request("POST", "api/maintenance/upload_restore", data=data, headers=header)
     except BaseException:
         JSON["code"] = 3
         JSON["data"] = "Please check the file content and check if there is Chinese in the path."
@@ -4382,86 +4462,7 @@ def uploadfirmwareByRest(client, filepath):
     JSON = {}
     header = client.getHearder()
     header["X-Requested-With"] = "XMLHttpRequest"
-    header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarydTPdpAwLgxeeqJki"
-    header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-
-    file_name = os.path.basename(filepath)
-    if not os.path.exists(filepath):
-        JSON["code"] = 1
-        JSON["data"] = "File path is error."
-        return JSON
-    if not os.path.isfile(filepath):
-        JSON["code"] = 2
-        JSON["data"] = "File name is needed."
-        return JSON
-    file_size = os.path.getsize(filepath)
-    if file_size > 5000000:
-        big_flag = True
-    else:
-        big_flag = False
-    global progress_show
-    global progress_show_time
-    global endflag
-    progress_show = 0
-    import datetime
-    progress_show_time = datetime.datetime.now()
-    endflag = False
-
-    def mycalback(monitor):
-        global progress_show
-        global progress_show_time
-        global endflag
-        progess_now = monitor.bytes_read * 100 // file_size
-        import datetime
-        localtime = datetime.datetime.now()
-        f_localtime = localtime.strftime("%Y-%m-%d %H:%M:%S ")
-        # windows \b无法退回到上一行
-        # linux会退回到上一行，导致每次上次的%无法被覆盖，因此必须打印多少退多少
-        if not endflag:
-            if progess_now >= 100:
-                pro = f_localtime + "Upload file inprogress, progress: 100%"
-                # print(pro)
-                endflag = True
-            else:
-                if big_flag:
-                    if localtime > progress_show_time:
-                        pro = f_localtime + "Upload file inprogress, progress: " + str(progess_now) + "%"
-                        b_num = len(pro)
-                        # print(pro + "\b"*b_num, end="",flush=True)
-                        progress_show_time = localtime + datetime.timedelta(seconds=3)
-                else:
-                    if progess_now > progress_show:
-                        pro = f_localtime + "Upload file inprogress, progress: " + str(progess_now) + "%"
-                        b_num = len(pro)
-                        # print(pro + "\b"*b_num, end="",flush=True)
-                        progress_show = progess_now
-
-    e = encoder.MultipartEncoder(
-        fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
-        boundary='----WebKitFormBoundarydTPdpAwLgxeeqJki'
-    )
-    m = encoder.MultipartEncoderMonitor(e, mycalback)
-    header["Content-Type"] = m.content_type
-
-    upload = client.request("POST", "api/maintenance/hpm/firmware", data=m, headers=header, timeout=500)
-    if upload is None:
-        JSON["code"] = 1
-        JSON["data"] = "Failed to call BMC interface api/maintenance/hpm/firmware ,response is none."
-    elif upload.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = "upload firmware success."
-        return JSON
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/maintenance/hpm/firmware", upload)
-    return JSON
-
-
-def uploadfirmwarePy2(client, filepath):
-    JSON = {}
-    header = client.getHearder()
-    header["X-Requested-With"] = "XMLHttpRequest"
-    header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarydTPdpAwLgxeeqJki"
+    header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarykbIa9fEjntByHHtE"
     header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
 
     file_name = os.path.basename(filepath)
@@ -4474,11 +4475,18 @@ def uploadfirmwarePy2(client, filepath):
         JSON["data"] = "File name is needed."
         return JSON
 
-    with open(filepath.decode('utf8'), 'rb') as f:
-        content = f.read()
-        m = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-            'WebKitFormBoundarydTPdpAwLgxeeqJki', '\r\n', content, file_name)
-        header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarydTPdpAwLgxeeqJki"
+    if sys.version_info < (3, 0):
+        with open(filepath.decode("utf-8"), 'rb') as f:
+            content = f.read()
+            m = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                'WebKitFormBoundarykbIa9fEjntByHHtE', '\r\n', content, file_name)
+            header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarykbIa9fEjntByHHtE"
+    else:
+        m = encoder.MultipartEncoder(
+            fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+            boundary='----WebKitFormBoundarykbIa9fEjntByHHtE'
+        )
+        header["Content-Type"] = m.content_type
 
     upload = client.request("POST", "api/maintenance/hpm/firmware", data=m, headers=header, timeout=500)
     if upload is None:
@@ -4889,18 +4897,25 @@ def uploadBiosImageFile(client, updatefile):
         file_name = updatefile.split('\\')[-1]
 
     try:
-        with open(updatefile.decode('utf8'), 'rb') as f:
-            content = f.read()
-            data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryNBTXnAWq9GnfpUuD', '\r\n', content, file_name)
-            header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryNBTXnAWq9GnfpUuD"
-            upload = client.request("POST", "api/maintenance/firmware", data=data, headers=header)
-            if upload is not None and upload.status_code == 200:
-                JSON['code'] = 0
-                JSON['data'] = "Upload files completed."
-            else:
-                JSON['code'] = 1
-                JSON['data'] = 'Failed to call BMC interface api/maintenance/firmware, response is none'
+        if sys.version_info < (3, 0):
+            with open(updatefile.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryNBTXnAWq9GnfpUuD', '\r\n', content, file_name)
+                header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryNBTXnAWq9GnfpUuD"
+        else:
+            data = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(updatefile, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryNBTXnAWq9GnfpUuD'
+            )
+            header["Content-Type"] = data.content_type
+        upload = client.request("POST", "api/maintenance/firmware", data=data, headers=header)
+        if upload is not None and upload.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = "Upload files completed."
+        else:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/maintenance/firmware, response is none'
     except IOError:
         JSON['code'] = 1
         JSON['data'] = 'Failed to call BMC interface api/maintenance/firmware, error occurs while reading file!'
@@ -5011,23 +5026,29 @@ def uploadBMCfgByRest(client, filepath):
         return JSON
 
     try:
-        with open(filepath, 'r') as f:
-            # content = f.read().decode("utf8")
-            content = f.read()
-            data = '------{0}{1}Content-Disposition: form-data; name="fwUpload"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
-
-            upload = client.request("POST", "api/uploadBmcConfig", data=data, headers=header, timeout=500)
-            # 上传
-            if upload is None:
-                JSON["code"] = 4
-                JSON["data"] = 'Failed to call BMC interface api/uploadBmcConfig, response is none'
-            elif upload.status_code == 200:
-                JSON["code"] = 0
-                JSON["data"] = "upload success."
-            else:
-                JSON['code'] = 1
-                JSON['data'] = formatError("api/uploadBmcConfig", upload)
+        if sys.version_info < (3, 0):
+            with open(filepath.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
+                header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryF4ZROI7nayCrLnwy"
+        else:
+            data = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryF4ZROI7nayCrLnwy'
+            )
+            header["Content-Type"] = data.content_type
+        upload = client.request("POST", "api/uploadBmcConfig", data=data, headers=header, timeout=500)
+        # 上传
+        if upload is None:
+            JSON["code"] = 4
+            JSON["data"] = 'Failed to call BMC interface api/uploadBmcConfig, response is none'
+        elif upload.status_code == 200:
+            JSON["code"] = 0
+            JSON["data"] = "upload success."
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/uploadBmcConfig", upload)
     except BaseException:
         JSON["code"] = 3
         JSON["data"] = "Please check if there is Chinese in the path."
@@ -5788,32 +5809,31 @@ def changeAutoCaptureStateM5(client, state):
 
 # TODO
 # 下载宕机截图
-def downloadDowntimeScreenshotM5(client, filepath):
+def downloadDowntimeScreenshot(client, filepath):
     JSON = {}
-    for i in range(1, 4):
-        path = os.path.join(filepath, 'lastscreen' + str(i) + '.jpeg')
-        url = 'https://' + client.host + '/bsod/lastscreen' + str(i) + '.jpeg'
-        response = requests.get(url, verify=False)
-        if response.status_code == 200:
-            try:
-                with open(path, 'wb') as f:
-                    f.write(response.content)
-            except IOError:
-                JSON['code'] = 1
-                JSON['data'] = 'error occurs while reading file!.'
-                return
-            status = True
-        else:
-            status = False
-    if status:
-        JSON["code"] = 0
-        JSON["data"] = "download screenshots complete, screenshots file: " + os.path.abspath(filepath)
-        return JSON
+    response = client.request("GET", "api/settings/download_image", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/download_image,response is none'
+    elif response.status_code == 200:
+        try:
+            with open(filepath, 'wb') as f:
+                f.write(response.content)
+                f.close()
+                JSON["code"] = 0
+                JSON["data"] = "download screenshots complete, screenshots file: " + os.path.abspath(filepath)
+                return JSON
+        except BaseException:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/download_image", response)
+    elif response.status_code == 500:
+        res = json.loads(response.text)
+        JSON['code'] = 1
+        JSON['data'] = res.get('error', formatError("api/settings/download_image", response))
     else:
         JSON['code'] = 1
-        JSON['data'] = 'download screenshots failed.'
+        JSON['data'] = formatError("api/settings/download_image", response)
     return JSON
-
 
 # 手动截图
 def manualCaptureScreenM5(client, option):
@@ -6166,18 +6186,25 @@ def uploadCPLDFileByRest(client, updatefile):
     else:
         file_name = updatefile.split('\\')[-1]
     try:
-        with open(updatefile.decode('utf8'), 'rb') as f:
-            content = f.read()
-            data = '------{0}{1}Content-Disposition: form-data; name="cpld"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-                'WebKitFormBoundaryO2LXlvSWOzmxUXus', '\r\n', content, file_name)
-            header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryO2LXlvSWOzmxUXus"
-            upload = client.request("POST", "api/maintenance/cpldfirmware", data=data, headers=header)
-            if upload is not None and upload.status_code == 200:
-                JSON["code"] = 0
-                JSON["data"] = 'pload CPLD Image files completed.'
-            else:
-                JSON['code'] = 1
-                JSON['data'] = 'Upload files failed.'
+        if sys.version_info < (3, 0):
+            with open(updatefile.decode('utf-8'), 'rb') as f:
+                content = f.read()
+                data = '------{0}{1}Content-Disposition: form-data; name="fwimage"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryO2LXlvSWOzmxUXus', '\r\n', content, file_name)
+                header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryO2LXlvSWOzmxUXus"
+        else:
+            data = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(updatefile, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundaryO2LXlvSWOzmxUXus'
+            )
+            header["Content-Type"] = data.content_type
+        upload = client.request("POST", "api/maintenance/cpldfirmware", data=data, headers=header)
+        if upload is not None and upload.status_code == 200:
+            JSON["code"] = 0
+            JSON["data"] = 'pload CPLD Image files completed.'
+        else:
+            JSON['code'] = 1
+            JSON['data'] = 'Upload files failed.'
     except IOError:
         JSON["code"] = 1
         JSON["data"] = 'Read file error.'
@@ -6209,6 +6236,364 @@ def gupdateCPLDByRest(client, cpld_id):
                 return JSON
     JSON["code"] = 0
     JSON["data"] = 'Upgrade failed.'
+    return JSON
+
+
+def getBootOption(client):
+    JSON = {}
+    response = client.request("GET", "api/bootOption", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [GET]api/bootOption, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[GET]api/bootOption", response)
+    return JSON
+
+
+# {"dev":"pxe","enable":1,"style":"next boot"}
+def setBootOption(client, option_json):
+    JSON = {}
+    response = client.request("POST", "api/bootOption", client.getHearder(), json=option_json)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [PUT]api/bootOption, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[PUT]api/bootOption", response)
+    return JSON
+
+
+def locateLogicalDisk(client, ctrlId, diskid, ledstate):
+    '''
+    locate disk
+    :param client:
+    :param ctrlId:
+    :param diskid:
+    :param ledstate:
+    :return:
+    '''
+    data = {
+        'ctrlId': ctrlId,
+        'deviceId': diskid,
+        'data': ledstate
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/locateLD", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/locateLD, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ledstate
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/locateLD", r)
+    return JSON
+
+
+# "StopInit"
+# "FastInit"
+# "SlowFullInit"
+def initLogicalDisk(client, ctrlId, diskid, ledstate):
+    '''
+    locate disk
+    :param client:
+    :param ctrlId:
+    :param diskid:
+    :param ledstate:
+    :return:
+    '''
+    data = {
+        'ctrlId': ctrlId,
+        'deviceId': diskid,
+        'data': ledstate
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/initLD", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/initLD, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ledstate
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/initLD", r)
+    return JSON
+
+
+def deleteLogicalDisk(client, ctrlId, diskid):
+    data = {
+        'ctrlId': ctrlId,
+        'deviceId': diskid
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/deleteLD", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/deleteLD, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/deleteLD", r)
+    return JSON
+
+
+def setServiceInfoByRest(client, args, id):
+    JSON = {}
+    data = {
+        'non_secure_port': args.nonsecureport,
+        'secure_port': args.secureport,
+        'state': args.enabled,
+        'time_out': args.timeout,
+        'active_session': args.activeSession,
+        'configurable': args.configurable,
+        'id': args.id,
+        'maximum_sessions': args.maximumSessions,
+        'service_name': args.serviceName,
+        'service_id': args.serviceId,
+        'singleport_status': args.singleportStatus
+    }
+    response = client.request("PUT", "api/settings/services/{0}".format(str(int(float(id)))), client.getHearder(),
+                              json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/services/{0}, response is none'.format(
+            str(int(float(id))))
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/services/{0}".format(str(int(float(id)))), response)
+    return JSON
+
+
+# storage
+def getRaidCtrlInfo(client):
+    JSON = {}
+    URL = "api/raid/getraidCtrlInfo"
+    response = client.request("GET", URL, client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[GET]" + URL, response)
+    return JSON
+
+
+def getPhysicalDiskInfo(client):
+    JSON = {}
+    URL = "api/raid/getphysicalDiskInfo"
+    response = client.request("GET", URL, client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[GET]" + URL, response)
+    return JSON
+
+
+def getLogicalDiskInfo(client):
+    JSON = {}
+    URL = "api/raid/getlogicalDiskInfo"
+    response = client.request("GET", URL, client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[GET]" + URL, response)
+    return JSON
+
+
+def getBMCLogSettingsM6(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/log", client.getHearder())
+    if response is None:
+        JSON['code']=1
+        JSON['data']='Failed to call BMC interface api/settings/log ,response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON["code"] = 0
+            JSON["data"] = result
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/log", response)
+    else:
+        JSON['code']=1
+        JSON['data'] = formatError("api/settings/log", response)
+    return JSON
+
+
+def setBMCLogSettingsM6(client, settings):
+    JSON = {}
+    response = client.request("PUT", "api/settings/log", client.getHearder(), json=settings)
+    if response is None:
+        JSON['code']=1
+        JSON['data']='Failed to call BMC interface api/settings/log ,response is none'
+    elif response.status_code == 200:
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "set BMC system and audit log settings success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/log", response)
+    else:
+        JSON['code']=1
+        JSON['data'] = formatError("api/settings/log", response)
+    return JSON
+
+
+# get user group
+# api/get_group_subitem_priv
+# [ { "GroupID": 1, "GroupName": "Administrator", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 1, "PowerConPriv": 1, "SecuConPriv": 1, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 1 }, { "GroupID": 2, "GroupName": "Operator", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 1, "SecuConPriv": 0, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 0 }, { "GroupID": 3, "GroupName": "User", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 4, "GroupName": "OEM1", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 5, "GroupName": "OEM2", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 6, "GroupName": "OEM3", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 7, "GroupName": "OEM4", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 } ]
+def getUserGroupM6(client):
+    response = client.request("GET", "api/api/get_group_subitem_priv", client.getHearder(), None, None, None, None)
+    JSON = {}
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/api/get_group_subitem_priv, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        result = response.json()
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/api/get_group_subitem_priv", response)
+    return JSON
+
+
+# set user group pr
+# api/set_group_subitem_priv
+# POST {"GroupID":4,"GroupName":"OEM1","SelfSetPriv":1,"InfoQueryPriv":1,"DebugPriv":1,"PowerConPriv":1,"SecuConPriv":1,"RemoteMediaPriv":1,"RemoteKVMPriv":1,"CommConfigPriv":1,"UserConfigPriv":0}
+# RES { "GroupID": 4, "GroupName": "OEM1", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 1, "PowerConPriv": 1, "SecuConPriv": 1, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 0 }
+def setUserGroupM6(client, data):
+    response = client.request("POST", "api/api/set_group_subitem_priv", client.getHearder(), json=data)
+    JSON = {}
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/api/set_group_subitem_priv, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/api/set_group_subitem_priv", response)
+    return JSON
+
+
+# EraseStop
+# EraseSimple
+# EraseNormal
+# EraseThrough
+def erasePhysicalDisk(client, ctrlId, diskid, option):
+    data = {
+        'ctrlId': ctrlId,
+        'deviceId': diskid,
+        'data': option
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/erasePD", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/erasePD, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = "erase pysical disk success."
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/erasePD", r)
+    return JSON
+
+
+def setPhysicalDisk(client, ctrlId, diskid, status):
+    data = {
+        'ctrlId': ctrlId,
+        'deviceId': diskid,
+        'data': status
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/setPDState", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/setPDState, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = "set pysical disk success."
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/setPDState", r)
+    return JSON
+
+
+def setRaidCtrlProperties(client, ctrlId, jbod, smartEr):
+    data = {
+        'ctrlId': ctrlId,
+        'JBOD': jbod,
+        'smartEr': smartEr
+    }
+    JSON = {}
+    header = client.getHearder()
+    # header["X-Requested-With"] = "XMLHttpRequest"
+    # header["Content-Type"] = "application/json;charset=UTF-8"
+    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/setRaidCtrlProperties", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/setRaidCtrlProperties, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/setRaidCtrlProperties", r)
     return JSON
 
 

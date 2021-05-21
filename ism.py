@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 ERR_dict = {
@@ -57,7 +57,6 @@ def main(params):
         return res
     param = parameterConversion.getParam(params)
     args = dict_to_object(param)
-    args.hostPlatform = 'M5'
     args.port = None
     # 使用fru获取机型信息
     hostTypeClient = HostTypeJudge.HostTypeClient()
@@ -74,13 +73,14 @@ def main(params):
         res['State'] = "Failure"
         res['Message'] = ["cannot get BMC version"]
         return
+    args.hostPlatform = productName
     configutil = configUtil.configUtil()
     impl = configutil.getRouteOption(productName, firmwareVersion)
     if 'Error' in impl:
         res['State'] = "Failure"
         res['Message'] = [impl]
         return res
-    if 'M5' not in impl and 'T6' not in impl:
+    if 'M5' not in impl and 'M6' not in impl:
         res['State'] = "Failure"
         res['Message'] = ['Not Support']
         return res
@@ -126,7 +126,6 @@ def main(params):
         res['State'] = "Failure"
         res['Message'] = ["Error occurs, request failed..."]
         return res
-    # 打印state在前面
     sortedRes = collections.OrderedDict()
     sortedRes["State"] = resultJson.State
     sortedRes["Message"] = resultJson.Message

@@ -9,7 +9,7 @@ import setuptools
 from setuptools import setup
 
 INSTALL_REQUIRES = (
-    ['pycryptodome >= 3.5.0', 'PyYAML', 'requests >= 2.9.1', 'Jpype1']
+    ['pycryptodome >= 3.5.0', 'PyYAML', 'requests >= 2.9.1', 'Jpype1', 'requests-toolbelt']
 )
 
 
