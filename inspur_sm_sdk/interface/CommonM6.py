@@ -5635,7 +5635,7 @@ class CommonM6(Base):
                 cpu_Info.Maximum(size)
             # 通过sensor获取cpu_power
             sensor = IpmiFunc.getSensorByNameByIpmi(client, 'CPU_Power')
-            if sensor and sensor.get('code') == 0:
+            if sensor and sensor.get('code') == 0 and sensor.get('data'):
                 temp = sensor.get('data')[0].get('value')
                 cpu_Info.TotalPowerWatts(float(temp) if (
                     temp is not None and temp != 'na') else None)
@@ -5666,7 +5666,7 @@ class CommonM6(Base):
                     # 通过sensor获取cpu_DTS_Temp
                     sensor = IpmiFunc.getSensorByNameByIpmi(
                         client, 'CPU{0}_DTS'.format(i))
-                    if sensor and sensor.get('code') == 0:
+                    if sensor and sensor.get('code') == 0 and sensor.get('data'):
                         temp = sensor.get('data')[0].get('value')
                         cpu_singe.Temperature(
                             float(temp) if (
@@ -5758,7 +5758,7 @@ class CommonM6(Base):
             memory_Info.TotalSystemMemoryGiB(None)
             # 通过sensor获取cpu_power
             sensor = IpmiFunc.getSensorByNameByIpmi(client, 'Memory_Power')
-            if sensor and sensor.get('code') == 0:
+            if sensor and sensor.get('code') == 0 and sensor.get('data'):
                 temp = sensor.get('data')[0].get('value')
                 memory_Info.TotalPowerWatts(float(temp) if (
                     temp is not None and temp != 'na') else None)
@@ -5951,7 +5951,7 @@ class CommonM6(Base):
                     fan_Info.FanSpeedAdjustmentMode(None)
             # 通过sensor获取fan_power
             sensor = IpmiFunc.getSensorByNameByIpmi(client, 'FAN_Power')
-            if sensor and sensor.get('code') == 0:
+            if sensor and sensor.get('code') == 0 and sensor.get('data'):
                 temp = sensor.get('data')[0].get('value')
                 fan_Info.FanTotalPowerWatts(float(temp) if (
                     temp is not None and temp != 'na') else None)
@@ -8831,8 +8831,8 @@ class CommonM6(Base):
             args.enabled = args.status
         else:
             args.enabled = None
-        if 'stap_port' in args:
-            args.trapport = args.stap_port
+        if 'trap_port' in args:
+            args.trapport = args.trap_port
         else:
             args.trapport = None
         if 'destination' in args:
@@ -11919,22 +11919,26 @@ def addUser(client, args):
             userinfo.Message(['username already exist.'])
         elif space_flag:
             # add
-            if "kvm" in args.priv.lower():
-                args.kvm = 1
-            else:
-                args.kvm = 0
-            if "vmm" in args.priv.lower():
-                args.vmm = 1
-            else:
-                args.vmm = 0
-            if "sol" in args.priv.lower():
-                args.sol = 1
-            else:
-                args.sol = 0
-            if "none" in args.priv.lower():
-                args.sol = 0
-                args.vmm = 0
-                args.kvm = 0
+            if args.priv is not None:
+                if "kvm" in args.priv:
+                    args.kvm = 1
+                else:
+                    args.kvm = 0
+                if "vmm" in args.priv:
+                    args.vmm = 1
+                else:
+                    args.vmm = 0
+                if "sol" in args.priv:
+                    args.sol = 1
+                else:
+                    args.sol = 0
+                if "none" in args.priv:
+                    args.sol = 0
+                    args.vmm = 0
+                    args.kvm = 0
+            args.access = 1
+            args.email = ''
+            args.group = args.roleid
             res_add = RestFunc.addUserByRestM6(client, args)
             if res_add.get('code') == 0:
                 userinfo.State("Success")
@@ -11975,44 +11979,91 @@ def setUser(client, args):
                 break
         # 有该用户
         if user_flag:
+            if args.roleid is not None:
+                if args.roleid == "NoAccess":
+                    if args.uname == client.username:
+                        userinfo.State("Failure")
+                        userinfo.Message(["cannot disable yourself"])
+                        RestFunc.logout(client)
+                        return userinfo
+                    # 权限为无权限 则无法登陆以及默认为用户
+                    args.access = 0
+                    args.group = user_old["group_name"]
+                elif args.roleid == "OEM":
+                    args.access = 1
+                    args.group = user_old["group_name"]
+                elif args.roleid == "Commonuser":
+                    args.roleid = "User"
+                    args.group = args.roleid
+                    args.access = 1
+                else:
+                    args.group = args.roleid
+                    args.access = 1
             user_old["UserOperation"] = 1
-            if args.newpass is not None:
-                user_old["changepassword"] = 1
-                # user_old["confirm_password"] = Encrypt("add",args.newpass)
-                user_old["confirm_password"] = args.newpass
-                user_old["password"] = args.newpass
-                user_old["session_confirm"] = client.passcode
-            else:
-                user_old["changepassword"] = 0
-                user_old["confirm_password"] = ""
-                user_old["password"] = ""
-                user_old["session_confirm"] = ""
+            user_old["changepassword"] = 0
+            user_old["confirm_password"] = ""
+            user_old["password"] = ""
+            user_old["session_confirm"] = ""
 
             user_old["password_size"] = "bytes_16"
-
-            if args.newname is not None:
-                # user_old["name"] = Encrypt("add", args.newname)
-                user_old["name"] = args.newname
-            else:
-                # user_old["name"] = Encrypt("add", user_old["name"])
-                user_old["name"] = user_old["name"]
-
-            if args.email is not None:
-                user_old["email_format"] = "ami_format"
-                user_old["email_id"] = args.email
-
-            if args.access is not None:
-                user_old["access"] = args.access
+            user_old["email_format"] = "ami_format"
+            user_old["email_id"] = ''
+            user_old["access"] = args.access
 
             if args.group is not None:
-                # user_old["privilege"] = args.group
                 user_old["group_name"] = args.group
 
             args.json = user_old
+            if args.priv is not None:
+                if "kvm" in args.priv:
+                    args.kvm = 1
+                else:
+                    args.kvm = 0
+                if "vmm" in args.priv:
+                    args.vmm = 1
+                else:
+                    args.vmm = 0
+                if "sol" in args.priv:
+                    args.sol = 1
+                else:
+                    args.sol = 0
+                if "none" in args.priv:
+                    args.sol = 0
+                    args.vmm = 0
+                    args.kvm = 0
             res_set = RestFunc.setUserByRestM6(client, args)
             if res_set.get('code') == 0:
-                userinfo.State("Success")
-                userinfo.Message(['set user priv success.'])
+                # 设置权限none
+                if args.roleid == "NoAccess":
+                    userRes = IpmiFunc.setUserPrivByIpmi(
+                        client, args.uname, 15)
+                    if userRes == 0:
+                        userinfo.State("Success")
+                        userinfo.Message(['set user success.'])
+                    else:
+                        userinfo.State("Failure")
+                        userinfo.Message(['set user priv noaccess error.'])
+                elif args.roleid == "OEM":
+                    userRes = IpmiFunc.setUserPrivByIpmi(
+                        client, args.uname, 5)
+                    if userRes == 0:
+                        userinfo.State("Success")
+                        userinfo.Message(['set user success.'])
+                    else:
+                        userinfo.State("Failure")
+                        userinfo.Message(['set user priv oem error.'])
+                else:
+                    userinfo.State("Success")
+                    userinfo.Message(['set user priv success.'])
+                if userinfo.State == "Success":
+                    userinfo = ResultBean()
+                    result = setPwd(client, args)
+                    if result.State == "Success":
+                        userinfo.State("Success")
+                        userinfo.Message(['set user success.'])
+                    else:
+                        userinfo.State("Failure")
+                        userinfo.Message(result.Message)
             else:
                 userinfo.State('Failure')
                 userinfo.Message([res_set.get('data')])
@@ -12027,6 +12078,36 @@ def setUser(client, args):
         userinfo.Message(
             ["get information error, error code " + str(res.get('code'))])
     return userinfo
+
+
+def setPwd(client, args):
+    res = ResultBean()
+    result = IpmiFunc.getUserByIpmi(client)
+    if result['code'] != 0:
+        res.State("Failure")
+        res.Message([result['data']])
+        return res
+    userlist = result['data']
+    flag = False
+    for item in userlist:
+        if not item:
+            continue
+        if item['UserName'] == args.uname:
+            flag = True
+            user = item
+            break
+    if not flag:
+        res.State("Failure")
+        res.Message(["user not exits"])
+        return res
+    userRes = IpmiFunc.setUserPassByIpmi(client, user['UserId'], args.upass)
+    if userRes['code'] == 0:
+        res.State("Success")
+        res.Message([])
+    else:
+        res.State("Failure")
+        res.Message(["set user password faild"])
+    return res
 
 
 def delUser(client, args):

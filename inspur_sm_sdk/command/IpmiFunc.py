@@ -1411,7 +1411,6 @@ def __getCmd_type(client, cmd_get, rt):
         res['data'] = 'error occurs while reading file!'
         return res
     except:
-        print('Failure: error executing IPMI command.')
         res['code'] = 2
         res['data'] = 'error executing IPMI command.'
         return res

@@ -1246,48 +1246,40 @@ def addUserByRestM6(client, args):
         JSON['code'] = 1
         JSON['data'] = 'uname cannot be none'
         return JSON
-    import time
-    ctime = str(time.time()).split(".")[0]
-    # if args.channel == 8:
-    #     id = args.uerid + 16
-    # else:
-    #     id = args.uerid
-    roleid_dict = {"Administrator": "administrator",
-                   "Operator": "operator",
-                   "Commonuser": "user",
-                   "OEM": "oem",
-                   "NoAccess": "none"}
-    roleid = roleid_dict[args.roleid]
-    roleid2 = "(" + roleid + "," + roleid + ")"
-    access2 = "(" + str(args.access) + "," + str(args.access) + ")"
-    data = {"OEMProprietary_level_Privilege": 0,
-            "UserOperation": 1,
+
+    # uname = Encrypt(args.uname, "add")
+    # upass = Encrypt(args.upass, "add")
+    uname = args.uname
+    upass = args.upass
+
+    data = {"OEMProprietary_level_Privilege": 1,
+            "UserOperation": 0,
             "access": args.access,
-            "accessByChannel": access2,
-            "channel": 1,
             "channel_type": 4,
-            "confirm_password": args.upass,
-            "creation_time": ctime,
+            "confirm_password": upass,
+            "creation_time": 0,
             "email_format": "ami_format",
             "email_id": args.email,
             "fixed_user_count": 0,
+            "group_name": args.group,
             "id": args.userid,
             "kvm": args.kvm,
-            "name": args.uname,
+            "name": uname,
             "changepassword": 1,
-            "password": args.upass,
+            "password": upass,
             "password_size": "bytes_16",
             "prev_snmp": 0,
-            "privilege": roleid,
-            "privilegeByChannel": roleid2,
+            "privilege": "",
+            "session_confirm": "",
             "snmp": 0,
-            "snmp_access": None,
+            "snmp_access": 0,
             "snmp_authentication_protocol": None,
             "snmp_privacy_protocol": None,
             "sol": args.sol,
             "ssh_key": "Not Available",
             "userid": args.userid,
             "vmedia": args.vmm}
+    #print(data)
     response = client.request("PUT", "api/settings/users/" + str(args.userid), client.getHearder(), data=None,
                               json=data)
     if response is None:
