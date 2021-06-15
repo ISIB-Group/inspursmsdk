@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 
 ERR_dict = {

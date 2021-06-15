@@ -677,7 +677,7 @@ def resetBMCByIpmi(client):
 # p4 Product Serial
 # p5 Product Asset Tag
 def editFruByIpmi(client, fruid, section, index, value):
-    cmd_get = 'fru edit ' + str(fruid) + ' field' + str(section) + ' ' + str(index) + ' ' + value
+    cmd_get = 'fru edit ' + str(fruid) + ' field ' + str(section) + ' ' + str(index) + ' ' + value
     return sendRawByIpmi(client, cmd_get)
 
 
