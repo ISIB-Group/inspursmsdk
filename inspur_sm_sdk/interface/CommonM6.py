@@ -4581,13 +4581,13 @@ class CommonM6(Base):
 
         # check param
         if args.localMediaSupport is not None:
-            if args.localMediaSupport == "enable":
+            if args.localMediaSupport == "Enable":
                 old_settings["local_media_support"] = 1
             else:
                 old_settings["local_media_support"] = 0
 
         if args.remoteMediaSupport is not None:
-            if args.remoteMediaSupport == "enable":
+            if args.remoteMediaSupport == "Enable":
                 old_settings["remote_media_support"] = 1
             else:
                 old_settings["remote_media_support"] = 0
@@ -6832,7 +6832,7 @@ class CommonM6(Base):
                 section, index = Fru_Attr.get(args.attribute)
                 re = IpmiFunc.editFruByIpmi(
                     client, 0, section, index, args.value)
-                state = re.get('State', -1)
+                state = re.get('code', -1)
                 if state == 0:
                     result.State('Success')
                     result.Message(
@@ -8052,8 +8052,7 @@ class CommonM6(Base):
                 if rest_result.get('code') == 0 and rest_result.get(
                         'data') is not None:
                     for item in rest_result.get('data'):
-                        if item['service_name'].replace(
-                                '-', '') == args.servicename:
+                        if item['service_name'] == args.servicename:
                             Info = item
                             break
                 else:
@@ -8309,7 +8308,10 @@ class CommonM6(Base):
         if args.autoDate is None:
             auto_date = default_NTP_auto_date
         else:
-            auto_date = args.autoDate
+            if args.autoDate == 'enable':
+                auto_date = 'auto'
+            else:
+                auto_date = 'manual'
         dhcp4 = default_NTP_dhcp4
         dhcp6 = default_NTP_dhcp6
         if auto_date != 'auto':
