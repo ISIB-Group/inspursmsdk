@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.0.3'
+__version__ = '1.0.5'
 
 
 ERR_dict = {
@@ -103,7 +103,7 @@ def main(params):
     try:
         resultJson = targetMed(client, args)
     except Exception as e:
-        # # 保留日志
+        # 保留日志
         # import traceback
         # utool_path = os.path.dirname(os.path.abspath(__file__))
         # # print(utool_path)

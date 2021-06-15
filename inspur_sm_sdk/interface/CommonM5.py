@@ -15127,7 +15127,7 @@ def setPwd(client, args):
         res.Message(["user not exits"])
         return res
     userRes = IpmiFunc.setUserPassByIpmi(client, user['UserId'], args.upass)
-    if userRes == 0:
+    if userRes['code'] == 0:
         res.State("Success")
         res.Message([])
     else:
