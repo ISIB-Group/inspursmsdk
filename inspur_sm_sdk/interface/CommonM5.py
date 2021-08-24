@@ -14956,6 +14956,8 @@ def addUser(client, args):
             else:
                 args.group = args.roleid
                 args.access = 1
+            if args.email is None:
+                args.email = ""
             res_add = RestFunc.addUserByRest(client, args)
             if res_add.get('code') == 0:
                 # 设置权限none
@@ -15058,6 +15060,8 @@ def setUser(client, args):
                 else:
                     args.group = args.roleid
                     args.access = 1
+            if args.email is None:
+                args.email = ""
             res_set = RestFunc.setUserByRest(client, args)
             if res_set.get('code') == 0:
                 # 设置权限none
