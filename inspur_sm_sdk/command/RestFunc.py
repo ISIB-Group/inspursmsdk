@@ -1201,7 +1201,7 @@ def addUserByRest(client, args):
         JSON['data'] = 'uname cannot be none'
         return JSON
     data = {"UserOperation": 0, "password_old": "", "access": args.access, "changepassword": 1,
-            "confirm_password": args.upass, "email_format": "ami_format", "email_id": "", "fixed_user_count": 2,
+            "confirm_password": args.upass, "email_format": "ami_format", "email_id": args.email, "fixed_user_count": 2,
             "id": args.userID, "kvm": args.kvm, "name": args.uname, "group_name": args.group,
             "network_privilege": args.roleid, "password": args.upass, "password_size": "bytes_16",
             "privilege_limit_serial": "user", "snmp": 0, "snmp_access": "read_only",
@@ -1302,7 +1302,7 @@ def setUserByRest(client, args):
         JSON['data'] = 'uname cannot be none'
         return JSON
     data = {"UserOperation": 1, "access": args.access, "changepassword": 0, "confirm_password": "",
-            "email_format": "ami_format", "email_id": "", "fixed_user_count": 2, "id": args.userID, "kvm": args.kvm,
+            "email_format": "ami_format", "email_id": args.email, "fixed_user_count": 2, "id": args.userID, "kvm": args.kvm,
             "name": args.uname, "group_name": args.group, "network_privilege": args.roleid, "password": "",
             "privilege_limit_serial": "user", "snmp": 0, "snmp_access": "read_only",
             "snmp_authentication_protocol": "sha", "snmp_privacy_protocol": "des", "ssh_key": "Not Available",

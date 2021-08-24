@@ -11939,7 +11939,8 @@ def addUser(client, args):
                     args.vmm = 0
                     args.kvm = 0
             args.access = 1
-            args.email = ''
+            if args.email is None:
+                args.email = ""
             args.group = args.roleid
             res_add = RestFunc.addUserByRestM6(client, args)
             if res_add.get('code') == 0:
@@ -12009,7 +12010,10 @@ def setUser(client, args):
 
             user_old["password_size"] = "bytes_16"
             user_old["email_format"] = "ami_format"
-            user_old["email_id"] = ''
+            if args.email is not None:
+                user_old["email_id"] = args.email
+            else:
+                user_old["email_id"] = ''
             user_old["access"] = args.access
 
             if args.group is not None:
