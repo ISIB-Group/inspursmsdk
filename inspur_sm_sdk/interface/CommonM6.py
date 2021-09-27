@@ -11044,14 +11044,14 @@ def createVirtualDrive(client, args):
 def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
     result = ResultBean()
     if args.ctrlId is None or args.access is None or args.cache is None or args.init is None \
-            or args.rlevel is None or args.pdlist is None or args.size is None or args.r is None or \
+            or args.rlevel is None or args.slot is None or args.size is None or args.r is None or \
             args.w is None or args.io is None or args.select is None:
         result.State('Failure')
         result.Message(['some parameters are missing'])
         return result
 
     # args.pd
-    args.pdlist = args.pdlist.strip().split(',')
+    args.pdlist = args.slot.strip().split(',')
     pd_para_len = len(args.pdlist)
 
     # set raid
@@ -11136,14 +11136,14 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
 
 def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
     result = ResultBean()
-    if args.size is None or args.vname is None or args.accelerator is None or args.pdlist is None or \
+    if args.size is None or args.vname is None or args.accelerator is None or args.slot is None or \
             args.rlevel is None:
         result.State('Failure')
         result.Message(['some parameters are missing'])
         return result
 
     # args.pd
-    args.pdlist = args.pdlist.strip().split(',')
+    args.pdlist = args.slot.strip().split(',')
     pd_para_len = len(args.pdlist)
 
     # set raid
