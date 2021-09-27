@@ -181,7 +181,7 @@ class CommonM6(Base):
         '''
         clear_result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -427,7 +427,7 @@ class CommonM6(Base):
                 result.Message([fw.dict])
                 return result
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -555,7 +555,7 @@ class CommonM6(Base):
 
         # check param end
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -600,7 +600,7 @@ class CommonM6(Base):
 
     def getbmcinfo(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -716,7 +716,7 @@ class CommonM6(Base):
         :return:
         '''
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -846,7 +846,7 @@ class CommonM6(Base):
         :return:
         '''
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -972,7 +972,7 @@ class CommonM6(Base):
             checkparam_res.Message(["The file url is not file."])
             return checkparam_res
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -1217,7 +1217,7 @@ class CommonM6(Base):
                     import time
                     time.sleep(20)
                 # login
-                headers = RestFunc.loginNoEncrypt(client)
+                headers = RestFunc.login_M6(client)
                 if headers != {}:
                     # 记录session
                     with open(session_path, 'w') as new_session:
@@ -1666,7 +1666,7 @@ class CommonM6(Base):
                         result.Message)
                     break
                 try:
-                    headers = RestFunc.loginNoEncrypt(client)
+                    headers = RestFunc.login_M6(client)
                     if headers != {}:
                         with open(session_path, 'w') as new_session:
                             new_session.write(str(headers))
@@ -2125,7 +2125,7 @@ class CommonM6(Base):
     #                 import time
     #                 time.sleep(20)
     #             # login
-    #             headers = RestFunc.loginNoEncrypt(client)
+    #             headers = RestFunc.login_M6(client)
     #             if headers != {}:
     #                 # 记录session
     #                 with open(session_path, 'w') as new_session:
@@ -2411,7 +2411,7 @@ class CommonM6(Base):
     #                 result.Message(["Cannot login BMC."])
     #                 break
     #             try:
-    #                 headers = RestFunc.loginNoEncrypt(client)
+    #                 headers = RestFunc.login_M6(client)
     #                 if headers != {}:
     #                     with open(session_path, 'w') as new_session:
     #                         new_session.write(str(headers))
@@ -2663,7 +2663,7 @@ class CommonM6(Base):
     #         continue
 
     def getusergroup(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2717,7 +2717,7 @@ class CommonM6(Base):
 
     def setusergroup(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2737,7 +2737,7 @@ class CommonM6(Base):
 
     def editusergroup(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2752,7 +2752,7 @@ class CommonM6(Base):
     def getuser(self, client, args):
         userinfo = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2815,7 +2815,7 @@ class CommonM6(Base):
             userinfo.State('Failure')
             userinfo.Message(['Illegal password.'])
             return userinfo
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2830,7 +2830,7 @@ class CommonM6(Base):
 
     # add new name pass email
     def setuser(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2845,7 +2845,7 @@ class CommonM6(Base):
 
     def deluser(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2860,7 +2860,7 @@ class CommonM6(Base):
 
     def edituser(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2877,7 +2877,7 @@ class CommonM6(Base):
         result = ResultBean()
         rule_result = UserRuleBean()
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -2920,7 +2920,7 @@ class CommonM6(Base):
         return result
 
     def setuserrule(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3049,7 +3049,7 @@ class CommonM6(Base):
                 ["param date and count cannot be set together at one query"])
             return logres
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3173,7 +3173,7 @@ class CommonM6(Base):
         return logres
 
     def geteventlogpolicy(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3197,7 +3197,7 @@ class CommonM6(Base):
         return res
 
     def seteventlogpolicy(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3263,7 +3263,7 @@ class CommonM6(Base):
                 ["param date and count cannot be set together at one query"])
             return nicRes
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3440,7 +3440,7 @@ class CommonM6(Base):
                 ["param date and count cannot be set together at one query"])
             return nicRes
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3564,7 +3564,7 @@ class CommonM6(Base):
     def getbmclogsettings1(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3587,7 +3587,7 @@ class CommonM6(Base):
     def setbmclogsettings1(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3739,7 +3739,7 @@ class CommonM6(Base):
     def resetkvm(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3762,7 +3762,7 @@ class CommonM6(Base):
     def resetbmc(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3785,7 +3785,7 @@ class CommonM6(Base):
     def getldap(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3822,7 +3822,7 @@ class CommonM6(Base):
     # def setldap(self, client, args):
     #     result = ResultBean()
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -3918,7 +3918,7 @@ class CommonM6(Base):
 
     def getldapgroup(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -3932,7 +3932,7 @@ class CommonM6(Base):
 
     # def addldapgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -3946,7 +3946,7 @@ class CommonM6(Base):
     #
     # def setldapgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -3960,7 +3960,7 @@ class CommonM6(Base):
     #
     # def delldapgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -3974,7 +3974,7 @@ class CommonM6(Base):
 
     # def editldapgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -3989,7 +3989,7 @@ class CommonM6(Base):
     def getad(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4023,7 +4023,7 @@ class CommonM6(Base):
     # def setad(self, client, args):
     #     result = ResultBean()
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -4119,7 +4119,7 @@ class CommonM6(Base):
 
     def getadgroup(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4133,7 +4133,7 @@ class CommonM6(Base):
 
     # def addadgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -4147,7 +4147,7 @@ class CommonM6(Base):
     #
     # def setadgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -4161,7 +4161,7 @@ class CommonM6(Base):
     #
     # def deladgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -4175,7 +4175,7 @@ class CommonM6(Base):
 
     # def editadgroup(self, client, args):
     #     # login
-    #     headers = RestFunc.loginNoEncrypt(client)
+    #     headers = RestFunc.login_M6(client)
     #     if headers == {}:
     #         login_res = ResultBean()
     #         login_res.State("Failure")
@@ -4275,7 +4275,7 @@ class CommonM6(Base):
 
         # check param end
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4319,7 +4319,7 @@ class CommonM6(Base):
     def getpreserveconfig(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4343,7 +4343,7 @@ class CommonM6(Base):
     def preserveconfig(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4373,7 +4373,7 @@ class CommonM6(Base):
     def restorefactorydefaults(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4404,7 +4404,7 @@ class CommonM6(Base):
     def getvirtualmedia(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4458,7 +4458,7 @@ class CommonM6(Base):
     def setvirtualmediaT6(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4559,7 +4559,7 @@ class CommonM6(Base):
     def setvirtualmedia(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4684,7 +4684,7 @@ class CommonM6(Base):
     def getmediainstance(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4719,7 +4719,7 @@ class CommonM6(Base):
     def setmediainstance(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4822,7 +4822,7 @@ class CommonM6(Base):
                              }
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4861,7 +4861,7 @@ class CommonM6(Base):
 
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4919,7 +4919,7 @@ class CommonM6(Base):
         enable_dict = {1: "Enable", 0: "Disable"}
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -4982,7 +4982,7 @@ class CommonM6(Base):
         enable_dict = {"enable": 1, "disable": 0}
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5075,7 +5075,7 @@ class CommonM6(Base):
     def getselftest(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5110,7 +5110,7 @@ class CommonM6(Base):
     def getscreen(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5139,7 +5139,7 @@ class CommonM6(Base):
     def setscreen(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5222,7 +5222,7 @@ class CommonM6(Base):
 
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5245,7 +5245,7 @@ class CommonM6(Base):
     def screenmanual(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5327,7 +5327,7 @@ class CommonM6(Base):
 
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5350,7 +5350,7 @@ class CommonM6(Base):
     def getpowerstatus(self, client, args):
         result = ResultBean()
         power_result = PowerStatusBean()
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5380,7 +5380,7 @@ class CommonM6(Base):
     def getuptime(self, client, args):
         result = ResultBean()
         time_result = UpTimeBean()
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5414,7 +5414,7 @@ class CommonM6(Base):
         return result
 
     def getip(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5485,7 +5485,7 @@ class CommonM6(Base):
     def getsessions(self, client, args):
         result = ResultBean()
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5520,7 +5520,7 @@ class CommonM6(Base):
 
     def delsession(self, client, args):
         result = ResultBean()
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5595,7 +5595,7 @@ class CommonM6(Base):
         :param args:
         :return:
         '''
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5715,7 +5715,7 @@ class CommonM6(Base):
         :param args:
         :return:
         '''
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5854,7 +5854,7 @@ class CommonM6(Base):
         return result
 
     def getfan(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -5974,7 +5974,7 @@ class CommonM6(Base):
 
 
     def getharddisk(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6028,7 +6028,7 @@ class CommonM6(Base):
         return result
 
     def gethardboard(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6068,8 +6068,60 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return result
 
+    def gethdddisk(self, client, args):
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = ResultBean()
+        hdd_info = RestFunc.getHddBMCByRest(client)
+        if hdd_info == {}:
+            result.State('Failure')
+            result.Message(['get on board disk info failed'])
+        elif hdd_info.get('code') == 0 and hdd_info.get('data') is not None:
+            hdd_data = hdd_info.get('data')
+            hdd_list = []
+            for item in hdd_data:
+                hdd_dict = collections.OrderedDict()
+                if "id" in item:
+                    hdd_dict['ID'] = item['id']
+                if "present" in item:
+                    if item['present'] == 1:
+                        hdd_dict['PresentStatus'] = "Yes"
+                    else:
+                        hdd_dict['PresentStatus'] = "No"
+                if "enable" in item:
+                    if item['enable'] == 1:
+                        status = "OK"
+                    else:
+                        status = "No"
+                    hdd_dict['Status'] = status
+                if "capacity" in item:
+                    hdd_dict['Capacity(GB)'] = item['capacity']
+                if "model" in item:
+                    hdd_dict['Model'] = str(item['model']).strip()
+                if "SN" in item:
+                    hdd_dict['SN'] = str(item['SN']).strip()
+                if "firmware" in item:
+                    hdd_dict['Firmware'] = str(item['firmware']).strip()
+                if "location" in item:
+                    hdd_dict['Location'] = str(item['location']).strip()
+                if "manufacture" in item:
+                    hdd_dict['Manufacture'] = str(item['manufacture']).strip()
+                hdd_list.append(hdd_dict)
+            result.State("Success")
+            result.Message(hdd_list)
+        else:
+            result.State("Failure")
+            result.Message(["get hard disk info error, error info: " + str(hdd_info.get('data'))])
+        RestFunc.logout(client)
+        return result
+
     def getbackplane(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6111,7 +6163,7 @@ class CommonM6(Base):
         return result
 
     def getpcie(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6176,7 +6228,7 @@ class CommonM6(Base):
         return result
 
     def getnic(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6285,7 +6337,7 @@ class CommonM6(Base):
     def getbmcnic(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6322,7 +6374,7 @@ class CommonM6(Base):
         return result
 
     def getpsu(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6445,7 +6497,7 @@ class CommonM6(Base):
         return psu_return
 
     def getsensor(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6531,7 +6583,7 @@ class CommonM6(Base):
         return result
 
     def gettemp(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6605,7 +6657,7 @@ class CommonM6(Base):
 
 
     def getvolt(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6680,7 +6732,7 @@ class CommonM6(Base):
 
     def getuid(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6723,7 +6775,7 @@ class CommonM6(Base):
             "blink_time": BlinkTime
         }
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6760,7 +6812,7 @@ class CommonM6(Base):
             'GracefulShutdown': 'shutdown'
         }
         args.state = choices.get(args.state)
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6859,7 +6911,7 @@ class CommonM6(Base):
         return flag
 
     def getnetwork(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -6935,7 +6987,7 @@ class CommonM6(Base):
 
     # M6 只支持disable enable 参数不全 所以用setipv4/6
     def setnetwork(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7028,7 +7080,7 @@ class CommonM6(Base):
             return ipinfo
 
     def setipv4(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7163,7 +7215,7 @@ class CommonM6(Base):
             return ipinfo
 
     def setipv6(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7321,7 +7373,7 @@ class CommonM6(Base):
             return None
 
     def setvlan(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7438,7 +7490,7 @@ class CommonM6(Base):
             return ipinfo
 
     def getdns(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7479,7 +7531,7 @@ class CommonM6(Base):
         return result
 
     def setdns(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -7853,7 +7905,7 @@ class CommonM6(Base):
         return result
 
     def getservice(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8019,7 +8071,7 @@ class CommonM6(Base):
                 set_result.Message(["The timeout(-T) are not support to set."])
                 return set_result
         # 获取信息
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8162,7 +8214,7 @@ class CommonM6(Base):
             return set_result
 
     def gettime(self, client, args):
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8256,7 +8308,7 @@ class CommonM6(Base):
             timeinfo.State("Failure")
             timeinfo.Message(["No setting changed"])
             return timeinfo
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8464,7 +8516,7 @@ class CommonM6(Base):
 
     def gettrap(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8560,7 +8612,7 @@ class CommonM6(Base):
 
     def settrapcom(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8855,7 +8907,7 @@ class CommonM6(Base):
         else:
             args.destinationid = args.destinationid - 1
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -8975,7 +9027,7 @@ class CommonM6(Base):
 
     def getsmtp(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9045,7 +9097,7 @@ class CommonM6(Base):
 
     def setsmtpcom(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9247,7 +9299,7 @@ class CommonM6(Base):
             result.State("Failure")
             result.Message(['nothing to change.'])
             return result
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9318,7 +9370,7 @@ class CommonM6(Base):
         else:
             args.destinationid = args.destinationid - 1
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9419,7 +9471,7 @@ class CommonM6(Base):
 
     def getsnmp1(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9465,7 +9517,7 @@ class CommonM6(Base):
 
     def setsnmp1(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9596,7 +9648,7 @@ class CommonM6(Base):
                 result.Message(['Manual must be used with fanspeedlevel '])
                 return result
 
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9768,7 +9820,7 @@ class CommonM6(Base):
 
     def getnetworkadaptivecfg(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9800,7 +9852,7 @@ class CommonM6(Base):
 
     def getncsirange(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9840,7 +9892,7 @@ class CommonM6(Base):
     def getsysboot(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9871,7 +9923,7 @@ class CommonM6(Base):
             result.Message(["The boot Device option {} is not supported on the M6 model.".format(args.device)])
             return result
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -9895,7 +9947,7 @@ class CommonM6(Base):
 
     def setnetworkadaptivecfg(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10019,7 +10071,7 @@ class CommonM6(Base):
     def getraid(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10043,7 +10095,7 @@ class CommonM6(Base):
     def getpdisk(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10067,7 +10119,7 @@ class CommonM6(Base):
     def getldisk(self, client, args):
         result = ResultBean()
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10090,7 +10142,7 @@ class CommonM6(Base):
 
     def setpdisk(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10122,7 +10174,7 @@ class CommonM6(Base):
             locate_Info.Message(['pid is needed.'])
             return locate_Info
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10219,7 +10271,7 @@ class CommonM6(Base):
 
     def setldisk(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10252,7 +10304,7 @@ class CommonM6(Base):
             locate_Info.Message(['lid is needed.'])
             return locate_Info
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10319,7 +10371,7 @@ class CommonM6(Base):
             locate_Info.Message(['cid is needed.'])
             return locate_Info
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10347,7 +10399,7 @@ class CommonM6(Base):
 
     def addldisk(self, client, args):
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10389,7 +10441,7 @@ class CommonM6(Base):
             data["pdDeviceIndex" + str(i)] = args.pdlist[i]
 
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
@@ -10422,7 +10474,7 @@ class CommonM6(Base):
         :return:
         '''
         # login
-        headers = RestFunc.loginNoEncrypt(client)
+        headers = RestFunc.login_M6(client)
         client.setHearder(headers)
         product_Result = ResultBean()
         product_Info = ProductBean()
@@ -10897,11 +10949,20 @@ def createVirtualDrive(client, args):
     result = ResultBean()
     ctrl_id_name_dict = {}
     ctrl_id_list = []
+    ctrl_type_dict = {
+        "LSI": [],
+        "PMC": []
+    }
     res = RestFunc.getRaidCtrlInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
         ctrls = res.get('data')
         for ctrl in ctrls:
-            if ctrl.get("RaidType") == "LSI":
+            if str(ctrl.get("RaidType")).upper() == "PMC":
+                ctrl_type_dict['PMC'].append(ctrl["Name"])
+                ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
+                ctrl_id_list.append(str(ctrl["Index"]))
+            elif str(ctrl.get("RaidType")).upper() == "LSI":
+                ctrl_type_dict['LSI'].append(ctrl["Name"])
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
     else:
@@ -10933,6 +10994,10 @@ def createVirtualDrive(client, args):
             raidDict = collections.OrderedDict()
             raidDict['Controller ID'] = ctrlid
             raidDict['Controller Name'] = ctrl_id_name_dict.get(ctrlid)
+            if str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('LSI'):
+                raidDict['Controller Type'] = "LSI"
+            else:
+                raidDict['Controller Type'] = "PMC"
             pdiskList = []
             for pd in pds:
                 if pd.get("ControllerName") == ctrl_id_name_dict.get(ctrlid):
@@ -10940,10 +11005,30 @@ def createVirtualDrive(client, args):
                     pdiskDict = collections.OrderedDict()
                     pdiskDict['Slot Number'] = pd.get("SlotNum")
                     pdiskDict['Drive Name'] = pd.get("Name")
-                    pdiskDict['Interface'] = pd.get("InterfaceType")
-                    pdiskDict['Media Type'] = pd.get("MediaType")
-                    pdiskDict['Capacity'] = pd.get("NONCoercedSize")
-                    pdiskDict['Firmware State'] = pd.get("FWState")
+                    if "InterfaceType" in pd:
+                        pdiskDict['Interface'] = pd.get("InterfaceType")
+                    elif "interface_type" in pd:
+                        pdiskDict['Interface'] = pd.get("interface_type")
+                    else:
+                        pdiskDict['Interface'] = None
+                    if "MediaType" in pd:
+                        pdiskDict['Media Type'] = pd.get("MediaType")
+                    elif "type" in pd:
+                        pdiskDict['Media Type'] = pd.get("type")
+                    else:
+                        pdiskDict['Media Type'] = None
+                    if "NONCoercedSize" in pd:
+                        pdiskDict['Capacity'] = pd.get("NONCoercedSize")
+                    elif "size" in pd:
+                        pdiskDict['Capacity'] = pd.get("size")
+                    else:
+                        pdiskDict['Capacity'] = None
+                    if "FWState" in pd:
+                        pdiskDict['Firmware State'] = pd.get("FWState")
+                    elif "Physical_Drive_Status_Info" in pd:
+                        pdiskDict['Firmware State'] = pd.get("Physical_Drive_Status_Info")
+                    else:
+                        pdiskDict['Firmware State'] = None
                     pdiskList.append(pdiskDict)
             raidDict['pdisk'] = pdiskList
             raidList.append(raidDict)
@@ -10955,6 +11040,9 @@ def createVirtualDrive(client, args):
         result.Message(raidList)
         return result
 
+
+def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
+    result = ResultBean()
     if args.ctrlId is None or args.access is None or args.cache is None or args.init is None \
             or args.rlevel is None or args.pdlist is None or args.size is None or args.r is None or \
             args.w is None or args.io is None or args.select is None:
@@ -11011,11 +11099,15 @@ def createVirtualDrive(client, args):
     args.io = io_dict.get(args.io)
     args.cache = cache_dict.get(args.cache)
     args.init = init_dict.get(args.init)
+    pd_dev_list = []
+    for pd_slot_num in args.pdlist:
+        for pd in pds:
+            if pd['ControllerName'] == ctrl_id_name_dict.get(args.ctrlId) and pd['SlotNum'] == int(pd_slot_num):
+                pd_dev_list.append(pd['DeviceID'])
 
-    args.slot = args.slot.split(',')
     data = {
         "selectSize": args.select,
-        "numberPD": len(args.slot),
+        "numberPD": len(pd_dev_list),
         "ctrlId": args.ctrlId,
         "raidLevel": args.rlevel,
         "stripSize": args.stripSize,
@@ -11026,10 +11118,78 @@ def createVirtualDrive(client, args):
         "ioPolicy": args.ioPolicy,
         "initState": args.initState
     }
-    for i in range(len(args.slot)):
-        data["pdDeviceIndex" + str(i)] = args.slot[i]
+    for i in range(len(pd_dev_list)):
+        data["pdDeviceIndex" + str(i)] = pd_dev_list[i]
 
     res = RestFunc.addLogicalDisk(client, data)
+    if res == {}:
+        result.State("Failure")
+        result.Message(["create virtual drive failed"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        result.State('Success')
+        result.Message(['create virtual drive successful.'])
+    else:
+        result.State("Failure")
+        result.Message(['create virtual drive failed, ' + str(res.get('data'))])
+    return result
+
+
+def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
+    result = ResultBean()
+    if args.size is None or args.vname is None or args.accelerator is None or args.pdlist is None or \
+            args.rlevel is None:
+        result.State('Failure')
+        result.Message(['some parameters are missing'])
+        return result
+
+    # args.pd
+    args.pdlist = args.pdlist.strip().split(',')
+    pd_para_len = len(args.pdlist)
+
+    # set raid
+    if args.rlevel == 1:
+        if pd_para_len < 2:
+            result.State('Failure')
+            result.Message(['raid 1 need 2 disks at least'])
+            return result
+    elif args.rlevel == 5:
+        if pd_para_len < 3:
+            result.State('Failure')
+            result.Message(['raid 5 need 3 disks at least'])
+            return result
+    elif args.rlevel == 6:
+        if pd_para_len < 4:
+            result.State('Failure')
+            result.Message(['raid 6 need 4 disks at least'])
+            return result
+    elif args.rlevel == 10:
+        if pd_para_len < 4:
+            result.State('Failure')
+            result.Message(['raid 10 need 4 disks at least'])
+            return result
+    raid_dict = {0: "raid0", 1: "raid1", 5: "raid5", 6: "raid6", 10: "raid10"}
+    stripsize_dict_pmc = {1: 7, 2: 8, 3: 9, 4: 10, 5: 11}
+    args.rlevel = raid_dict.get(args.rlevel)
+    args.size = stripsize_dict_pmc.get(args.size)
+    pd_dev_list = []
+    for pd_slot_num in args.pdlist:
+        for pd in pds:
+            if pd['ControllerName'] == ctrl_id_name_dict.get(args.ctrlId) and pd['SlotNum'] == int(pd_slot_num):
+                pd_dev_list.append(pd['DeviceID'])
+    deviceId = "~".join(pd_dev_list)
+    data = {
+        "CTRLID": args.ctrlId,
+        "StripeSize": args.size,
+        "VDNAME": args.vname,
+        "accelerator": args.accelerator,
+        "array_number": 65535,
+        "deviceId": deviceId,
+        "numdrives": len(pd_dev_list),
+        "parity_group_count": 1,
+        "raid_level": args.rlevel,
+        "vendor_type": 1
+    }
+    res = RestFunc.createVirtualDrive(client, data)
     if res == {}:
         result.State("Failure")
         result.Message(["create virtual drive failed"])

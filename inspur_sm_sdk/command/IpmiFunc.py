@@ -1224,6 +1224,17 @@ def getMcInfoByIpmi(client):
     return JSON
 
 
+# 获取M6机型web界面的登录加密方式，01加密，00不加密
+def judge_encrypt(client):
+    cmd = "0x3c 0x05 0x28"
+    result = getLineRawByIpmi(client, cmd)
+    if result['code'] == 0:
+        data = result['data']
+        if data == "01":
+            return 1
+    return 0
+
+
 # 设置service
 def __setService(
         client,

@@ -12,9 +12,9 @@ import collections
 from Crypto.Cipher import Blowfish
 import copy
 import json
+import IpmiFunc
 try:
     from requests_toolbelt.multipart import encoder
-
     ISM_ENCODER = True
 except ImportError:
     ISM_ENCODER = False
@@ -2583,6 +2583,41 @@ def loginNoEncrypt(client):
                 "Cookie": response.headers["set-cookie"]
             }
     except BaseException:
+        headers = {}
+    return headers
+
+
+def login_M6(client):
+    try:
+        headers = {}
+        flag = IpmiFunc.judge_encrypt(client)
+        if flag == 1:
+            randomtag = client.request("GET", "api/randomtag", data=None, json=None)
+            if randomtag is not None and randomtag.status_code == 200 and 'random' in randomtag.json():
+                data = {
+                    "username": Encrypt(client.username),
+                    "password": Encrypt(client.passcode),
+                    "encrypt_flag": 1,
+                    "login_tag": randomtag.json().get('random')
+                }
+                response = client.request("POST", "api/session", data=data)
+                if response is not None and response.status_code == 200:
+                    headers = {
+                        "X-CSRFToken": response.json()["CSRFToken"],
+                        "Cookie": response.headers["set-cookie"]
+                    }
+        else:
+            data = {
+                "username": client.username,
+                "password": client.passcode,
+            }
+            response = client.request("POST", "api/session", data=data)
+            if response is not None and response.status_code == 200:
+                headers = {
+                    "X-CSRFToken": response.json()["CSRFToken"],
+                    "Cookie": response.headers["set-cookie"]
+                }
+    except:
         headers = {}
     return headers
 
@@ -6586,6 +6621,40 @@ def setRaidCtrlProperties(client, ctrlId, jbod, smartEr):
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/raid/setRaidCtrlProperties", r)
+    return JSON
+
+
+def addLogicalDisk(client, data):
+    JSON = {}
+    header = client.getHearder()
+    r = client.request("POST", "api/raid/addLogicalDisk", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/addLogicalDisk, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/addLogicalDisk", r)
+    return JSON
+
+
+def createVirtualDrive(client, data):
+    JSON = {}
+    header = client.getHearder()
+    r = client.request("POST", "api/settings/raid_management/create_virtual_drive", data=None, json=data,
+                       headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON[
+            "data"] = 'Failed to call BMC interface api/settings/raid_management/create_virtual_drive, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/raid_management/create_virtual_drive", r)
     return JSON
 
 
