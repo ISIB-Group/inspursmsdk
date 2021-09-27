@@ -5758,6 +5758,49 @@ class CommonM5(Base):
         RestFunc.logout(client)
         return result
 
+    def gethdddisk(self, client, args):
+        headers = RestFunc.login(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = ResultBean()
+        hdd_info = RestFunc.getHddBMCByRest(client)
+        if hdd_info == {}:
+            result.State('Failure')
+            result.Message(['get on board disk info failed'])
+        elif hdd_info.get('code') == 0 and hdd_info.get('data') is not None:
+            hdd_data = hdd_info.get('data')
+            hdd_list = []
+            for item in hdd_data:
+                if "present" in item and item['present'] == 1:
+                    hdd_dict = collections.OrderedDict()
+                    if "id" in item:
+                        hdd_dict['ID'] = item['id']
+                    hdd_dict['PresentStatus'] = "Yes"
+                    if "enable" in item:
+                        if item['enable'] == 1:
+                            status = "OK"
+                        else:
+                            status = "No"
+                        hdd_dict['Status'] = status
+                    if "capacity" in item:
+                        hdd_dict['Capacity(GB)'] = item['capacity']
+                    if "model" in item:
+                        hdd_dict['Model'] = item['model']
+                    if "SN" in item:
+                        hdd_dict['SN'] = item['SN']
+                    hdd_list.append(hdd_dict)
+            result.State("Success")
+            result.Message(hdd_list)
+        else:
+            result.State("Failure")
+            result.Message(["get hard disk info error, error info: " + str(hdd_info.get('data'))])
+        RestFunc.logout(client)
+        return result
+
     def getbackplane(self, client, args):
         result = ResultBean()
         # login

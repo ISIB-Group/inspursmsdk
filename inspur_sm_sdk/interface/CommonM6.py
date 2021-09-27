@@ -3985,7 +3985,7 @@ class CommonM6(Base):
     #     result = editLDAPGroup(client, args)
     #     RestFunc.logout(client)
     #     return result
-    
+
     def getad(self, client, args):
         result = ResultBean()
         # login
@@ -8896,7 +8896,6 @@ class CommonM6(Base):
         alertinfo = self.settrapdest(client, args)
         return alertinfo
 
-
     def settrapdest(self, client, args):
         snmpinfo = ResultBean()
         if args.destinationid is None or not isinstance(
@@ -10968,9 +10967,10 @@ def createVirtualDrive(client, args):
     else:
         result.State("Failure")
         result.Message(["ctrl Information Request Fail!" + res.get('data')])
+        return result
     if ctrl_id_list == []:
         result.State("Failure")
-        result.Message(["No LSI raid controller!"])
+        result.Message(["No raid controller!"])
         return result
 
     ctrl_list_dict = {}
@@ -10985,6 +10985,7 @@ def createVirtualDrive(client, args):
     else:
         result.State("Failure")
         result.Message(['get physical disk information failed!' + res.get('data')])
+        return result
     if args.Info is not None:
         for pd in ctrl_list_dict:
             ctrl_list_dict.get(pd).sort()
@@ -11039,19 +11040,27 @@ def createVirtualDrive(client, args):
         result.State('Success')
         result.Message(raidList)
         return result
+    if str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('LSI'):
+        result = addLogicalDisk(client, args, pds, ctrl_id_name_dict)
+    elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
+        result = addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict)
+    else:
+        result.State('Failure')
+        result.Message(["No raid controller!"])
+    return result
 
 
 def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
     result = ResultBean()
     if args.ctrlId is None or args.access is None or args.cache is None or args.init is None \
-            or args.rlevel is None or args.pdlist is None or args.size is None or args.r is None or \
+            or args.rlevel is None or args.slot is None or args.size is None or args.r is None or \
             args.w is None or args.io is None or args.select is None:
         result.State('Failure')
         result.Message(['some parameters are missing'])
         return result
 
     # args.pd
-    args.pdlist = args.pdlist.strip().split(',')
+    args.pdlist = args.slot.strip().split(',')
     pd_para_len = len(args.pdlist)
 
     # set raid
@@ -11136,14 +11145,14 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
 
 def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
     result = ResultBean()
-    if args.size is None or args.vname is None or args.accelerator is None or args.pdlist is None or \
+    if args.size is None or args.vname is None or args.accelerator is None or args.slot is None or \
             args.rlevel is None:
         result.State('Failure')
         result.Message(['some parameters are missing'])
         return result
 
     # args.pd
-    args.pdlist = args.pdlist.strip().split(',')
+    args.pdlist = args.slot.strip().split(',')
     pd_para_len = len(args.pdlist)
 
     # set raid
