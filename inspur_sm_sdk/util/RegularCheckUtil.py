@@ -328,8 +328,7 @@ def check_arg(arg):
         print("the parameter must be integer")
         return None
     else:
-        import string
-        arg = string.atoi(arg)
+        arg = str(arg)
         return arg
 
 
