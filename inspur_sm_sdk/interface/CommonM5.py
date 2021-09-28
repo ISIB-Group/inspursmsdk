@@ -11675,12 +11675,11 @@ def showpdInfo(client, args):
             raidList = []
             for i in range(countNumber):
                 ctrlpdinfo = RestFunc.getLSICtrlpdInfoByRest(client, i)
-                if ctrlpdinfo.get('code') == 0 and ctrlpdinfo.get(
-                        'data') is not None:
+                if ctrlpdinfo.get('code') == 0 and ctrlpdinfo.get('data') is not None:
                     raidDict = collections.OrderedDict()
                     raidDict['Controller ID'] = i
                     pdiskList = []
-                    for item in ctrlpdinfo.json():
+                    for item in ctrlpdinfo.get('data'):
                         pdiskDict = collections.OrderedDict()
                         if 'slotNum' in item:
                             pdiskDict['Slot Number'] = item['slotNum']
@@ -11749,17 +11748,17 @@ def createVirtualDrive(client, args):
     # 将cid转换成index,并检查
     ctrlInfo = RestFunc.getLSICtrlInfoByRest(client)
     if ctrlInfo.get('code') == 0 and ctrlInfo.get('data') is not None:
-        result = ctrlInfo['data']
-        if len(result) == 0:
+        res = ctrlInfo['data']
+        if len(res) == 0:
             result.State('Failure')
             result.Message(['No controller'])
             return result
-        elif args.ctrlId > len(result) - 1 or args.ctrlId < 0:
+        elif args.ctrlId > len(res) - 1 or args.ctrlId < 0:
             result.State('Failure')
             result.Message(['no controller id ' + str(args.ctrlId)])
             return result
         else:
-            cid_info = result[args.ctrlId]
+            cid_info = res[args.ctrlId]
             if 'index' in cid_info:
                 cid_index = cid_info.get('index', args.ctrlId)
             else:

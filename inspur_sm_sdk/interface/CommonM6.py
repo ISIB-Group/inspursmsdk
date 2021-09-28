@@ -11113,6 +11113,11 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         for pd in pds:
             if pd['ControllerName'] == ctrl_id_name_dict.get(args.ctrlId) and pd['SlotNum'] == int(pd_slot_num):
                 pd_dev_list.append(pd['DeviceID'])
+                if pd.get("FWState") != "UNCONFIGURED GOOD":
+                    result.State('Failure')
+                    result.Message(['The status of physical disk is ' + pd.get("FWState")
+                                    + ", logical disk can be created only when its status is UNCONFIGURED GOOD."])
+                    return result
 
     data = {
         "selectSize": args.select,
@@ -11120,12 +11125,12 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         "ctrlId": args.ctrlId,
         "raidLevel": args.rlevel,
         "stripSize": args.stripSize,
-        "accessPolicy": args.accessPolicy,
-        "readPolicy": args.readPolicy,
-        "writePolicy": args.writePolicy,
-        "cachePolicy": args.cachePolicy,
-        "ioPolicy": args.ioPolicy,
-        "initState": args.initState
+        "accessPolicy": args.access,
+        "readPolicy": args.r,
+        "writePolicy": args.w,
+        "cachePolicy": args.cache,
+        "ioPolicy": args.io,
+        "initState": args.init
     }
     for i in range(len(pd_dev_list)):
         data["pdDeviceIndex" + str(i)] = pd_dev_list[i]
@@ -11185,6 +11190,11 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
         for pd in pds:
             if pd['ControllerName'] == ctrl_id_name_dict.get(args.ctrlId) and pd['SlotNum'] == int(pd_slot_num):
                 pd_dev_list.append(pd['DeviceID'])
+                if pd.get("Physical_Drive_Status_Info") != "UNCONFIGURED GOOD":
+                    result.State('Failure')
+                    result.Message(['The status of physical disk is ' + pd.get("FWState")
+                                    + ", logical disk can be created only when its status is UNCONFIGURED GOOD."])
+                    return result
     deviceId = "~".join(pd_dev_list)
     data = {
         "CTRLID": args.ctrlId,
