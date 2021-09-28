@@ -12,7 +12,7 @@ import collections
 from Crypto.Cipher import Blowfish
 import copy
 import json
-import IpmiFunc
+from inspur_sm_sdk.command import IpmiFunc
 try:
     from requests_toolbelt.multipart import encoder
     ISM_ENCODER = True
