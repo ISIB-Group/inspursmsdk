@@ -16,7 +16,7 @@ import time
 sys.path.append(os.path.dirname(sys.path[0]))
 rootpath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(os.path.join(rootpath, "util"))
-
+command_path = os.path.dirname(os.path.realpath(__file__))
 
 DEVICE_ID = {
     0x0014: "MegaRAID Tri-Mode SAS3516",
@@ -409,12 +409,12 @@ def setM5BiosByipmi(client, cmd):
 
 
 def setM5BiosEffectiveByipmi(client):
-    cmd = '0x3c 0x4a 0x02'
+    cmd = 'raw 0x3c 0x4a 0x02'
     return sendRawByIpmi(client, cmd)
 
 
 def getRaidTypeByIpmi(client):
-    cmd = '0x3c 0x3b 0x02'
+    cmd = 'raw 0x3c 0x3b 0x02'
     return getLineRawByIpmi(client, cmd)
 
 
@@ -440,7 +440,7 @@ def getM5PcieByIpmi(client, pcie_count):
     pcie_data = ''
     Pcie = {}
     pcie_xcount = hex(pcie_count - 1)
-    cmd_get = '0x3c 0x02 0x04 0x00 ' + str(pcie_xcount)
+    cmd_get = 'raw 0x3c 0x02 0x04 0x00 ' + str(pcie_xcount)
     pcieInfo_all = getLinesRawByIpmi(client, cmd_get)
     if pcieInfo_all["code"] == 0:
         pcie_data = pcieInfo_all['data']
@@ -1226,10 +1226,10 @@ def getMcInfoByIpmi(client):
 
 # 获取M6机型web界面的登录加密方式，01加密，00不加密
 def judge_encrypt(client):
-    cmd = "0x3c 0x05 0x28"
+    cmd = "raw 0x3c 0x05 0x28"
     result = getLineRawByIpmi(client, cmd)
     if result['code'] == 0:
-        data = result['data']
+        data = result['data'].replace('\n', '')
         if data == "01":
             return 1
     return 0
@@ -1404,7 +1404,7 @@ def __getCmd_type(client, cmd_get, rt):
     import platform
     sysstr = platform.system()
     if sysstr == 'Windows':
-        cmdPrefix = "..\\tools\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + "-I " + client.lantype + " " + cmd_get + " 2>nul"
+        cmdPrefix = "D:\\Users\\wbs\\coding\\inspursmsdk-dev\\inspur_sm_sdk\\tools\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
     elif sysstr == 'Linux':
         cmdPrefix = "ipmitool -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>/dev/null"
     cmd_str = ''

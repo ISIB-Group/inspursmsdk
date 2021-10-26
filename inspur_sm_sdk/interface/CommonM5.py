@@ -1933,7 +1933,7 @@ class CommonM5(Base):
         if raid_type:
             if raid_type.get('code') == 0 and raid_type.get(
                     'data') is not None:
-                raidtype = raid_type.get('data')
+                raidtype = raid_type.get('data').replace('\n', '').strip()
             else:
                 raidtype = 'ff'
         else:
@@ -1979,7 +1979,7 @@ class CommonM5(Base):
         if raid_type:
             if raid_type.get('code') == 0 and raid_type.get(
                     'data') is not None:
-                raidtype = raid_type.get('data')
+                raidtype = raid_type.get('data').replace('\n', '').strip()
             else:
                 raidtype = 'ff'
         else:
@@ -2298,12 +2298,12 @@ class CommonM5(Base):
                     blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(
                         xmlfilepath)  # 读取xml文件，返回信息
                     for key, value in biosJson.items():
+                        if str(value).lower() == "enable":
+                            value = "Enabled"
+                        if str(value).lower() == "disable":
+                            value = "Disabled"
                         # 判断-a是否在列表中
-                        if judgeAttInList(
-                                key.replace(
-                                    " ",
-                                    ''),
-                                descriptionList) is False:
+                        if judgeAttInList(key.replace(" ", ''), descriptionList) is False:
                             Bios_result.State('Failure')
                             Bios_result.Message(
                                 ["'{0}' is not in set options.".format(key)])
@@ -3406,7 +3406,7 @@ class CommonM5(Base):
         if raid_type:
             if raid_type.get('code') == 0 and raid_type.get(
                     'data') is not None:
-                raidtype = raid_type.get('data')
+                raidtype = raid_type.get('data').replace('\n', '').strip()
             else:
                 raidtype = 'ff'
         else:
@@ -11804,7 +11804,10 @@ def createVirtualDrive(client, args):
         'stripSize': args.size + 6
     }
     # args.pd
-    args.slot = args.slot.split(',')
+    if ',' not in args.slot:
+        args.slot = [args.slot]
+    else:
+        args.slot = args.slot.split(',')
     pd_para_len = len(args.slot)
     if pd_para_len == 1:
         pd = RegularCheckUtil.check_arg(args.slot[0])
@@ -12068,7 +12071,7 @@ def setVirtualDrive(client, args):
     raid_type = IpmiFunc.getRaidTypeByIpmi(client)
     if raid_type:
         if raid_type.get('code') == 0 and raid_type.get('data') is not None:
-            raidtype = raid_type.get('data')
+            raidtype = raid_type.get('data').replace('\n', '').strip()
         else:
             raidtype = 'ff'
     else:
@@ -12363,7 +12366,7 @@ def setPhysicalDrive(client, args):
     raid_type = IpmiFunc.getRaidTypeByIpmi(client)
     if raid_type:
         if raid_type.get('code') == 0 and raid_type.get('data') is not None:
-            raidtype = raid_type.get('data')
+            raidtype = raid_type.get('data').replace('\n', '').strip()
         else:
             raidtype = 'ff'
     else:
@@ -12400,10 +12403,7 @@ def setPhysicalDrive(client, args):
             result = setPhysicalDrive_LSI(args, client)
     else:
         result.State('Failure')
-        result.Message(
-            [
-                'Failure: failed to establish connection to the host, please check the user/passcode/host/port',
-                'usage: isrest [-h] [-V] -H HOST -U USERNAME -P PASSWORD -p PORT subcommand ...'])
+        result.Message(["get raid type error."])
         return result
     return result
 
@@ -12417,7 +12417,7 @@ def setPhysicalDrive_LSI(args, client):
         cid, pd = getPhysicalInfo_LSI(client, args)
     if args.ctrlId is None or args.deviceId is None or args.option is None:
         result.State('Failure')
-        result.Message(["argument -CID, -PD or -OP is missing"])
+        result.Message(["argument ctrl_id, device_id or option is missing"])
         return result
     if args.ctrlId not in cid:
         result.State('Failure')
@@ -12427,6 +12427,31 @@ def setPhysicalDrive_LSI(args, client):
         result.State('Failure')
         result.Message(["no physical drive id " + str(args.deviceId)])
         return result
+    if args.option == "HS":
+        if args.action is None:
+            result.State('Failure')
+            result.Message("action is needed while set physical drive dedicate hotspare. ")
+            return result
+        elif args.action == "dedicate":
+            if args.logicalDrivers is None:
+                result.State('Failure')
+                result.Message("logicalDrivers is needed while set physical drive dedicate hotspare. ")
+                return result
+            cid, ld = getLogicalInfo_LSI(client, args)
+            sum_len = 0
+            for item in cid:
+                sum_len += len(ld[item])
+            if ',' not in args.logicalDrivers:
+                LID_list = [args.logicalDrivers]
+            else:
+                LID_list = args.logicalDrivers.split(',')
+            LID_list.sort()
+            range_list = range(1, sum_len + 1)
+            for i in LID_list:
+                if int(i) not in range_list:
+                    result.State('Failure')
+                    result.Message("logicalDrivers  choose from {0}".format(range_list))
+                    return result
     result = setPhysicalDrive_LSIIn(args, client)
     return result
 
@@ -12465,11 +12490,12 @@ def setPhysicalDrive_LSIIn(args, client):
         'EN': 'drive erase normal',
         'ET': 'drive erase through',
         'LOC': 'locate',
-        'STL': 'stop locate'
+        'STL': 'stop locate',
+        'HS': 'Hot spare'
     }
     if args.option in option1:
         r = RestFunc.statePDiskByRest(
-            client, args.ctrlId, args.ldiskId, option1[args.option])
+            client, args.ctrlId, args.deviceId, option1[args.option])
         if r.get('code') == 0 and r.get('data') is not None:
             result.State('Success')
             result.Message(['set firmware state to ' +
@@ -12480,7 +12506,7 @@ def setPhysicalDrive_LSIIn(args, client):
             result.Message(['set physical drive failed.'])
     elif args.option in option2:
         r = RestFunc.erasePDiskByRest(
-            client, args.ctrlId, args.ldiskId, option2[args.option])
+            client, args.ctrlId, args.deviceId, option2[args.option])
         if r.get('code') == 0 and r.get('data') is not None:
             result.State('Success')
             result.Message([tips[args.option] +
@@ -12488,9 +12514,9 @@ def setPhysicalDrive_LSIIn(args, client):
         else:
             result.State('Failure')
             result.Message(['set physical drive failed.'])
-    else:
+    elif args.option in option3:
         r = RestFunc.erasePDiskByRest(
-            client, args.ctrlId, args.ldiskId, option3[args.option])
+            client, args.ctrlId, args.deviceId, option3[args.option])
         if r.get('code') == 0 and r.get('data') is not None:
             result.State('Success')
             result.Message(
@@ -12498,6 +12524,20 @@ def setPhysicalDrive_LSIIn(args, client):
         else:
             result.State('Failure')
             result.Message(['set physical drive failed.'])
+    elif args.option == "HS":
+        r = RestFunc.hotSparePDiskByRest(
+            client, args.ctrlId, args.deviceId, args.action, args.encl, args.revertible, args.logicalDrivers)
+        if r.get('code') == 0 and r.get('data') is not None:
+            result.State('Success')
+            result.Message(
+                [tips[args.option] + ' physical drive successfully, please wait several minutes.'])
+        else:
+            result.State('Failure')
+            result.Message(['set physical drive failed.'])
+    else:
+        result.State('Failure')
+        result.Message(['set physical drive option parametr {0} error.'.format(tips[args.option])])
+
     return result
 
 

@@ -85,7 +85,8 @@ setldisk = {
 setpdisk = {
     'info': 'Info',
     'ctrl_id': 'ctrlId',
-    'device_id': 'deviceId'
+    'device_id': 'deviceId',
+    'logical_drivers': 'logicalDrivers'
 }
 setbmclogsettings = {
     'file_size': 'fileSize',

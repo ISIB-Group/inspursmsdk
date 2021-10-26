@@ -36,3 +36,7 @@ NF5260M6:
     common: CommonM6
 NF5266M6:
     common: CommonM6
+NF8260M6:
+    common: CommonM6
+NF5270M6:
+    common: CommonM6

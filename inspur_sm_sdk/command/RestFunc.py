@@ -1761,6 +1761,52 @@ def erasePDiskByRest(client, ctrlId, deviceId, option):
     return JSON
 
 
+def hotSparePDiskByRest(client, ctrlId, deviceId, action, encl, revertible, logicalDrivers):
+    yes_no_dict = {
+        "yes": 1,
+        "no": 0
+    }
+    action_dict = {
+        "remove": 0,
+        "global": 1,
+        "dedicate": 2
+    }
+    data = {
+        "ctrlId": ctrlId, 
+        "deviceId": deviceId, 
+        "configure_type": action_dict.get(action)
+    }
+    data['affinity'] = yes_no_dict.get(encl) if action != "remove" else 0
+    data['revertible'] = yes_no_dict.get(revertible) if action != "remove" else 0
+    if action == "dedicate":
+        LID_list = logicalDrivers.split(',')
+        LID_list.sort()
+        ld_len = len(LID_list)
+        data['arrayCount'] = ld_len
+        for i in range(ld_len):
+            key_str = "pd_deviceIndex{0}".format(str(i))
+            data[key_str] = LID_list[i]
+    else:
+        data['arrayCount'] = 0
+
+    JSON = {}
+    header = client.getHearder()
+    header["X-Requested-With"] = "XMLHttpRequest"
+    header["Content-Type"] = "application/json;charset=UTF-8"
+    header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+    r = client.request("POST", "api/raid/SetHotSpare", data=data, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface api/raid/SetHotSpare, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = r.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/SetHotSpare", r)
+    return JSON
+
+
 def locatePDiskByRest(client, ctrlId, deviceId, option):
     data = {
         'ctrlId': ctrlId,
@@ -2653,7 +2699,7 @@ def Encrypt(code):
     return cryptedStr
 
 
-def Encrypt(key, code):
+def Encrypt1(key, code):
     l = len(code)
     if l % 8 != 0:
         code = code + '\0' * (8 - (l % 8))
@@ -6488,6 +6534,103 @@ def getBMCLogSettingsM6(client):
     else:
         JSON['code']=1
         JSON['data'] = formatError("api/settings/log", response)
+    return JSON
+
+def getBMCLogBasicCfg(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/syslog/syslogbasiccfg", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface aapi/settings/syslog/syslogbasiccfg ,response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON["code"] = 0
+            JSON["data"] = result
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/syslog/syslogbasiccfg", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/syslog/syslogbasiccfg", response)
+    return JSON
+
+
+def getBMCLogDestCfg(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/syslog/syslogdestcfg", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface aapi/settings/syslog/syslogdestcfg ,response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON["code"] = 0
+            JSON["data"] = result
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/syslog/syslogdestcfg", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/syslog/syslogdestcfg", response)
+    return JSON
+
+
+def setBMCLogBasicCfg(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settings/syslog/syslogbasiccfg", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/syslog/syslogbasiccfg ,response is none'
+    elif response.status_code == 200:
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "set BMC system and audit basic log configuration success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/syslog/syslogbasiccfg", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/syslog/syslogbasiccfg", response)
+    return JSON
+
+
+def setBMCLogDestcCfg(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settings/syslog/syslogdestcfg", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/syslog/syslogdestcfg ,response is none'
+    elif response.status_code == 200:
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "set BMC system and audit dest log configuration success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/syslog/syslogdestcfg", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/syslog/syslogdestcfg", response)
+    return JSON
+
+
+def setBMCLogDestTest(client, ID):
+    JSON = {}
+    data = {"DestIndex": ID}
+    response = client.request("POST", "api/settings/syslog/syslogdesttest", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/syslog/syslogdesttest ,response is none'
+    elif response.status_code == 200:
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "set BMC system and audit dest log configuration success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/syslog/syslogdesttest", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/syslog/syslogdesttest", response)
     return JSON
 
 
