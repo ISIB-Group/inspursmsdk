@@ -11,6 +11,64 @@
 from requests.auth import HTTPBasicAuth
 
 
+def exportbiosoption(client, header):
+    JSON = {}
+    r = client.request("POST", "redfish/v1/Systems/1/Actions/BIOS.ExportConfiguration",
+                       headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call BMC interface redfish/v1/Systems/system_id/Actions/BIOS.ExportConfiguration, ' \
+                       'response is none'
+    elif r.status_code == 200:
+        try:
+            result = r.json()
+            JSON["code"] = 0
+            JSON["data"] = result
+        except Exception as e:
+            JSON["code"] = 1
+            JSON["data"] = e.message
+    else:
+        try:
+            result = r.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                result["error"]["message"]) + ' the status code is ' + str(r.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, response status code is ' + str(r.status_code)
+    return JSON
+
+
+def importbiosoption(client, header, file):
+    JSON = {}
+    try:
+        f = open(file, 'rb')
+        files = [("config", f)]
+        r = client.request("POST", "redfish/v1/Systems/1/Actions/BIOS.ImportConfiguration", headers=header, files=files,
+                           data=None)
+        f.close()
+        if r is None:
+            JSON["code"] = 1
+            JSON["data"] = 'Failed to call BMC interface redfish/v1/Systems/1/Actions/BIOS.ImportConfiguration , ' \
+                           'response is none'
+        elif r.status_code == 200:
+            JSON["code"] = 0
+            JSON["data"] = "Import BIOS option files completed."
+        else:
+            try:
+                result = r.json()
+                JSON['code'] = 2
+                JSON['data'] = 'request failed, response content: ' + str(
+                    result["error"]["message"]) + ' the status code is ' + str(r.status_code) + "."
+            except:
+                JSON['code'] = 1
+                JSON['data'] = 'request failed, response status code is ' + str(r.status_code)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = str(e)
+    return JSON
+
+
 def getBiosByRedfish(client):
     JSON = {}
     response = client.request("GET", "redfish/v1/Systems/Self/Bios",

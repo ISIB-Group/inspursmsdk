@@ -11,7 +11,7 @@ import collections
 import json
 import os
 import re
-from inspur_sm_sdk.util import RegularCheckUtil, RequestClient, fileUtil
+from inspur_sm_sdk.util import RegularCheckUtil, RequestClient, fileUtil, configUtil
 from inspur_sm_sdk.command import RestFunc, IpmiFunc, RedfishFunc
 from inspur_sm_sdk.interface.Base import (Base, ascii2hex, hexReverse)
 from inspur_sm_sdk.interface.CommonM5 import (CommonM5, judgeAttInList, PCI_IDS_LIST, restore_bios)
@@ -246,6 +246,14 @@ class CommonM6(Base):
 
     def setbios(self, client, args):
         Bios_result = ResultBean()
+        xml_path = os.path.join(IpmiFunc.command_path, "bios")
+        xmlfilepath = xml_path + os.path.sep + "M6.xml"
+        if os.path.exists(xmlfilepath) is False:
+            Bios_result.Message(['M6.xml file not exist.'])
+            Bios_result.State('Failure')
+            return Bios_result
+        biosconfutil = configUtil.configUtil()  # 实例化类对象
+        blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(xmlfilepath)  # 读取xml文件，返回信息
         if args.attribute is None and args.value is None and args.fileurl is None:
             Bios_result.Message(['please input a command at least.'])
             Bios_result.State('Failure')
@@ -272,6 +280,15 @@ class CommonM6(Base):
             Bios_result.State('Failure')
             return Bios_result
 
+        des_value = {}  # description和支持设置的value对应
+        des_key = {}  # description和getter对应
+        for list_1 in infoList:
+            des_key[list_1['description']] = list_1['getter']
+            setter_value = []
+            for item in list_1['setter']:
+                setter_value.append(item['value'])
+            des_value[list_1['description']] = setter_value
+
         login_header, login_id = RedfishFunc.login(client)
         if login_header == {} or "login error" in login_id or login_id == '':
             Bios_result.State("Failure")
@@ -283,28 +300,61 @@ class CommonM6(Base):
             # data = {'Attributes': {args.attribute: args.value}}
             if args.attribute is None and args.value is None and args.fileurl is not None:
                 for key, value in biosJson.items():
+                    if str(value).lower() == "enable":
+                        value = "Enabled"
+                    if str(value).lower() == "disable":
+                        value = "Disabled"
+                    if judgeAttInList(key.replace(" ", ""), descriptionList) is False:
+                        Bios_result.State('Failure')
+                        Bios_result.Message(["Please check your attribute spell of '{0}'!".format(key)])
+                        # logout
+                        RestFunc.logout(client)
+                        return Bios_result
                     # 执行单个设置 先读取文件，判断-a -v是否在列表中
-                    if judgeAttInList(key.replace(" ", ""), result.get('data').keys()) is False:
+                    if judgeAttInList(des_key[key.replace(" ", "")], result.get('data').keys()) is False:
                         Bios_result.State('Failure')
                         Bios_result.Message(["'{0}' is not in set options.".format(key)])
                         # logout
                         RestFunc.logout(client)
                         return Bios_result
+                    if value not in des_value[key.replace(" ", "")]:
+                        Bios_result.State('Failure')
+                        Bios_result.Message(["{0} does not support setting to {1}!".format(key, value)])
+                        # logout
+                        RestFunc.logout(client)
+                        return Bios_result
                     if str(value).isdigit():
-                        data['Attributes'][key.replace(" ", "")] = int(value)
+                        data['Attributes'][des_key[key.replace(" ", "")]] = int(value)
                     else:
-                        data['Attributes'][key.replace(" ", "")] = value
+                        data['Attributes'][des_key[key.replace(" ", "")]] = value
             elif args.attribute is not None and args.value is not None and args.fileurl is None:
-                if judgeAttInList(args.attribute.replace(" ", ""), result.get('data').keys()) is False:
+                if str(args.value).lower() == "enable":
+                    args.value = "Enabled"
+                if str(args.value).lower() == "disable":
+                    args.value = "Disabled"
+                if judgeAttInList(args.attribute.replace(" ", ""), descriptionList) is False:
+                    Bios_result.State('Failure')
+                    Bios_result.Message(
+                        ["Please check your attribute spell of '{0}'!".format(args.attribute)])
+                    # logout
+                    RestFunc.logout(client)
+                    return Bios_result
+                if judgeAttInList(des_key[args.attribute.replace(" ", "")], result.get('data').keys()) is False:
                     Bios_result.State('Failure')
                     Bios_result.Message(["'{0}' is not in set options.".format(args.attribute)])
                     # logout
                     RestFunc.logout(client)
                     return Bios_result
+                if args.value not in des_value[args.attribute.replace(" ", "")]:
+                    Bios_result.State('Failure')
+                    Bios_result.Message(["{0} does not support setting to {1}!".format(args.attribute, args.value)])
+                    # logout
+                    RestFunc.logout(client)
+                    return Bios_result
                 if str(args.value).isdigit():
-                    data['Attributes'][args.attribute.replace(" ", "")] = int(args.value)
+                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = int(args.value)
                 else:
-                    data['Attributes'][args.attribute.replace(" ", "")] = args.value
+                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = args.value
             # print (data)
             setbiosres = RedfishFunc.setBiosV1SDByRedfish(client, data, result.get('headers'), login_header)
             if setbiosres.get('code') == 0:
@@ -338,7 +388,6 @@ class CommonM6(Base):
             set_result.Message(
                 ['set redfish password failed, ' + str(res.get('data'))])
         return set_result
-
 
     def getfw(self, client, args):
         '''
@@ -1154,6 +1203,61 @@ class CommonM6(Base):
                 result.Message[0])
             return result
 
+        file_des = ""
+        try:
+            with open(args.url, "rb") as file:
+                # header长度为104
+                header = 104
+                des_index = 9
+                des_len = 21
+                len_index = 30
+                len_len = 4
+                file_read = file.read()
+                for j in range(des_len):
+                    # Python3 不需要用ord函数
+                    # if file_read[header + des_index + j] == 0:
+                    # python2.7 读出来直接转化为str 此处不是 空格(32) 而是 空白(0)
+                    if ord(file_read[header + des_index + j]) == 0:
+                        file_des = file_read[header + des_index:header + des_index + j]
+                        break
+                if file_des == "BOOT":
+                    file_header_len = ord(file_read[header + len_index + 3]) * 256 * 256 * 256 + \
+                                      ord(file_read[header + len_index + 2]) * 256 * 256 + \
+                                      ord(file_read[header + len_index + 1]) * 256 + \
+                                      ord(file_read[header + len_index])
+                    header = header + len_index + len_len + file_header_len
+                    for k in range(des_len):
+                        if ord(file_read[header + des_index + k]) == 0:
+                            file_des = str(file_read[header + des_index:header + des_index + k])
+                            break
+        except Exception as e:
+            result.State("Failure")
+            result.Message(["Cannot parsing image file: " + str(e)])
+            wirte_log(log_path, "File Verify", "Illegal Image", result.Message[0])
+            return result
+            # "BMC", "BIOS", "CPLD", "PSUFW", "FRONTDISKBPCPLD", "REARDISKBPCPLD"
+        if str(file_des).upper() == "PSU":
+            file_des = "PSUFW"
+        elif str(file_des).upper() == "APP":
+            file_des = "BMC"
+        elif str(file_des).upper() == "CPLD":
+            file_des = "CPLD"
+        elif str(file_des).upper() == "BIOS":
+            file_des = "BIOS"
+        elif str(file_des).upper().startswith("YZBB"):  # 前置或后置背板CPLD
+            file_des = "DISKBPCPLD"
+        else:
+            result.State("Not Support")
+            result.Message(["Firmware description: " + str(file_des) + " does not support"])
+            return result
+        if args.type is None:
+            args.type = file_des
+        elif args.type != file_des:
+            result.State("Failure")
+            result.Message(["Input firmware type(" + args.type + ") does not match firmware file(" + file_des + ")."])
+            wirte_log(log_path, "File Verify", "Illegal Image", result.Message[0])
+            return result
+
         if args.type == "BMC":
             if args.override == 1 and args.mode == "Manual":
                 result.State("Failure")
@@ -1307,6 +1411,31 @@ class CommonM6(Base):
                     "Connect Failed",
                     version_info)
 
+            # BIOS PSU 升级自动重启
+            if args.mode == "Auto" and getServerStatus(client) != "off" and (
+                    args.type == "BIOS" or args.type == "PSUFW"):
+                choices = {'on': 1, 'off': 0, 'cycle': 2, 'reset': 3, 'shutdown': 5}
+                Power = RestFunc.setM6PowerByRest(client, choices["off"])
+                if Power.get('code') == 0 and Power.get('data') is not None:
+                    off_count = 0
+                    while True:
+                        if getServerStatus(client) == "off" or off_count > 5:
+                            break
+                        time.sleep(10)
+                        off_count += 1
+                    if getServerStatus(client) != "off":
+                        result.State('Failure')
+                        result.Message(['set power off complete, but get power status error.'])
+                        wirte_log(log_path, "Auto Reset Server", "Get Power Status Error", result.Message)
+                        continue
+                    else:
+                        wirte_log(log_path, "Set Power Off", "Successfully", "")
+                else:
+                    result.State('Failure')
+                    result.Message(['set power off failed.'])
+                    wirte_log(log_path, "Auto Reset Server", "Set Power Off Failed", result.Message)
+                    continue
+
             # set syn mode
             res_syn == {}
             if args.type == "BMC":
@@ -1408,11 +1537,11 @@ class CommonM6(Base):
             task_dict = {
                 "BMC": 0,
                 "BIOS": 1,
-                "PSUFW": 5,
+                "PSUFW": 6,
                 "CPLD": 2,
                 "FRONTDISKBPCPLD": 3,
                 "REARDISKBPCPLD": 4}
-            if getServerStatus(client) != "off" and args.type != "BMC":
+            if getServerStatus(client) != "off" and args.type != "BMC" and args.type != "DISKBPCPLD":
                 time.sleep(10)
                 res_progress = RestFunc.getTaskInfoByRest(client)
                 if res_progress == {}:
@@ -1431,9 +1560,17 @@ class CommonM6(Base):
                     tasks = res_progress.get('data')
                     task = None
                     for t in tasks:
-                        if t["id"] == task_dict.get(args.type, -1):
-                            task = t
-                            break
+                        if args.type == "DISKBPCPLD":
+                            if t["id"] == task_dict.get("REARDISKBPCPLD", -1):
+                                task = t
+                                break
+                            elif t["id"] == task_dict.get("FRONTDISKBPCPLD", -1):
+                                task = t
+                                break
+                        else:
+                            if t["id"] == task_dict.get(args.type, -1):
+                                task = t
+                                break
                     # 无任务则退出
                     if task is None:
                         result.State("Failure")
@@ -1457,10 +1594,14 @@ class CommonM6(Base):
                         continue
 
                     result.State('Success')
-                    result.Message([
-                        "Apply(FLASH) pending, host is power on now, image save in BMC FLASH and will "
-                        "apply later, trigger: poweroff, dcpowercycle, systemreboot. (TaskId=" + str(
-                            task_dict.get(args.type, 0)) + ")"])
+                    if args.type == "DISKBPCPLD":
+                        result.Message([
+                            "Apply(FLASH) pending, host is power on now, image save in BMC FLASH and will apply later, "
+                            "trigger: poweroff, dcpowercycle, systemreboot. (TaskId=" + str(task['id']) + ")"])
+                    else:
+                        result.Message([
+                            "Apply(FLASH) pending, host is power on now, image save in BMC FLASH and will apply later, "
+                            "trigger: poweroff, dcpowercycle, systemreboot. (TaskId=" + str(task_dict.get(args.type, 0)) + ")"])
                     wirte_log(log_path, "Apply", "Finish", result.Message)
                     continue
                 else:
@@ -1500,9 +1641,17 @@ class CommonM6(Base):
                         tasks = res_progress.get('data')
                         task = None
                         for t in tasks:
-                            if t["id"] == task_dict.get(args.type, -1):
-                                task = t
-                                break
+                            if args.type == "DISKBPCPLD":
+                                if t["id"] == task_dict.get("REARDISKBPCPLD", -1):
+                                    task = t
+                                    break
+                                elif t["id"] == task_dict.get("FRONTDISKBPCPLD", -1):
+                                    task = t
+                                    break
+                            else:
+                                if t["id"] == task_dict.get(args.type, -1):
+                                    task = t
+                                    break
                         # 无任务则退出
                         if task is None:
                             result.State("Failure")
@@ -1552,6 +1701,11 @@ class CommonM6(Base):
                             "Apply",
                             "Write to Temporary FLASH Success",
                             result.Message)
+                    elif args.type == "DISKBPCPLD":
+                        result.State('Success')
+                        result.Message([
+                            "Activate pending, host is power off now, BPCPLD will activate later."])
+                        wirte_log(log_path, "Apply", "Write to Temporary FLASH Success", result.Message)
                     else:
                         fw_res_new = RestFunc.getFwVersion(client)
                         fw_new = {}
@@ -3561,178 +3715,162 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return nicRes
 
-    def getbmclogsettings1(self, client, args):
+    def getbmclogbasiccfg(self, client, args):
         result = ResultBean()
-        # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
+            login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
-        res = RestFunc.getBMCLogSettingsM6(client)
+        res = RestFunc.getBMCLogBasicCfg(client)
         if res.get('code') == 0 and res.get('data') is not None:
             result.State("Success")
             result.Message([res.get('data')])
         else:
             result.State("Failure")
-            result.Message(
-                ["get BMC system and audit log settings error, " + res.get('data')])
+            result.Message(["get BMC log basic config error, " + res.get('data')])
 
         RestFunc.logout(client)
         return result
 
-    def setbmclogsettings1(self, client, args):
+    def getbmclogdestcfg(self, client, args):
         result = ResultBean()
-        # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
+            login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
-
-        getres = RestFunc.getBMCLogSettingsM6(client)
-        if getres.get('code') == 0 and getres.get('data') is not None:
-            settings_old = getres.get('data')
-        else:
-            result.State("Failure")
-            result.Message(
-                ["get BMC system and audit log settings error, " + getres.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if args.auditLogStatus is not None:
-            settings_old['audit_log'] = 1 if args.auditLogStatus == "enable" else 0
-
-        if args.status is not None:
-            settings_old['system_log'] = 1 if args.status == "enable" else 0
-
-        # get 获取3  put的时候是1
-        if settings_old['system_log'] == 3:
-            settings_old['system_log'] = 1
-
-        if settings_old['system_log'] == 1 or settings_old['audit_log'] == 1:
-            if settings_old['system_log'] == 0:
-                if not (
-                        args.type is None and args.fileSize is None and args.rotateCount is None and args.serverAddr is None and args.serverPort is None):
-                    result.State("Failure")
-                    result.Message(
-                        ["type(-T),fileSize(-L),rotateCount(-C),serverAddr(-A),serverPort(-R) can not be set when Status(-S) is disable."])
-                    RestFunc.logout(client)
-                    return result
-
-            if args.type is not None:
-                if args.type == "both":
-                    settings_old['local'] = 1
-                    settings_old['remote'] = 1
-                elif args.type == "local":
-                    settings_old['local'] = 1
-                    settings_old['remote'] = 0
-                elif args.type == "remote":
-                    settings_old['remote'] = 1
-                    settings_old['local'] = 0
-
-            if settings_old['local'] == 0 and settings_old['remote'] == 0:
-                result.State("Failure")
-                result.Message(["type(-T) is needed."])
-                RestFunc.logout(client)
-                return result
-
-            # 配置 local
-            if settings_old['local'] == 1:
-                # rotateCount
-                if args.rotateCount is not None:
-                    settings_old['rotate_count'] = args.rotateCount
-
-                # fileSize
-                if args.fileSize is not None:
-                    settings_old['file_size'] = args.fileSize
-                    if args.fileSize < 3 or args.fileSize > 65535:
-                        result.State("Failure")
-                        result.Message(
-                            ["File Size(-L) must be int and between 3 to 65535 bytes"])
-                        RestFunc.logout(client)
-                        return result
-
-                if settings_old['file_size'] == 0:
-                    result.State("Failure")
-                    result.Message(["File Size(-L) is needed"])
-                    RestFunc.logout(client)
-                    return result
-
-            else:
-                if args.fileSize is not None or args.rotateCount is not None:
-                    result.State("Failure")
-                    result.Message(
-                        ["File Size(-L) and Rotate Count(-C) can not be set when type(-T) is not local"])
-                    RestFunc.logout(client)
-                    return result
-
-            if settings_old['remote'] == 1:
-                if args.serverAddr is not None:
-                    settings_old['server_addr'] = args.serverAddr
-                    if not RegularCheckUtil.checkIP46d(args.serverAddr):
-                        result.State("Failure")
-                        result.Message(
-                            ["Server Address(-A) must be ipv4 or ipv6 or FQDN (Fully qualified domain name) format"])
-                        RestFunc.logout(client)
-                        return result
-                else:
-                    if settings_old['server_addr'] == "":
-                        result.State("Failure")
-                        result.Message(
-                            ["Server Address(-A) is needed when type(-T) is remote or both"])
-                        RestFunc.logout(client)
-                        return result
-
-                if args.serverPort is not None:
-                    settings_old['port'] = args.serverPort
-                    if settings_old['port'] < 0 or settings_old['port'] > 65535:
-                        result.State("Failure")
-                        result.Message(
-                            ["Server Port(-R) must between 0-65535"])
-                        RestFunc.logout(client)
-                        return result
-                else:
-                    if settings_old['port'] == 0:
-                        result.State("Failure")
-                        result.Message(
-                            ["Server Port(-R) is needed when type(-T) is remote or both"])
-                        RestFunc.logout(client)
-                        return result
-
-                if args.protocolType is not None:
-                    settings_old['port_type'] = "0" if args.protocolType == "UDP" else "2"
-                else:
-                    if settings_old['port_type'] != 1 and settings_old['port_type'] != 0:
-                        result.State("Failure")
-                        result.Message(
-                            ["Protocol Type(-PT) is needed when type(-T) is remote or both"])
-                        RestFunc.logout(client)
-                        return result
-            else:
-                if args.serverAddr is not None or args.serverPort is not None or args.protocolType is not None:
-                    result.State("Failure")
-                    result.Message(
-                        ["server address(-A), server port(-R), protocol type(-PT) can not be set when type(-T) is not remote"])
-                    RestFunc.logout(client)
-                    return result
-
-        res = RestFunc.setBMCLogSettingsM6(client, settings_old)
-
+        res = RestFunc.getBMCLogDestCfg(client)
         if res.get('code') == 0 and res.get('data') is not None:
             result.State("Success")
-            result.Message(["set BMC system and audit log settings success"])
+            result.Message([res.get('data')])
         else:
             result.State("Failure")
-            result.Message(
-                ["set BMC system and audit log settings error, " + res.get('data')])
+            result.Message(["get BMC log basic config error, " + res.get('data')])
 
+        RestFunc.logout(client)
+        return result
+
+    def setbmclogcfg(self, client, args):
+        result = ResultBean()
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        basic_res = RestFunc.getBMCLogBasicCfg(client)
+        if basic_res.get('code') == 0 and basic_res.get('data') is not None:
+            basic_result = basic_res.get('data')
+            if "SyslogEnable" not in basic_result:
+                result.State('Failure')
+                result.Message(['Can not get syslog enable of  BMC log basic config.'])
+                RestFunc.logout(client)
+                return result
+            if basic_result['SyslogEnable'] == "local enable":
+                if args.status is None:
+                    if args.level is not None or args.protocolType is not None or args.serverId is not None or \
+                            args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
+                            or args.test:
+                        result.State('Failure')
+                        result.Message(['Please enable remote setting first.'])
+                        RestFunc.logout(client)
+                        return result
+                elif args.status == "disable":
+                    if args.level is not None or args.protocolType is not None or args.serverId is not None or \
+                            args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
+                            or args.test:
+                        result.State('Failure')
+                        result.Message(['Not support setting BMC log while remote log status is disable.'])
+                    else:
+                        result.State('Failure')
+                        result.Message(['Status has been disable.'])
+                    RestFunc.logout(client)
+                    return result
+                else:
+                    basic_result["SyslogEnable"] = "remote enable"
+            else:
+                if args.status == "disable":
+                    basic_result["SyslogEnable"] = "local enable"
+                    if args.level is not None or args.protocolType is not None or args.serverId is not None or \
+                            args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
+                            or args.test:
+                        result.State('Failure')
+                        result.Message(['Not support setting BMC log while remote log status is disable.'])
+                        RestFunc.logout(client)
+                        return result
+            if args.protocolType is not None:
+                basic_result['SyslogProtocal'] = args.protocolType
+            if args.level is not None:
+                basic_result['SyslogLevel'] = args.level
+            set_basic_result = RestFunc.setBMCLogBasicCfg(client, basic_result)
+            if set_basic_result.get('code') == 0 and set_basic_result.get('data') is not None:
+                if args.serverId is not None:
+                    if args.test:
+                        test_res = RestFunc.setBMCLogDestTest(client, args.serverId)
+                        if test_res.get('code') == 0 and test_res.get('data') is not None:
+                            result.State("Success")
+                            result.Message(["test BMC log config success"])
+                            RestFunc.logout(client)
+                            return result
+                        else:
+                            result.State("Failure")
+                            result.Message(
+                                [str(args.serverId) + " test BMC log config failed, " + str(test_res.get('data'))])
+                            RestFunc.logout(client)
+                            return result
+                    if args.serverAddr is not None:
+                        if not RegularCheckUtil.checkIP46d(args.serverAddr):
+                            result.State("Failure")
+                            result.Message([
+                                               "Set BMC basic config success, but server Address(-A) must be ipv4 or ipv6 or FQDN (Fully qualified domain name) format"])
+                            RestFunc.logout(client)
+                            return result
+                    dest_res = RestFunc.getBMCLogDestCfg(client)
+                    if dest_res.get('code') == 0 and dest_res.get('data') is not None:
+                        dest_result = dest_res.get('data')
+                        log_type = {
+                            "idl": "idl",
+                            "audit": "audit",
+                            "both": "idl + audit"
+                        }
+                        data = dest_result.get('SyslogDestConf')[args.serverId]
+                        data['Enable'] = "enable"
+                        if args.logType is not None:
+                            data['SyslogType'] = log_type.get(args.logType)
+                        if args.serverPort is not None:
+                            data['SyslogPort'] = args.serverPort
+                        if args.serverAddr is not None:
+                            data['HostName'] = args.serverAddr
+                        set_dest_result = RestFunc.setBMCLogDestcCfg(client, data)
+                        if set_dest_result.get('code') == 0 and set_dest_result.get('data') is not None:
+                            result.State("Success")
+                            result.Message(['The BMC Log configuration has been successfully set.'])
+                        else:
+                            result.State("Failure")
+                            result.Message(['Set BMC basic cfg success, but set dest config failed.' + str(
+                                set_dest_result.get('data'))])
+                    else:
+                        result.State("Failure")
+                        result.Message(['Set BMC basic cfg success, but get/set dest config failed.'])
+                else:
+                    if args.serverPort is not None or args.serverAddr is not None or args.logType is not None or args.test:
+                        result.State("Success")
+                        result.Message(['Set BMC basic cfg success，dest config setting need -ID parameter.'])
+                    else:
+                        result.State("Success")
+                        result.Message(['The BMC Log configuration has been successfully set.'])
+            else:
+                result.State('Failure')
+                result.Message(["Set BMC log basic config error, " + str(set_basic_result.get('data'))])
+        else:
+            result.State('Failure')
+            result.Message(['Get BMC log basic config error, ' + str(basic_res.get('data'))])
         RestFunc.logout(client)
         return result
 
@@ -9208,7 +9346,7 @@ class CommonM6(Base):
                             ["SMTP server password(-PW) cannot contain ' '(space)."])
                         RestFunc.logout(client)
                         return smtpinfo
-                    PassWord = RestFunc.Encrypt('add', PassWord)
+                    PassWord = RestFunc.Encrypt1('add', PassWord)
                 else:
                     if SMTPAUTH == 1:
                         smtpinfo.State("Failure")
@@ -10860,16 +10998,47 @@ class CommonM6(Base):
         return result
 
     def exportbioscfg(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
+        res = ResultBean()
+        try:
+            login_header, login_id = RedfishFunc.login(client)
+            if login_header == {} or "login error" in login_id or login_id == '':
+                res.State("Failure")
+                res.Message(['login session service failed.'])
+                return
+            result = RedfishFunc.exportbiosoption(client, login_header)
+            if result.get('code') == 0 and result.get('data') is not None:
+                option = result.get('data')['Attributes']
+                with open(args.fileurl, mode='w') as f:
+                    f.write(json.dumps(option, indent=4))
+                res.State("Success")
+                res.Message(["Export file in " + str(args.fileurl)])
+            else:
+                res.State("Failure")
+                res.Message([result.get('data')])
+            RedfishFunc.logout(client)
+            return res
+        except Exception as e:
+            res.State("Failure")
+            res.Message([str(e)])
+            RedfishFunc.logout(client)
+            return res
 
     def importbioscfg(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
+        res = ResultBean()
+        login_header, login_id = RedfishFunc.login(client)
+        if login_header == {} or "login error" in login_id or login_id == '':
+            res.State("Failure")
+            res.Message(['login session service failed.'])
+            return
+        result = RedfishFunc.importbiosoption(client, login_header, args.fileurl)
+        if result.get('code') == 0 and result.get('data') is not None:
+            res.State("Success")
+            res.Message([result.get('data')])
+        else:
+            res.State("Failure")
+            res.Message([result.get('data')])
+        RedfishFunc.logout(client)
+        return res
 
     def setsmtp(self, client, args):
         result = ResultBean()
@@ -11064,26 +11233,60 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
     pd_para_len = len(args.pdlist)
 
     # set raid
+    rlevel = None
     if args.rlevel == 1:
+        rlevel = False
         if pd_para_len < 2:
             result.State('Failure')
             result.Message(['raid 1 need 2 disks at least'])
             return result
     elif args.rlevel == 5:
+        rlevel = False
         if pd_para_len < 3:
             result.State('Failure')
             result.Message(['raid 5 need 3 disks at least'])
             return result
     elif args.rlevel == 6:
+        rlevel = False
         if pd_para_len < 4:
             result.State('Failure')
             result.Message(['raid 6 need 4 disks at least'])
             return result
     elif args.rlevel == 10:
+        rlevel = True
         if pd_para_len < 4:
             result.State('Failure')
             result.Message(['raid 10 need 4 disks at least'])
             return result
+    elif args.rlevel == 50:
+        rlevel = True
+        if pd_para_len < 6:
+            result.State('Failure')
+            result.Message(['raid 50 need 6 disks at least'])
+            return result
+    elif args.rlevel == 60:
+        rlevel = True
+        if pd_para_len < 8:
+            result.State('Failure')
+            result.Message(['raid 60 need 8 disks at least'])
+            return result
+
+    if 'spanDepth' in args and args.spanDepth is not None:
+        if rlevel:
+            if args.spanDepth < 2 or args.spanDepth > 8:
+                result.State('Failure')
+                result.Message(["The RaidLevel {0} input does not match span depth {1}, span depth ranges from 2~8.".format(args.rlevel, args.spanDepth)])
+                return result
+        else:
+            if args.spanDepth != 1:
+                result.State('Failure')
+                result.Message(["The RaidLevel {0} input does not match span depth {1}, span depth ranges from 1.".format(args.rlevel, args.spanDepth)])
+                return result
+    else:
+        if rlevel:
+            args.spanDepth = 2
+        else:
+            args.spanDepth = 1
 
     # check select size
     if args.select < 1 or args.select > 100:
@@ -11091,7 +11294,7 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         result.Message(['the select size range in 1 - 100'])
         return result
 
-    raid_dict = {0: "raid0", 1: "raid1", 5: "raid5", 6: "raid6", 10: "raid10"}
+    raid_dict = {0: "raid0", 1: "raid1", 5: "raid5", 6: "raid6", 10: "raid10", 50: "raid50", 60: "raid60"}
     stripsize_dict = {1: "64k", 2: "128k", 3: "256k", 4: "512k", 5: "1024k"}
     access_dict = {1: "Read Write", 2: "Read Only", 3: "Blocked"}
     read_dict = {1: "Read Ahead", 2: "No Read Ahead"}
@@ -11130,7 +11333,8 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         "writePolicy": args.w,
         "cachePolicy": args.cache,
         "ioPolicy": args.io,
-        "initState": args.init
+        "initState": args.init,
+        "spanDepth": args.spanDepth
     }
     for i in range(len(pd_dev_list)):
         data["pdDeviceIndex" + str(i)] = pd_dev_list[i]
