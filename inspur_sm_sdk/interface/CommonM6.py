@@ -11195,10 +11195,12 @@ def createVirtualDrive(client, args):
                         pdiskDict['Capacity'] = None
                     if "FWState" in pd:
                         pdiskDict['Firmware State'] = pd.get("FWState")
-                    elif "Physical_Drive_Status_Info" in pd:
-                        pdiskDict['Firmware State'] = pd.get("Physical_Drive_Status_Info")
                     else:
                         pdiskDict['Firmware State'] = None
+                    if "array_number" in pd:
+                        pdiskDict['Array Number'] = pd.get("array_number")
+                    else:
+                        pdiskDict['Array Number'] = None
                     pdiskList.append(pdiskDict)
             raidDict['pdisk'] = pdiskList
             raidList.append(raidDict)
@@ -11394,10 +11396,10 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
         for pd in pds:
             if pd['ControllerName'] == ctrl_id_name_dict.get(args.ctrlId) and pd['SlotNum'] == int(pd_slot_num):
                 pd_dev_list.append(pd['DeviceID'])
-                if pd.get("Physical_Drive_Status_Info") != "UNCONFIGURED GOOD":
+                if pd.get("array_number") != 65535:
                     result.State('Failure')
-                    result.Message(['The status of physical disk is ' + pd.get("FWState")
-                                    + ", logical disk can be created only when its status is UNCONFIGURED GOOD."])
+                    result.Message(['The array number of physical disk is ' + pd.get("array_number")
+                                    + ", logical disk can be created only when its array number is 65535."])
                     return result
     deviceId = "~".join(pd_dev_list)
     data = {

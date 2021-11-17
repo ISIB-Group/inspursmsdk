@@ -6786,6 +6786,23 @@ def addLogicalDisk(client, data):
 def createVirtualDrive(client, data):
     JSON = {}
     header = client.getHearder()
+    r = client.request("POST", "api/raid/Create_LogicalDisk", data=None, json=data,
+                       headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON[
+            "data"] = 'Failed to call BMC interface api/raid/Create_LogicalDisk, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON = createVirtualDrive1(client, data)
+    return JSON
+
+
+def createVirtualDrive1(client, data):
+    JSON = {}
+    header = client.getHearder()
     r = client.request("POST", "api/settings/raid_management/create_virtual_drive", data=None, json=data,
                        headers=header)
     if r is None:
