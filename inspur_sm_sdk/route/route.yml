@@ -29,9 +29,9 @@ NF5180M6:
 NF5468M6:
     common: CommonM6
 NF5488A5:
-    common: NF5280M5
+    common: CommonA5
 NF5468A5:
-    common: NF5280M5
+    common: CommonA5
 NF5260M6:
     common: CommonM6
 NF5266M6:
@@ -40,3 +40,7 @@ NF8260M6:
     common: CommonM6
 NF5270M6:
     common: CommonM6
+NF3180A6:
+    common: CommonA6
+NF3280A6:
+    common: CommonA6

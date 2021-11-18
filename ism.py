@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 
 ERR_dict = {
@@ -80,7 +80,7 @@ def main(params):
         res['State'] = "Failure"
         res['Message'] = [impl]
         return res
-    if 'M5' not in impl and 'M6' not in impl:
+    if 'M5' not in impl and 'M6' not in impl and 'A5' not in impl and 'A6' not in impl:
         res['State'] = "Failure"
         res['Message'] = ['Not Support']
         return res
