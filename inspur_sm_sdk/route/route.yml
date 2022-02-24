@@ -44,3 +44,13 @@ NF3180A6:
     common: CommonA6
 NF3280A6:
     common: CommonA6
+NF8480M6:
+    common: CommonM6
+NF5466M6:
+    common: CommonM6
+NS5480M6:
+    common: CommonM6
+NS5484M6:
+    common: CommonM6
+NS5486M6:
+    common: CommonM6

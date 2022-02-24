@@ -38,6 +38,7 @@ with io.open('README.md') as readme:
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
         ],
 		install_requires=INSTALL_REQUIRES,
         py_modules=['ism'],
