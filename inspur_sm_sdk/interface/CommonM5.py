@@ -11955,7 +11955,7 @@ def showLogicalInfo_LSI(client, args):
             raidDict = collections.OrderedDict()
             raidDict['Controller ID'] = i
             ldiskList = []
-            for item in ctrlldinfo.json():
+            for item in ctrlldinfo.get('data'):
                 ldiskDict = collections.OrderedDict()
                 if 'targetId' in item:
                     ldiskDict['Virtual Drive ID'] = item['targetId']

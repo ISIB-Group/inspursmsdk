@@ -1994,7 +1994,7 @@ class CommonM6(Base):
                     tasks = res_progress.get('data')
                     task = None
                     for t in tasks:
-                        if t["id"] == task_dict.get(args.type, -1):
+                        if t["id"] == task_dict.get(args.type, -1) or "rollback" in t["des"]:
                             task = t
                             break
                     # 无任务则退出
@@ -11451,7 +11451,6 @@ def setVirtualDrive(client, args):
     lds = {}
     res = RestFunc.getLogicalDiskInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
-        res = res.get('data')
         lds = res.get('data')
         for ld in lds:
             if ld['ControllerName'] not in ctrl_ld_list_dict:
@@ -11465,7 +11464,7 @@ def setVirtualDrive(client, args):
     for pd in ctrl_ld_list_dict:
         ctrl_ld_list_dict.get(pd).sort()
 
-    if args.show:
+    if args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:
@@ -11498,7 +11497,7 @@ def setVirtualDrive(client, args):
         result.State('Failure')
         result.Message(['Controller id is needed.'])
         return result
-    if args.deviceId is None:
+    if args.ldiskId is None:
         result.State('Failure')
         result.Message(['Virtual drive id is needed.'])
         return result
@@ -11510,7 +11509,10 @@ def setVirtualDrive(client, args):
 
     the_ld_list = ctrl_ld_list_dict.get(ctrl_id_name_dict.get(args.ctrlId))
 
-    if args.deviceId not in the_ld_list:
+    args.location = None
+    args.init = None
+    args.delete = None
+    if args.ldiskId not in the_ld_list:
         result.State('Failure')
         result.Message(["Invalid virtual drive id, choose from " + str(the_ld_list)])
         return result
@@ -11527,11 +11529,11 @@ def setVirtualDrive(client, args):
     elif args.option == 'DEL':
         args.delete = "NotNone"
     if args.location is not None:
-        res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.deviceId, args.location)
+        res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.ldiskId, args.location)
     elif args.init is not None:
-        res = RestFunc.initLogicalDisk(client, args.ctrlId, args.deviceId, args.init)
+        res = RestFunc.initLogicalDisk(client, args.ctrlId, args.ldiskId, args.init)
     elif args.delete is not None:
-        res = RestFunc.deleteLogicalDisk(client, args.ctrlId, args.deviceId)
+        res = RestFunc.deleteLogicalDisk(client, args.ctrlId, args.ldiskId)
     if res == {}:
         result.State("Failure")
         result.Message(["disk operation failed"])
@@ -11582,7 +11584,7 @@ def setPhysicalDrive(client, args):
     for pd in ctrl_list_dict:
         ctrl_list_dict.get(pd).sort()
 
-    if args.show:
+    if args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:
@@ -11633,6 +11635,9 @@ def setPhysicalDrive(client, args):
         result.Message(["Invalid physical drive slot num, choose from " + str(the_pd_list)])
         return result
 
+    args.location = None
+    args.erase = None
+    args.status = None
     if args.option == 'LOC':
         args.location = 'StartLocate'
     elif args.option == 'STL':
@@ -11657,13 +11662,13 @@ def setPhysicalDrive(client, args):
         args.status = 'JBOD'
     if args.location is not None:
         res = RestFunc.locateDiskByRest(
-            client, args.cid, args.pid, args.location)
+            client, args.ctrlId, args.deviceId, args.location)
     elif args.erase is not None:
         res = RestFunc.erasePhysicalDisk(
-            client, args.cid, args.pid, args.erase)
+            client, args.ctrlId, args.deviceId, args.erase)
     elif args.status is not None:
         res = RestFunc.setPhysicalDisk(
-            client, args.cid, args.pid, args.status)
+            client, args.ctrlId, args.deviceId, args.status)
     if res == {}:
         result.State("Failure")
         result.Message(["disk operation failed"])
