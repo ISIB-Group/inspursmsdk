@@ -4262,6 +4262,12 @@ class ADBean():
     def ActiveDirectoryAuthentication(self, value):
         self.dict['ActiveDirectoryAuthentication'] = value
 
+    def SSLEncryptionType(self):
+        return self.dict['SSLEncryptionType']
+
+    def SSLEncryptionType(self, value):
+        self.dict['SSLEncryptionType'] = value
+
     def SecretName(self):
         return self.dict['SecretName']
 

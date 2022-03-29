@@ -3937,7 +3937,7 @@ class CommonM6(Base):
             ldap_raw = res.get('data')
 
             ldap_res = collections.OrderedDict()
-            ldap_res['AuthenState'] = 'Enable' if ldap_raw['enable'] == 1 else "Disabled"
+            ldap_res['AuthenState'] = 'Enable' if ldap_raw['enable'] == 1 else "Disable"
             encryption_dict = {0: "No Encryption", 1: "SSL", 2: "StartTLS"}
             ldap_res['Encryption'] = encryption_dict.get(
                 ldap_raw['encryption_type'])
@@ -3957,102 +3957,148 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return result
 
-    # def setldap(self, client, args):
-    #     result = ResultBean()
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #
-    #     # get
-    #     data_file = None
-    #     get_res = RestFunc.getLDAPM6(client)
-    #     if get_res.get('code') == 0 and get_res.get('data') is not None:
-    #         ldap_raw = get_res.get('data')
-    #     else:
-    #         result.State("Failure")
-    #         result.Message([get_res.get('data')])
-    #
-    #         RestFunc.logout(client)
-    #         return result
-    #
-    #     if args.enable is not None:
-    #         if args.enable == "enable":
-    #             ldap_raw['enable'] = 1
-    #         else:
-    #             ldap_raw['enable'] = 0
-    #
-    #     if ldap_raw['enable'] == 1:
-    #         encryption_dict = {"no": 0, "SSL": 1, "StartTLS": 2}
-    #         if args.encry is not None:
-    #             ldap_raw['encryption_type'] = encryption_dict.get(args.encry)
-    #
-    #         if args.address is not None:
-    #             ldap_raw['server_address'] = args.address
-    #
-    #         if args.server_port is not None:
-    #             ldap_raw['port'] = args.server_port
-    #
-    #         if args.dn is not None:
-    #             ldap_raw['bind_dn'] = args.dn
-    #
-    #         if args.base is not None:
-    #             ldap_raw['search_base'] = args.base
-    #
-    #         if args.code is not None:
-    #             ldap_raw['password'] = args.base
-    #
-    #         if args.login is not None:
-    #             ldap_raw['user_login_attribute'] = args.login
-    #
-    #         if args.cn is not None:
-    #             ldap_raw['common_name_type'] = args.cn
-    #
-    #         if ldap_raw['encryption_type'] == 2:
-    #             if args.ca is None or args.ce is None or args.pk is None:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ["CA certificate file, Certificate File, Private Key is needed."])
-    #
-    #                 RestFunc.logout(client)
-    #                 return result
-    #             content_ca = ""
-    #             content_ce = ""
-    #             content_pk = ""
-    #             file_name_ca = os.path.basename(args.ca)
-    #             file_name_ce = os.path.basename(args.ce)
-    #             file_name_pk = os.path.basename(args.pk)
-    #             with open(args.ca, 'r') as f:
-    #                 content_ca = f.read()
-    #             with open(args.ce, 'r') as f:
-    #                 content_ce = f.read()
-    #             with open(args.pk, 'r') as f:
-    #                 content_pk = f.read()
-    #
-    #             data_ca = '------{0}{1}Content-Disposition: form-data; name="ca_certificate_file"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}'.format(
-    #                 'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_ca, file_name_ca)
-    #             data_ce = '------{0}{1}Content-Disposition: form-data; name="certificate_file"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}'.format(
-    #                 'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_ce, file_name_ce)
-    #             data_pk = '------{0}{1}Content-Disposition: form-data; name="private_key"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
-    #                 'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_pk, file_name_pk)
-    #             data_file = data_ca + data_ce + data_pk
-    #
-    #     set_res = RestFunc.setLDAPM6(client, ldap_raw, data_file)
-    #
-    #     if set_res.get('code') == 0 and set_res.get('data') is not None:
-    #         result.State("Success")
-    #         result.Message([set_res.get('data')])
-    #     else:
-    #         result.State("Failure")
-    #         result.Message([set_res.get('data')])
-    #
-    #     RestFunc.logout(client)
-    #     return result
+    def setldap(self, client, args):
+        result = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        # get
+        data_file = None
+        get_res = RestFunc.getLDAPM6(client)
+        if get_res.get('code') == 0 and get_res.get('data') is not None:
+            ldap_raw = get_res.get('data')
+        else:
+            result.State("Failure")
+            result.Message([get_res.get('data')])
+
+            RestFunc.logout(client)
+            return result
+
+        if args.enable is not None:
+            if args.enable == "enable":
+                ldap_raw['enable'] = 1
+            else:
+                ldap_raw['enable'] = 0
+
+        if ldap_raw['enable'] == 1:
+            encryption_dict = {"no": 0, "SSL": 1, "StartTLS": 2}
+            if args.encry is not None:
+                ldap_raw['encryption_type'] = encryption_dict.get(args.encry)
+
+            if args.address is not None:
+                if RegularCheckUtil.checkIP(args.address) or RegularCheckUtil.checkIPv6(args.address):
+                    ldap_raw['server_address'] = args.address
+                else:
+                    result.State("Failure")
+                    result.Message(['Invalid Server Address. Please input an IPv4 or IPv6 address'])
+                    RestFunc.logout(client)
+                    return result
+
+            if args.server_port is not None:
+                if args.server_port < 1 or args.server_port > 65535:
+                    result.State("Failure")
+                    result.Message(['argument server port range in 1-65535'])
+                    RestFunc.logout(client)
+                    return result
+                ldap_raw['port'] = args.server_port
+
+            if args.dn is not None:
+                if len(args.dn) < 6 or len(args.dn) > 63:
+                    result.State("Failure")
+                    result.Message(['Bind DN is a string of 6 to 63 alpha-numeric characters'])
+                    RestFunc.logout(client)
+                    return result
+                if not str(args.dn).startswith("cn=") and not str(args.dn).startswith("uid="):
+                    result.State("Failure")
+                    result.Message(["Bind DN must start with 'cn=' or 'uid='"])
+                    RestFunc.logout(client)
+                    return result
+                ldap_raw['bind_dn'] = args.dn
+
+            if args.base is not None:
+                if len(args.base) < 4 or len(args.base) > 64:
+                    result.State("Failure")
+                    result.Message(["Search base is a string of 4 to 64 alpha-numeric characters"])
+                    RestFunc.logout(client)
+                    return result
+                if not args.base[0].isalpha():
+                    result.State("Failure")
+                    result.Message(["Search base must start with an alphabetical character"])
+                    RestFunc.logout(client)
+                    return result
+                ldap_raw['search_base'] = args.base
+
+            if args.code is not None:
+                if len(args.code) < 1 or len(args.code) > 48:
+                    result.State("Failure")
+                    result.Message(["password is a string of 1 to 48 characters"])
+                    RestFunc.logout(client)
+                    return result
+                if " " in str(args.code):
+                    result.State("Failure")
+                    result.Message(["spaces are not allowed in argument password"])
+                    RestFunc.logout(client)
+                    return result
+                ldap_raw['password'] = args.base
+            else:
+                result.State("Failure")
+                result.Message(["argument -PWD is required"])
+                RestFunc.logout(client)
+                return result
+
+            if args.attr is not None:
+                ldap_raw['user_login_attribute'] = args.attr
+
+            if args.cn is not None:
+                ldap_raw['common_name_type'] = args.cn
+
+            if ldap_raw['encryption_type'] == 2:
+                if args.ca is None or args.ce is None or args.pk is None:
+                    result.State("Failure")
+                    result.Message(
+                        ["CA certificate file, Certificate File, Private Key is needed."])
+
+                    RestFunc.logout(client)
+                    return result
+                content_ca = ""
+                content_ce = ""
+                content_pk = ""
+                file_name_ca = os.path.basename(args.ca)
+                file_name_ce = os.path.basename(args.ce)
+                file_name_pk = os.path.basename(args.pk)
+                with open(args.ca, 'r') as f:
+                    content_ca = f.read()
+                with open(args.ce, 'r') as f:
+                    content_ce = f.read()
+                with open(args.pk, 'r') as f:
+                    content_pk = f.read()
+
+                data_ca = '------{0}{1}Content-Disposition: form-data; name="ca_certificate_file"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_ca, file_name_ca)
+                data_ce = '------{0}{1}Content-Disposition: form-data; name="certificate_file"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_ce, file_name_ce)
+                data_pk = '------{0}{1}Content-Disposition: form-data; name="private_key"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                    'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_pk, file_name_pk)
+                data_file = data_ca + data_ce + data_pk
+
+        set_res = RestFunc.setLDAPM6(client, ldap_raw, data_file)
+
+        if set_res.get('code') == 0 and set_res.get('data') is not None:
+            result.State("Success")
+            result.Message([set_res.get('data')])
+        else:
+            result.State("Failure")
+            result.Message([set_res.get('data')])
+
+        RestFunc.logout(client)
+        return result
 
     def getldapgroup(self, client, args):
         # login
@@ -4068,61 +4114,61 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return result
 
-    # def addldapgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = addLDAPGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
-    #
-    # def setldapgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = setLDAPGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
-    #
-    # def delldapgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = delLDAPGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
+    def addldapgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = addLDAPGroup(client, args)
+        RestFunc.logout(client)
+        return result
 
-    # def editldapgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = editLDAPGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
+    def setldapgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = setLDAPGroup(client, args)
+        RestFunc.logout(client)
+        return result
+
+    def delldapgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = delLDAPGroup(client, args)
+        RestFunc.logout(client)
+        return result
+
+    def editldapgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = editLDAPGroup(client, args)
+        RestFunc.logout(client)
+        return result
 
     def getad(self, client, args):
         result = ResultBean()
@@ -4142,6 +4188,8 @@ class CommonM6(Base):
 
             ad_res = collections.OrderedDict()
             ad_res['Enable'] = 'Enable' if ad_raw['enable'] == 1 else "Disabled"
+            if "ssl_enable" in ad_raw:
+                ad_res['SSLEnable'] = 'Enable' if ad_raw['ssl_enable'] == 1 else "Disable"
             ad_res['SecretName'] = ad_raw['secret_username']
             ad_res['UserDomainName'] = ad_raw['user_domain_name']
             ad_res['DomainControllerServerAddress1'] = ad_raw['domain_controller1']
@@ -4157,103 +4205,110 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return result
 
-    #
-    # def setad(self, client, args):
-    #     result = ResultBean()
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #
-    #     # get
-    #     get_res = RestFunc.getADM6(client)
-    #     if get_res.get('code') == 0 and get_res.get('data') is not None:
-    #         ad_raw = get_res.get('data')
-    #     else:
-    #         result.State("Failure")
-    #         result.Message([get_res.get('data')])
-    #         RestFunc.logout(client)
-    #         return result
-    #
-    #     if args.enable is not None:
-    #         if args.enable == "enable":
-    #             ad_raw['enable'] = 1
-    #         else:
-    #             ad_raw['enable'] = 0
-    #
-    #     ad_raw['id'] = 1
-    #
-    #     if ad_raw['enable'] == 1:
-    #         if args.domain is not None:
-    #             ad_raw['user_domain_name'] = args.domain
-    #         if args.name is not None:
-    #             dn = r'^[a-zA-Z][\da-zA-Z]{0,63}$'
-    #             if re.search(dn, args.name, re.I):
-    #                 ad_raw['secret_username'] = args.name
-    #             else:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ['Username should be a string of 1 to 64 alpha-numeric characters.It must start with an alphabetical character.'])
-    #                 RestFunc.logout(client)
-    #                 return result
-    #         if args.code is not None:
-    #             if len(
-    #                     args.code) < 6 or len(
-    #                     args.code) > 127 or " " in args.code:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ['Password must be 6 - 127 characters long. White space is not allowed.'])
-    #                 RestFunc.logout(client)
-    #                 return result
-    #             ad_raw['secret_password'] = args.code
-    #         if args.addr1 is not None:
-    #             if RegularCheckUtil.checkIP(
-    #                     args.addr1) or RegularCheckUtil.checkIPv6(
-    #                     args.addr1):
-    #                 ad_raw['domain_controller1'] = args.addr1
-    #             else:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
-    #                 RestFunc.logout(client)
-    #                 return result
-    #         if args.addr2 is not None:
-    #             if RegularCheckUtil.checkIP(
-    #                     args.addr2) or RegularCheckUtil.checkIPv6(
-    #                     args.addr2):
-    #                 ad_raw['domain_controller2'] = args.addr2
-    #             else:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
-    #                 RestFunc.logout(client)
-    #                 return result
-    #         if args.addr3 is not None:
-    #             if RegularCheckUtil.checkIP(
-    #                     args.addr3) or RegularCheckUtil.checkIPv6(
-    #                     args.addr3):
-    #                 ad_raw['domain_controller3'] = args.addr3
-    #             else:
-    #                 result.State("Failure")
-    #                 result.Message(
-    #                     ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
-    #                 RestFunc.logout(client)
-    #                 return result
-    #     set_res = RestFunc.setADM6(client, ad_raw)
-    #     if set_res.get('code') == 0 and set_res.get('data') is not None:
-    #         result.State("Success")
-    #         result.Message([set_res.get('data')])
-    #     else:
-    #         result.State("Failure")
-    #         result.Message([set_res.get('data')])
-    #
-    #     RestFunc.logout(client)
-    #     return result
+
+    def setad(self, client, args):
+        result = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        # get
+        get_res = RestFunc.getADM6(client)
+        if get_res.get('code') == 0 and get_res.get('data') is not None:
+            ad_raw = get_res.get('data')
+        else:
+            result.State("Failure")
+            result.Message([get_res.get('data')])
+            RestFunc.logout(client)
+            return result
+
+        if args.enable is not None:
+            if args.enable == "enable":
+                ad_raw['enable'] = 1
+            else:
+                ad_raw['enable'] = 0
+
+        if hasattr(args, "ssl_enable"):
+            if args.ssl_enable == "enable":
+                ad_raw['ssl_enable'] = 1
+            else:
+                ad_raw['ssl_enable'] = 0
+
+        ad_raw['id'] = 1
+        ad_raw['secret_password'] = ''
+
+        if ad_raw['enable'] == 1:
+            if args.domain is not None:
+                ad_raw['user_domain_name'] = args.domain
+            if args.name is not None:
+                dn = r'^[a-zA-Z][\da-zA-Z]{0,63}$'
+                if re.search(dn, args.name, re.I):
+                    ad_raw['secret_username'] = args.name
+                else:
+                    result.State("Failure")
+                    result.Message(
+                        ['Username should be a string of 1 to 64 alpha-numeric characters.It must start with an alphabetical character.'])
+                    RestFunc.logout(client)
+                    return result
+            if args.code is not None:
+                if len(
+                        args.code) < 6 or len(
+                        args.code) > 127 or " " in args.code:
+                    result.State("Failure")
+                    result.Message(
+                        ['Password must be 6 - 127 characters long. White space is not allowed.'])
+                    RestFunc.logout(client)
+                    return result
+                ad_raw['secret_password'] = args.code
+            if args.addr1 is not None:
+                if RegularCheckUtil.checkIP(
+                        args.addr1) or RegularCheckUtil.checkIPv6(
+                        args.addr1):
+                    ad_raw['domain_controller1'] = args.addr1
+                else:
+                    result.State("Failure")
+                    result.Message(
+                        ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
+                    RestFunc.logout(client)
+                    return result
+            if args.addr2 is not None:
+                if RegularCheckUtil.checkIP(
+                        args.addr2) or RegularCheckUtil.checkIPv6(
+                        args.addr2):
+                    ad_raw['domain_controller2'] = args.addr2
+                else:
+                    result.State("Failure")
+                    result.Message(
+                        ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
+                    RestFunc.logout(client)
+                    return result
+            if args.addr3 is not None:
+                if RegularCheckUtil.checkIP(
+                        args.addr3) or RegularCheckUtil.checkIPv6(
+                        args.addr3):
+                    ad_raw['domain_controller3'] = args.addr3
+                else:
+                    result.State("Failure")
+                    result.Message(
+                        ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
+                    RestFunc.logout(client)
+                    return result
+        set_res = RestFunc.setADM6(client, ad_raw)
+        if set_res.get('code') == 0 and set_res.get('data') is not None:
+            result.State("Success")
+            result.Message([set_res.get('data')])
+        else:
+            result.State("Failure")
+            result.Message([set_res.get('data')])
+
+        RestFunc.logout(client)
+        return result
 
     def getadgroup(self, client, args):
         # login
@@ -4269,61 +4324,61 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return result
 
-    # def addadgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = addADGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
-    #
-    # def setadgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = setADGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
-    #
-    # def deladgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = delADGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
+    def addadgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = addADGroup(client, args)
+        RestFunc.logout(client)
+        return result
 
-    # def editadgroup(self, client, args):
-    #     # login
-    #     headers = RestFunc.login_M6(client)
-    #     if headers == {}:
-    #         login_res = ResultBean()
-    #         login_res.State("Failure")
-    #         login_res.Message(
-    #             ["login error, please check username/password/host/port"])
-    #         return login_res
-    #     client.setHearder(headers)
-    #     result = editADGroup(client, args)
-    #     RestFunc.logout(client)
-    #     return result
+    def setadgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = setADGroup(client, args)
+        RestFunc.logout(client)
+        return result
+
+    def deladgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = delADGroup(client, args)
+        RestFunc.logout(client)
+        return result
+
+    def editadgroup(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = editADGroup(client, args)
+        RestFunc.logout(client)
+        return result
 
     def backup(self, client, args):
         checkparam_res = ResultBean()
@@ -10811,65 +10866,65 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
-    def setad(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def editadgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setldap(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def editldapgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def addadgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setadgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def deladgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def addldapgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setldapgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def delldapgroup(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
+    # def setad(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def editadgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def setldap(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def editldapgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def addadgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def setadgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def deladgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def addldapgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def setldapgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
+    #
+    # def delldapgroup(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M6 model does not support this feature.'])
+    #     return result
 
     def clearauditlog(self, client, args):
         result = ResultBean()
@@ -12051,9 +12106,9 @@ def addLDAPGroup(client, args):
         'role_group_domain': args.base,
         'role_group_kvm_privilege': kvm_vm.get(args.kvm.lower()),
         'role_group_name': args.name,
-        'role_group_privilege': "none",
+        'role_group_privilege': args.pri,
         'role_group_vmedia_privilege': kvm_vm.get(args.vm.lower()),
-        'role_group_withoem_privilege': args.pri
+        'role_group_withoem_privilege': 'none'
     }
     # print(ldapgroup)
     set_res = RestFunc.setLDAPgroupM6(client, ldapgroup)
@@ -12117,8 +12172,8 @@ def setLDAPGroup(client, args):
         return result
 
     if args.pri is not None:
-        ldapgroup['role_group_withoem_privilege'] = args.pri
-    if ldapgroup['role_group_withoem_privilege'] == "":
+        ldapgroup['role_group_privilege'] = args.pri
+    if ldapgroup['role_group_privilege'] == "":
         result.State("Failure")
         result.Message(['Group privilege is needed.'])
         return result

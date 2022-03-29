@@ -7059,6 +7059,12 @@ class CommonM5(Base):
             else:
                 state = 'disable'
             ad.ActiveDirectoryAuthentication(state)
+            if data.has_key("sslenable"):
+                if data['sslenable'] == 1:
+                    ssl_state = "enable"
+                else:
+                    ssl_state = "disable"
+                ad.SSLEncryptionType(ssl_state)
             ad.SecretName(getNone(data['secret_username']))
             if 'timeout' in data:
                 ad.Timeout(data['timeout'])
@@ -13891,6 +13897,10 @@ def setAD(client, args):
         default_addr2 = data['domain_controller2']
         default_addr3 = data['domain_controller3']
         default_enable = data['enable']
+        if "sslenable" in data:
+            default_ssl_enable = data['sslenable']
+        else:
+            default_ssl_enable = 0
         if 'timeout' in data:
             default_timeout = data['timeout']
         else:
@@ -13909,6 +13919,13 @@ def setAD(client, args):
         enable = 0
     else:
         enable = default_enable
+
+    ssl_enable = default_ssl_enable
+    if hasattr(args, "ssl_enable"):
+        if args.ssl_enable == 'enable':
+            ssl_enable = 1
+        elif args.ssl_enable == 'disable':
+            ssl_enable = 0
 
     if enable == 1:
         if args.name is None:
@@ -14041,7 +14058,8 @@ def setAD(client, args):
             'enable': 1,
             'id': 1,
             'secret_username': name,
-            'user_domain_name': domain
+            'user_domain_name': domain,
+            'sslenable': ssl_enable
         }
         if default_timeout != -1:
             data['timeout'] = timeout
@@ -14064,7 +14082,8 @@ def setAD(client, args):
             'enable': 0,
             'id': 1,
             'secret_username': default_name,
-            'user_domain_name': default_domain
+            'user_domain_name': default_domain,
+            'sslenable': ssl_enable
         }
     r = RestFunc.setADByRest(client, data)
     if r.get('code') == 0 and r.get('data') is not None:
