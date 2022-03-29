@@ -211,12 +211,11 @@ def checkPrefix(prefix):
 
 
 def checkDomainName(dm):
-    p1 = r'\.'
-    p2 = '[a-zA_Z]'
-    if re.search(p1, dm, re.I) and re.search(p2, dm, re.I):
+    dn = '^([\da-zA-Z]+[\w\-]*\.)*([\da-zA-Z]+[\w\-]*)+\.([\da-zA-Z]+[\w\-]*)+$'
+    dnd = '^([\d]+\.)*[\d]+\.[\d]+$'
+    if re.search(dn,dm,re.I) and not re.search(dnd,dm,re.I):
         return True
-    else:
-        return False
+    return False
 
 
 def checkHostName(hm):
