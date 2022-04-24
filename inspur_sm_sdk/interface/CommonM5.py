@@ -8911,7 +8911,7 @@ class CommonM5(Base):
             item_json = collections.OrderedDict()
             item_json['KVMEncryption'] = enabled_dict[kvm['kvm_encryption']]
             item_json['KeyboardLanguage'] = keyboard_dict.get(kvm['keyboard_language'], '')
-            item_json['VitrualMediaAttachMode'] = mode_dict[kvm['vmedia_attach']]
+            item_json['VirtualMediaAttachMode'] = mode_dict[kvm['vmedia_attach']]
             item_json['RetryCount'] = kvm['retry_count']
             item_json['RetryTimeInterval'] = kvm['retry_time_interval']
             item_json['OffFeatureStatus'] = enabled_dict[kvm['local_monitor_off']]
@@ -16391,14 +16391,23 @@ def setPowerBudget(client, args):
             result.State('Failure')
             result.Message('action cannot be empty!')
     else:
-        range_info = RestFunc.getRangeWatts(client)
-        if range_info['code'] == 0 and range_info['data'] is not None:
-            data = range_info['data']
-            result.State('Success')
-            result.Message([data])
+        result_dict = {}
+        data_system = {"BLADE_NUM": 1, "DOMAIN_ID": 0}
+        result_system = RestFunc.getPowerBudgetRange(client, data_system)
+        if result_system.get('code') == 0:
+            result_dict['system'] = result_system.get('data')
+            data_cpu = {"BLADE_NUM": 1, "DOMAIN_ID": 1}
+            result_cpu = RestFunc.getPowerBudgetRange(client, data_cpu)
+            if result_cpu.get('code') == 0:
+                result_dict['cpu'] = result_cpu.get('data')
+                result.State("Success")
+                result.Message([result_dict])
+            else:
+                result.State('Failure')
+                result.Message([result_cpu.get('data')])
         else:
             result.State('Failure')
-            result.Message('could not range power budget')
+            result.Message([result_system.get('data')])
     return result
 
 
@@ -16974,7 +16983,7 @@ def setKVM(client, args):
         if args.kvmencryption is not None:
             data['KVMEncryption'] = enable_dict[args.kvmencryption]
         if args.vmediaattach is not None:
-            data['VitrualMediaAttachMode'] = mode_dict[args.vmediaattach]
+            data['VirtualMediaAttachMode'] = mode_dict[args.vmediaattach]
         if args.keyboardlanguage is not None:
             data['KeyboardLanguage'] = args.keyboardlanguage
         if args.retrycount is not None:

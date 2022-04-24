@@ -6818,6 +6818,101 @@ def createVirtualDrive1(client, data):
     return JSON
 
 
+def getPowerBudget(client):
+    JSON = {}
+    response = client.request("GET", "api/getpolicy", client.getHearder())
+    try:
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/getpolicy, response is none.'
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = response.json()
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/getpolicy", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = "exception into: " + str(e)
+    return JSON
+
+
+def getPowerBudgetRange(client, data):
+    JSON = {}
+    response = client.request("POST", "api/getnmcapabilities", client.getHearder(), json=data)
+    try:
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = "Failed to call BMC interface api/getnmcapabilities, response is none."
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = response.json()
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/getnmcapabilities", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = "exception into: " + str(e)
+    return JSON
+
+
+def setPowerBudget(client, data):
+    JSON = {}
+    response = client.request("POST", "api/setpolicy", client.getHearder(), json=data)
+    try:
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/setpolicy, response is none.'
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = " "
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/setpolicy", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = "exception into: " + str(e)
+    return JSON
+
+
+def addPowerBudget(client, data):
+    JSON = {}
+    response = client.request("POST", "api/addpolicy", client.getHearder(), json=data)
+    try:
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/addpolicy, response is none.'
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = " "
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/addpolicy", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = "exception into: " + str(e)
+    return JSON
+
+
+def setAllPolicy(client, data):
+    JSON = {}
+    response = client.request("POST", "api/setallpolicy", client.getHearder(), json=data)
+    try:
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/setallpolicy, response is none.'
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = " "
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/setallpolicy", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = "exception into: " + str(e)
+    return JSON
+
+
 class NF5280M5_SensorType():
     def __init__(self):
         self.getSensorTypeKey = getSensorTypeKey

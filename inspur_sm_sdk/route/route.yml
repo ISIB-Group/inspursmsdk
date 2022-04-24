@@ -58,3 +58,8 @@ SN5160FM6:
     common: CommonM6
 SN5260FM6:
     common: CommonM6
+SN6110M6:
+    common: CommonM6
+SN6115M6:
+    common: CommonM6
+    

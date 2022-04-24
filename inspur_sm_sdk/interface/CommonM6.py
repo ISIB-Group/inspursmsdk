@@ -63,7 +63,9 @@ from inspur_sm_sdk.interface.ResEntity import (
     SessionBean,
     SensorBean,
     Sensor,
-    FruBean)
+    FruBean,
+    PowerConsumptionBean,
+    SuspendBean)
 retry_count = 0
 
 
@@ -170,6 +172,357 @@ class CommonM6(Base):
         cap.SetCommandList(setcommand)
         res.State('Success')
         res.Message(cap)
+        return res
+
+    def getpowerbudget(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = ResultBean()
+        powers = RestFunc.getPowerPolicy(client)
+        if powers.get('code') == 0 and powers.get('data') is not None:
+            powerssData = powers.get('data')
+            List = []
+            enable_dict = {0: 'disable', 1: 'enable'}
+            if powerssData:
+                for item in powerssData:
+                    con = PowerConsumptionBean()
+                    PolicyID = item['PolicyID']
+                    TargetLimit = item['TargetLimit']
+                    CurrentStatus = item['CurrentStatus']
+                    CurrentStatus = enable_dict.get(CurrentStatus, 'N/A')
+                    StartTime1 = item['StartTime1']
+                    EndTime1 = item['EndTime1']
+                    Recurrence1 = item['Recurrence1']
+                    StartTime2 = item['StartTime2']
+                    EndTime2 = item['EndTime2']
+                    Recurrence2 = item['Recurrence2']
+                    StartTime3 = item['StartTime3']
+                    EndTime3 = item['EndTime3']
+                    Recurrence3 = item['Recurrence3']
+                    StartTime4 = item['StartTime4']
+                    EndTime4 = item['EndTime4']
+                    Recurrence4 = item['Recurrence4']
+                    StartTime5 = item['StartTime5']
+                    EndTime5 = item['EndTime5']
+                    Recurrence5 = item['Recurrence5']
+                    con.PolicyId(PolicyID)
+                    con.PowerLimit(TargetLimit)
+                    con.CurrentStatus(CurrentStatus)
+                    suspList = []
+                    if Recurrence1 != 255:
+                        bin1 = '{:08b}'.format(int(Recurrence1))
+                        week1 = getWeek(bin1)
+                        susp = SuspendBean()
+                        susp.StartTime(str(StartTime1 / 10) + ':00')
+                        susp.EndTime(str(EndTime1 / 10) + ':00')
+                        susp.Recurrence(week1)
+                        suspList.append(susp.dict)
+                    if Recurrence2 != 255:
+                        bin2 = '{:08b}'.format(int(Recurrence2))
+                        week2 = getWeek(bin2)
+                        susp = SuspendBean()
+                        susp.StartTime(str(StartTime2 / 10) + ':00')
+                        susp.EndTime(str(EndTime2 / 10) + ':00')
+                        susp.Recurrence(week2)
+                        suspList.append(susp.dict)
+                    if Recurrence3 != 255:
+                        bin3 = '{:08b}'.format(int(Recurrence3))
+                        week3 = getWeek(bin3)
+                        susp = SuspendBean()
+                        susp.StartTime(str(StartTime3 / 10) + ':00')
+                        susp.EndTime(str(EndTime3 / 10) + ':00')
+                        susp.Recurrence(week3)
+                        suspList.append(susp.dict)
+                    if Recurrence4 != 255:
+                        bin4 = '{:08b}'.format(int(Recurrence4))
+                        week4 = getWeek(bin4)
+                        susp = SuspendBean()
+                        susp.StartTime(str(StartTime4 / 10) + ':00')
+                        susp.EndTime(str(EndTime4 / 10) + ':00')
+                        susp.Recurrence(week4)
+                        suspList.append(susp.dict)
+                    if Recurrence5 != 255:
+                        bin5 = '{:08b}'.format(int(Recurrence5))
+                        week5 = getWeek(bin5)
+                        susp = SuspendBean()
+                        susp.StartTime(str(StartTime5 / 10) + ':00')
+                        susp.EndTime(str(EndTime5 / 10) + ':00')
+                        susp.Recurrence(week5)
+                        suspList.append(susp.dict)
+                    con.Suspend(suspList)
+                    List.append(con.dict)
+                result.State('Success')
+                result.Message(List)
+            else:
+                result.State('Success')
+                result.Message(['no data for power budget'])
+        else:
+            result.State('Failure')
+            result.Message(['Failed to get power budget info.'])
+        RestFunc.logout(client)
+        return result
+
+    def getpowerbudgetrange(self, client, args):
+        res = ResultBean()
+        try:
+            headers = RestFunc.login_M6(client)
+            if headers == {}:
+                login_res = ResultBean()
+                login_res.State("Failure")
+                login_res.Message(["login error, please check username/password/host/port"])
+                return login_res
+            client.setHearder(headers)
+            result_dict = {}
+            data_system = {"BLADE_NUM": 1, "DOMAIN_ID": 0}
+            result_system = RestFunc.getPowerBudgetRange(client, data_system)
+            if result_system.get('code') == 0:
+                result_dict['system'] = result_system.get('data')
+                data_cpu = {"BLADE_NUM": 1, "DOMAIN_ID": 1}
+                result_cpu = RestFunc.getPowerBudgetRange(client, data_cpu)
+                if result_cpu.get('code') == 0:
+                    result_dict['cpu'] = result_cpu.get('data')
+                    res.State("Success")
+                    res.Message([result_dict])
+                else:
+                    res.State('Failure')
+                    res.Message([result_cpu.get('data')])
+            else:
+                res.State('Failure')
+                res.Message([result_system.get('data')])
+        except Exception as e:
+            res.State("Failure")
+            res.Message(["get power budget info failed, " + str(e)])
+        RestFunc.logout(client)
+        return res
+
+    def setpowerbudget(self, client, args):
+        import collections
+
+        def getSuspend(start, end, week_str):
+            if start is not None and end is not None and week_str is not None:
+                if start > 24 or start < 0:
+                    value = 'Invalid start,start range from 0-24'
+                    return -1, value
+                if end > 24 or end < 0:
+                    value = 'Invalid end,end range from 0-24'
+                    return -1, value
+                if start > end:
+                    value = 'start time should not be greater than end time!'
+                    return -1, value
+                weeks = str(week_str).split(',')
+                week_dict = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thur': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7}
+                list_week = []
+                for week in weeks:
+                    if week not in week_dict:
+                        value = 'Invalid week !'
+                        return -1, value
+                    list_week.append(week_dict[week])
+                list_bin = []
+                for i in range(1, 8):
+                    if i in list_week:
+                        list_bin.append('1')
+                    else:
+                        list_bin.append('0')
+                str_bin = ''.join(list_bin[::-1])
+                int_week = int(str_bin, 2)
+                item_json = collections.OrderedDict()
+                item_json["startTime"] = start * 10
+                item_json["endTime"] = end * 10
+                item_json["recurrence"] = int_week
+                return 0, item_json
+            else:
+                return 1, None
+
+        res = ResultBean()
+        try:
+            headers = RestFunc.login_M6(client)
+            if headers == {}:
+                login_res = ResultBean()
+                login_res.State("Failure")
+                login_res.Message(["login error, please check username/password/host/port"])
+                return login_res
+            client.setHearder(headers)
+            if args.range is False:
+                result = RestFunc.getPowerBudget(client)
+                if result.get('code') == 0:
+                    get_result = result.get('data')
+                else:
+                    res.State('Failure')
+                    res.Message([result.get('data')])
+                    RestFunc.logout(client)
+                    return res
+                if not hasattr(args, "action"):
+                    res.State('Failure')
+                    res.Message(["action cannot be empty!"])
+                    RestFunc.logout(client)
+                    return res
+                if args.action == "add":
+                    for item in get_result:
+                        if int(args.id) == int(item.get('PolicyID')):
+                            res.State('Failure')
+                            res.Message(['policy id ' + str(args.id) + ' already exists'])
+                            RestFunc.logout(client)
+                            return res
+                    domain_dict = {
+                        "system": 0,
+                        "cpu": 1
+                    }
+                    data_range = {"BLADE_NUM": 1, "DOMAIN_ID": domain_dict.get(args.domain)}
+                    result_range = RestFunc.getPowerBudgetRange(client, data_range)
+                    if result_range.get('code') == 0:
+                        range_data = result_range.get('data')
+                        if args.watts > range_data['MaxPower'] or args.watts < range_data['MinPower']:
+                            res.State('Failure')
+                            res.Message(['Invalid watts, ' + str(args.domain) + ' watts range from ' + str(
+                                range_data['MinPower']) + ' to ' + str(range_data['MaxPower'])])
+                            RestFunc.logout(client)
+                            return res
+                    else:
+                        res.State('Failure')
+                        res.Message([result_range.get('data')])
+                        RestFunc.logout(client)
+                        return res
+                    suspend_list = []
+                    status, values = getSuspend(args.start1, args.end1, args.week1)
+                    if status < 0:
+                        res.State('Failure')
+                        res.Message([values])
+                        RestFunc.logout(client)
+                        return res
+                    elif status == 0:
+                        suspend_list.append(values)
+                    status, values = getSuspend(args.start2, args.end2, args.week2)
+                    if status < 0:
+                        res.State('Failure')
+                        res.Message([values])
+                        RestFunc.logout(client)
+                        return res
+                    elif status == 0:
+                        suspend_list.append(values)
+                    status, values = getSuspend(args.start3, args.end3, args.week3)
+                    if status < 0:
+                        res.State('Failure')
+                        res.Message([values])
+                        RestFunc.logout(client)
+                        return res
+                    elif status == 0:
+                        suspend_list.append(values)
+                    status, values = getSuspend(args.start4, args.end4, args.week4)
+                    if status < 0:
+                        res.State('Failure')
+                        res.Message([values])
+                        RestFunc.logout(client)
+                        return res
+                    elif status == 0:
+                        suspend_list.append(values)
+                    status, values = getSuspend(args.start5, args.end5, args.week5)
+                    if status < 0:
+                        res.State('Failure')
+                        res.Message([values])
+                        RestFunc.logout(client)
+                        return res
+                    elif status == 0:
+                        suspend_list.append(values)
+                    data = {"POLICY_ID": args.id,
+                            "DOMAIN_ID": domain_dict.get(args.domain),
+                            "BLADE_NUM": 1,
+                            "TARGET_LIMIT": args.watts,
+                            "suspend": suspend_list}
+                    result = RestFunc.addPowerBudget(client, data)
+                    if result.get('code') == 0:
+                        res.State("Success")
+                        res.Message(["set power budget successfully."])
+                    else:
+                        res.State('Failure')
+                        res.Message([result.get('data')])
+                else:
+                    action_dict = {"close": 0, "open": 1, "delete": 2}
+                    data = {}
+                    open_list = []  # 已开启的策略ID
+                    for item in get_result:
+                        if "CurrentStatus" in item and item['CurrentStatus'] == 1:
+                            open_list.append(item['PolicyID'])
+                        if int(args.id) == int(item.get('PolicyID')):
+                            data = {"action": action_dict.get(args.action),
+                                    "POLICY_ID": args.id,
+                                    "DOMAIN_ID": item.get('DomainID'),
+                                    "BLADE_NUM": item.get("BladeNum")}
+                    if data == {}:
+                        res.State('Failure')
+                        res.Message(['No policy id ' + str(args.id)])
+                        RestFunc.logout(client)
+                        return res
+                    if args.action == "delete":
+                        result = RestFunc.setPowerBudget(client, data)
+                        if result.get('code') == 0:
+                            res.State("Success")
+                            res.Message(["set power budget successfully."])
+                        else:
+                            res.State('Failure')
+                            res.Message([result.get('data')])
+                    elif args.action == "open":
+                        if args.id in open_list:
+                            res.State("Success")
+                            res.Message([str(args.id) + " policy already open. No setting required."])
+                            RestFunc.logout(client)
+                            return res
+                        data_all = {"action": 1, "BLADE_NUM": data['BLADE_NUM']}
+                        result = RestFunc.setAllPolicy(client, data_all)
+                        if result.get('code') == 0:
+                            result_open = RestFunc.setPowerBudget(client, data)
+                            if result_open.get('code') == 0:
+                                res.State("Success")
+                                res.Message(["set power budget successfully."])
+                            else:
+                                res.State('Failure')
+                                res.Message([result_open.get('data')])
+                        else:
+                            res.State('Failure')
+                            res.Message([result.get('data')])
+                    else:
+                        if args.id not in open_list:
+                            res.State("Success")
+                            res.Message([str(args.id) + " policy already close. No setting required."])
+                            RestFunc.logout(client)
+                            return res
+                        result_close = RestFunc.setPowerBudget(client, data)
+                        if result_close.get('code') == 0:
+                            data_all = {"action": 0, "BLADE_NUM": data['BLADE_NUM']}
+                            result = RestFunc.setAllPolicy(client, data_all)
+                            res.State("Success")
+                            res.Message(["set power budget successfully."])
+                        else:
+                            res.State('Failure')
+                            res.Message([result_close.get('data')])
+            else:
+                result_dict = {}
+                data_system = {"BLADE_NUM": 1, "DOMAIN_ID": 0}
+                result_system = RestFunc.getPowerBudgetRange(client, data_system)
+                if result_system.get('code') == 0:
+                    result_dict['system'] = result_system.get('data')
+                    data_cpu = {"BLADE_NUM": 1, "DOMAIN_ID": 1}
+                    result_cpu = RestFunc.getPowerBudgetRange(client, data_cpu)
+                    if result_cpu.get('code') == 0:
+                        result_dict['cpu'] = result_cpu.get('data')
+                        res.State("Success")
+                        res.Message([result_dict])
+                    else:
+                        res.State('Failure')
+                        res.Message([result_cpu.get('data')])
+                else:
+                    res.State('Failure')
+                    res.Message([result_system.get('data')])
+        except Exception as e:
+            res.State("Failure")
+            res.Message(["get power budget info failed, " + str(e)])
+        RestFunc.logout(client)
         return res
 
     def cleareventlog(self, client, args):
@@ -574,8 +927,9 @@ class CommonM6(Base):
             struct_time = time.localtime()
             logtime = time.strftime("%Y%m%d-%H%M", struct_time)
             file_name = "dump_" + psn + "_" + logtime + ".tar.gz"
-            args.fileurl = os.path.join(file_path, file_name)
+            args.fileurl = os.path.join(file_path, str(file_name).encode('utf-8'))
         else:
+            file_name = str(file_name).encode('utf-8')
             p = r'\.tar\.gz$'
             if not re.search(p, file_name, re.I):
                 checkparam_res.State("Failure")
@@ -3774,8 +4128,7 @@ class CommonM6(Base):
                 return result
             if basic_result['SyslogEnable'] == "local enable":
                 if args.status is None:
-                    if args.level is not None or args.protocolType is not None or args.serverId is not None or \
-                            args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
+                    if args.serverId is not None or args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
                             or args.test:
                         result.State('Failure')
                         result.Message(['Please enable remote setting first.'])
@@ -3797,8 +4150,7 @@ class CommonM6(Base):
             else:
                 if args.status == "disable":
                     basic_result["SyslogEnable"] = "local enable"
-                    if args.level is not None or args.protocolType is not None or args.serverId is not None or \
-                            args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
+                    if args.serverId is not None or  args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
                             or args.test:
                         result.State('Failure')
                         result.Message(['Not support setting BMC log while remote log status is disable.'])
@@ -9661,14 +10013,13 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return snmpinfo
 
-    def getsnmp1(self, client, args):
+    def getsnmp(self, client, args):
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
+            login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
 
@@ -9680,18 +10031,14 @@ class CommonM6(Base):
             snmpinfo.Message(["cannot get snmp information"])
         elif res.get('code') == 0 and res.get('data') is not None:
             snmpinfo.State("Success")
-            status_dict = {
-                1: "Enabled",
-                0: "Disabled",
-                "Enable": "Enabled",
-                "Disable": "Disabled"}
+            status_dict = {1: "Enabled", 0: "Disabled", "Enable": "Enabled", "Disable": "Disabled"}
             item = res.get('data')
             snmpbean = SnmpGetSetBean()
             SnmpCfg = item.get('SnmpCfg')
             snmpbean.SnmpV1Enable(status_dict[SnmpCfg.get('SnmpV1Enable', 0)])
             snmpbean.SnmpV2Enable(status_dict[SnmpCfg.get('SnmpV2Enable', 0)])
-            snmpbean.ReadOnlyCommunity(SnmpCfg.get('ReadOnlyCommunity', None))
-            snmpbean.ReadWriteCommunity(SnmpCfg.get('ReadWriteCommunity', None))
+            # snmpbean.ReadOnlyCommunity(SnmpCfg.get('ReadOnlyCommunity', None))
+            # snmpbean.ReadWriteCommunity(SnmpCfg.get('ReadWriteCommunity', None))
             snmpbean.SnmpV3Enable(status_dict[SnmpCfg.get('SnmpV3Enable', 0)])
             snmpbean.AUTHProtocol(SnmpCfg.get('AUTHProtocol', None))
             snmpbean.PrivProtocol(SnmpCfg.get('PrivProtocol', None))
@@ -9702,29 +10049,25 @@ class CommonM6(Base):
             snmpinfo.Message([res.get('data')])
         else:
             snmpinfo.State("Failure")
-            snmpinfo.Message(
-                ["get snmp information error, error code " + str(res.get('code'))])
+            snmpinfo.Message(["get snmp information error, error code " + str(res.get('code'))])
         RestFunc.logout(client)
         return snmpinfo
 
-    def setsnmp1(self, client, args):
+    def setsnmpm6(self, client, args):
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
             login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
+            login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
 
-        editFlag = False
         res = RestFunc.getSNMPByRest(client)
         snmpinfo = ResultBean()
         if res == {}:
             snmpinfo.State("Failure")
             snmpinfo.Message(["cannot get snmp information"])
-
             RestFunc.logout(client)
             return snmpinfo
         elif res.get('code') == 0 and res.get('data') is not None:
@@ -9732,13 +10075,19 @@ class CommonM6(Base):
             SnmpCfg = snmp.get('SnmpCfg')
             SnmpV1Enable = SnmpCfg.get('SnmpV1Enable')
             SnmpV2Enable = SnmpCfg.get('SnmpV2Enable')
-            ReadOnlyCommunity = SnmpCfg.get('ReadOnlyCommunity')
-            ReadWriteCommunity = SnmpCfg.get('ReadWriteCommunity')
+            SnmpV3Enable = SnmpCfg.get('SnmpV3Enable')
+            ReadOnlyCommunity = ''
+            ConfirmReadOnlyCommunity = ''
+            ReadWriteCommunity = ''
+            ConfirmReadWriteCommunity = ''
             AUTHProtocol = SnmpCfg.get('AUTHProtocol')
+            AUTHPwd = ''
+            AUTHUserName = SnmpCfg.get('AUTHUserName')
+            PrivProtocol = SnmpCfg.get('PrivProtocol')
+            PRIVPwd = ''
         else:
             snmpinfo.State("Failure")
             snmpinfo.Message([res.get('data')])
-
             RestFunc.logout(client)
             return snmpinfo
 
@@ -9754,46 +10103,88 @@ class CommonM6(Base):
                 SnmpV2Enable = 0
         if args.readCommunity is not None:
             ReadOnlyCommunity = args.readCommunity
+            ConfirmReadOnlyCommunity = args.readCommunity
         if args.readWriteCommunity is not None:
             ReadWriteCommunity = args.readWriteCommunity
+            ConfirmReadWriteCommunity = args.readWriteCommunity
         if SnmpV1Enable == 1 or SnmpV2Enable == 1:
-            if ReadOnlyCommunity == '':
+            if ReadOnlyCommunity == '' or ConfirmReadOnlyCommunity == '':
                 snmpinfo.State("Failure")
-                snmpinfo.Message(
-                    ["readCommunity(-RC) connot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
-
+                snmpinfo.Message(["readCommunity(-RC) cannot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
                 RestFunc.logout(client)
                 return snmpinfo
-            if ReadWriteCommunity == '':
+            if len(ReadOnlyCommunity) < 1 or len(ReadOnlyCommunity) > 16:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(
-                    ["readWriteCommunity(-RWC) connot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
-
+                snmpinfo.Message(["readCommunity(-RC) should between 1 and 16 characters"])
                 RestFunc.logout(client)
                 return snmpinfo
-        #ReadOnlyCommunity = Encrypt('secret', ReadOnlyCommunity)
-        ReadOnlyCommunity = ReadOnlyCommunity
-        ReadWriteCommunity = ReadWriteCommunity
-        AUTHProtocol = AUTHProtocol
+            if ReadWriteCommunity == '' or ConfirmReadWriteCommunity == '':
+                snmpinfo.State("Failure")
+                snmpinfo.Message(
+                    ["readWriteCommunity(-RWC) cannot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
+                RestFunc.logout(client)
+                return snmpinfo
+            if len(ReadWriteCommunity) < 1 or len(ReadWriteCommunity) > 16:
+                snmpinfo.State("Failure")
+                snmpinfo.Message(["readWriteCommunity(-RWC) should between 1 and 16 characters"])
+                RestFunc.logout(client)
+                return snmpinfo
+            if ReadOnlyCommunity == ReadWriteCommunity:
+                snmpinfo.State("Failure")
+                snmpinfo.Message(["readWriteCommunity(-RWC)  must different from readCommunity(-RC)"])
+                RestFunc.logout(client)
+                return snmpinfo
+        # ReadOnlyCommunity = Encrypt('secret', ReadOnlyCommunity)
+        if args.v3status is not None:
+            if args.v3status == 'enable':
+                SnmpV3Enable = 1
+            else:
+                SnmpV3Enable = 0
         if args.authPassword is not None:
-            PassWord = args.authPassword
-            PassWord = PassWord
-        else:
-            snmpinfo.State("Failure")
-            snmpinfo.Message(["auth password connot be empty."])
-
-            RestFunc.logout(client)
-            return snmpinfo
+            AUTHPwd = args.authPassword
+        if args.authAlgorithms is not None:
+            AUTHProtocol = args.authAlgorithms
+        if args.authUser is not None:
+            AUTHUserName = args.authUser
+        if args.privacyAlgorithms is not None:
+            PrivProtocol = args.privacyAlgorithms
+        if args.privacyPassword is not None:
+            PRIVPwd = args.privacyPassword
+        if SnmpV3Enable == 1:
+            if AUTHPwd == '' or PRIVPwd == '':
+                snmpinfo.State("Failure")
+                snmpinfo.Message(
+                    ["authPassword(-AP) and privacyPassword(-PrivP) cannot be empty, when v3status(-V3S) exists"])
+                RestFunc.logout(client)
+                return snmpinfo
+            if len(AUTHPwd) < 8 or len(AUTHPwd) > 23:
+                snmpinfo.State("Failure")
+                snmpinfo.Message(["authPassword(-AP) should between 8 and 23 characters"])
+                RestFunc.logout(client)
+                return snmpinfo
+            if len(AUTHUserName) < 2 or len(AUTHUserName) > 16:
+                snmpinfo.State("Failure")
+                snmpinfo.Message(["authUser(-AU) should between 2 and 16 characters"])
+                RestFunc.logout(client)
+                return snmpinfo
+            if len(PRIVPwd) < 8 or len(PRIVPwd) > 23:
+                snmpinfo.State("Failure")
+                snmpinfo.Message(["privacyPassword(-PrivP) should between 8 and 23 characters"])
+                RestFunc.logout(client)
+                return snmpinfo
         snmp = {}
         SnmpCfg['SnmpV1Enable'] = SnmpV1Enable
         SnmpCfg['SnmpV2Enable'] = SnmpV2Enable
+        SnmpCfg['SnmpV3Enable'] = SnmpV3Enable
         SnmpCfg['ReadOnlyCommunity'] = ReadOnlyCommunity
         SnmpCfg['ConfirmReadOnlyCommunity'] = ReadOnlyCommunity
         SnmpCfg['ReadWriteCommunity'] = ReadWriteCommunity
         SnmpCfg['ConfirmReadWriteCommunity'] = ReadWriteCommunity
-        SnmpCfg['ReadOnlyCommunity'] = AUTHProtocol
-        SnmpCfg['AUTHPwd'] = PassWord
-        SnmpCfg['PRIVPwd'] = PassWord
+        SnmpCfg['AUTHProtocol'] = AUTHProtocol
+        SnmpCfg['AUTHPwd'] = AUTHPwd
+        SnmpCfg['AUTHUserName'] = AUTHUserName
+        SnmpCfg['PrivProtocol'] = PrivProtocol
+        SnmpCfg['PRIVPwd'] = PRIVPwd
         snmp['SnmpCfg'] = SnmpCfg
         res = RestFunc.setSNMPByRest(client, snmp)
         if res == {}:
@@ -9807,9 +10198,7 @@ class CommonM6(Base):
             snmpinfo.Message([res.get('data')])
         else:
             snmpinfo.State("Failure")
-            snmpinfo.Message(
-                ["set snmp error, error code " + str(res.get('code'))])
-
+            snmpinfo.Message(["set snmp error, error code " + str(res.get('code'))])
         RestFunc.logout(client)
         return snmpinfo
 
@@ -10626,7 +11015,8 @@ class CommonM6(Base):
             "writePolicy": args.writePolicy,
             "cachePolicy": args.cachePolicy,
             "ioPolicy": args.ioPolicy,
-            "initState": args.initState
+            "initState": args.initState,
+            "spanDepth": args.spandepth
         }
 
         for i in range(len(args.pdlist)):
@@ -10974,18 +11364,6 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
-    def getpowerbudget(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setpowerbudget(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
     def getpowerrestore(self, client, args):
         result = ResultBean()
         result.State("Not Support")
@@ -11017,12 +11395,6 @@ class CommonM6(Base):
         return result
 
     def setpsupeak(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getsnmp(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         result.Message(['The M6 model does not support this feature.'])
@@ -12633,6 +13005,17 @@ def editUser(client, args):
             result.State("Failure")
             result.Message(['user is full.'])
     return result
+
+
+
+def getWeek(binr):
+    bin_dict = {1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thur', 5: 'Fri', 6: 'Sat', 7: 'Sun'}
+    list = []
+    for i in range(1, 7):
+        weeki = binr[8 - i:9 - i]
+        if weeki == '1':
+            list.append(bin_dict[i])
+    return ','.join(list)
 
 
 lanDict = {
