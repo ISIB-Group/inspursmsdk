@@ -35,6 +35,10 @@ setdns = {
     'dns_server1': 'dnsServer1',
     'dns_server2': 'dnsServer2',
     'dns_server3': 'dnsServer3',
+    'register_status1': 'registerStatus1',
+    'registration_method1': 'registrationMethod1',
+    'register_status2': 'registerStatus2',
+    'registration_method2': 'registrationMethod2',
 }
 
 exportbioscfg = {
