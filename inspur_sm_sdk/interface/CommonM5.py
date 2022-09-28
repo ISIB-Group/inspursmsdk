@@ -3694,11 +3694,6 @@ class CommonM5(Base):
         RestFunc.logout(client)
         return ipinfo
 
-    def getdns(self, client, args):
-        """
-
-        :return:
-        """
 
     def gettrap(self, client, args):
         # login

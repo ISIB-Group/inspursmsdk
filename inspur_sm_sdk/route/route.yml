@@ -22,44 +22,78 @@ SP7-2104P:
     common: NF5180M5
 NF5688M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5280M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5180M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5468M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5488A5:
     common: CommonA5
 NF5468A5:
     common: CommonA5
 NF5260M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5266M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF8260M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5270M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF3180A6:
     common: CommonA6
 NF3280A6:
     common: CommonA6
 NF8480M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NF5466M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NS5480M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NS5484M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 NS5486M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 SN5160FM6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 SN5260FM6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 SN6110M6:
     common: CommonM6
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
 SN6115M6:
     common: CommonM6
-    
+    4.1401: CommonM6_41401
+    4.141: CommonM6_4140a
+

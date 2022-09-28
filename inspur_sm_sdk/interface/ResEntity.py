@@ -3739,6 +3739,12 @@ class DNSBean():
     def DNSStatus(self, value):
         self.dict['DNSStatus'] = value
 
+    def MDNSStatus(self):
+        return self.dict['MDNSStatus']
+
+    def MDNSStatus(self, value):
+        self.dict['MDNSStatus'] = value
+
     def HostSettings(self):
         return self.dict['HostSettings']
 
@@ -3804,6 +3810,48 @@ class DNSBean():
 
     def DNSIPPriority(self, value):
         self.dict['DNSIPPriority'] = value
+
+    def REGCount(self):
+        return self.dict['REGCount']
+
+    def REGCount(self, value):
+        self.dict['REGCount'] = value
+
+    def REGEnable1(self):
+        return self.dict['REGEnable1']
+
+    def REGEnable1(self, value):
+        self.dict['REGEnable1'] = value
+
+    def REGIfg1(self):
+        return self.dict['REGIfg1']
+
+    def REGIfg1(self, value):
+        self.dict['REGIfg1'] = value
+
+    def REGOption1(self):
+        return self.dict['REGOption1']
+
+    def REGOption1(self, value):
+        self.dict['REGOption1'] = value
+
+    def REGEnable2(self):
+        return self.dict['REGEnable2']
+
+    def REGEnable2(self, value):
+        self.dict['REGEnable2'] = value
+
+    def REGIfg2(self):
+        return self.dict['REGIfg2']
+
+    def REGIfg2(self, value):
+        self.dict['REGIfg2'] = value
+
+    def REGOption2(self):
+        return self.dict['REGOption2']
+
+    def REGOption2(self, value):
+        self.dict['REGOption2'] = value
 
 
 class SMTPBean():

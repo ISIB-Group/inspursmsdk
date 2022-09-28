@@ -1229,7 +1229,7 @@ def judge_encrypt(client):
     cmd = "raw 0x3c 0x05 0x28"
     result = getLineRawByIpmi(client, cmd)
     if result['code'] == 0:
-        data = result['data'].replace('\n', '')
+        data = result['data'].replace('\n', '').replace(' ', '')
         if data == "01":
             return 1
     return 0

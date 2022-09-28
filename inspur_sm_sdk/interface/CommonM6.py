@@ -1051,7 +1051,7 @@ class CommonM6(Base):
             infoList.append(frubean.dict)
         else:
             result.State('Failure')
-            result.Message('Can not get Fru information')
+            result.Message('Can not get - information')
         res = RestFunc.getLanByRest(client)
         if res == {}:
             result.State("Failure")
@@ -8050,27 +8050,59 @@ class CommonM6(Base):
         dns_info = RestFunc.getDNSBMCByRest(client)
         if dns_info.get('code') == 0 and dns_info.get('data') is not None:
             dns = dns_info.get('data')
-            dns_result.DNSStatus(
-                "Disable" if dns['dns_status'] == 0 else "Enable")
-            dns_result.HostSettings(
-                "manual" if dns['host_cfg'] == 0 else "auto")
+            dns_result.DNSStatus("Disable" if dns['dns_status'] == 0 else "Enable")
+            dns_result.HostSettings("manual" if dns['host_cfg'] == 0 else "auto")
             dns_result.Hostname(dns['host_name'])
-            dns_result.DomainSettings(
-                "manual" if dns['domain_manual'] == 1 else "auto")
+            dns_result.DomainSettings("manual" if dns['domain_manual'] == 1 else "auto")
             dns_result.DomainName(dns['domain_name'])
             dns_result.DomainInterface(dns['domain_iface'])
-            dns_result.DNSSettings(
-                "manual" if dns['dns_manual'] == 1 else "auto")
+            dns_result.DNSSettings("manual" if dns['dns_manual'] == 1 else "auto")
             dns_result.DNSServer1(dns['dns_server1'])
             dns_result.DNSServer2(dns['dns_server2'])
             dns_result.DNSServer3(dns['dns_server3'])
             dns_result.DNSServerInterface(dns['dns_iface'])
             dns_result.DNSIPPriority(dns['dns_priority'])
+            if dns.get('reg_count', 0) != 0:
+                option_dict = {
+                    -1: "N/A",
+                    0: "Nsupdate",
+                    1: "DHCP Client FQDN",
+                    2: "Hostname"
+                }
+                reg_count = int(dns['reg_count'])
+                dns_result.REGCount(reg_count)
+                if reg_count >= 2:
+                    dns_result.REGEnable1("Enable" if dns.get('reg_enable1', 0) == 1 else "Disable")
+                    dns_result.REGIfg1(dns.get('reg_ifc1', "N/A"))
+                    dns_result.REGOption1(option_dict.get(dns.get('reg_option1', -1)))
+                    dns_result.REGEnable2("Enable" if dns.get('reg_enable2', 0) == 1 else "Disable")
+                    dns_result.REGIfg2(dns.get('reg_ifc2', "N/A"))
+                    dns_result.REGOption2(option_dict.get(dns.get('reg_option2', -1)))
+                elif reg_count >= 1:
+                    dns_result.REGEnable1("Enable" if dns.get('reg_enable1', 0) == 1 else "Disable")
+                    dns_result.REGIfg1(dns.get('reg_ifc1', "N/A"))
+                    dns_result.REGOption1(option_dict.get(dns.get('reg_option1', -1)))
+                    dns_result.REGEnable2("Disable")
+                    dns_result.REGIfg2(dns.get('reg_ifc2', "N/A"))
+                    dns_result.REGOption2("N/A")
+                else:
+                    dns_result.REGEnable1("Disable")
+                    dns_result.REGIfg1(dns.get('reg_ifc1', "N/A"))
+                    dns_result.REGOption1("N/A")
+                    dns_result.REGEnable2("Disable")
+                    dns_result.REGIfg2(dns.get('reg_ifc2', "N/A"))
+                    dns_result.REGOption2("N/A")
+            else:
+                dns_result.REGCount(0)
+            if dns.get("reg_mdns1", 0) == 1:
+                dns_result.MDNSStatus("Disable")
+            else:
+                dns_result.MDNSStatus("Enable")
             result.State('Success')
             result.Message([dns_result.dict])
         else:
             result.State('Failure')
-            result.Message(dns_info.get('data'))
+            result.Message([dns_info.get('data')])
 
         RestFunc.logout(client)
         return result
@@ -8088,6 +8120,7 @@ class CommonM6(Base):
         # get
         result = ResultBean()
         edit_flag = False
+        reg_flag = False
         dns_info = RestFunc.getDNSBMCByRest(client)
         if dns_info.get('code') == 0 and dns_info.get('data') is not None:
             data = dns_info.get('data')
@@ -8103,6 +8136,13 @@ class CommonM6(Base):
             default_dns_server1 = data['dns_server1']
             default_dns_server2 = data['dns_server2']
             default_dns_server3 = data['dns_server3']
+            default_reg_count = data.get('reg_count', 0)
+            default_reg_interface_1 = data.get('reg_ifc1', "")
+            default_reg_status_1 = data.get('reg_enable1', 0)
+            default_reg_method_1 = data.get('reg_option1', 0)
+            default_reg_interface_2 = data.get('reg_ifc2', "")
+            default_reg_status_2 = data.get('reg_enable2', 0)
+            default_reg_method_2 = data.get('reg_option2', 0)
 
             if args.dns == 'disable':
                 if default_dns_status == 0:
@@ -8163,6 +8203,66 @@ class CommonM6(Base):
                             return result
                         host_name = args.hostName
                         edit_flag = True
+                # BMC register 1
+                reg_status_dict = {
+                    "enable": 1,
+                    "disable": 0
+                }
+                reg_method_dict = {
+                    "nsupdate": 0,
+                    "dhcp": 1,
+                    "hostname": 2
+                }
+                reg_status_1 = default_reg_status_1
+                reg_method_1 = default_reg_method_1
+                if default_reg_status_1 == 0 and args.registerStatus1 == "enable":
+                    if args.registrationMethod1 is None:
+                        result.State('Failure')
+                        result.Message(['-RM1 is needed when RS1 is enable'])
+                        RestFunc.logout(client)
+                        return result
+                    reg_status_1 = reg_status_dict.get(args.registerStatus1)
+                    reg_method_1 = reg_method_dict.get(args.registrationMethod1)
+                    reg_flag = True
+                elif default_reg_status_1 == 1 and args.registerStatus1 != "disable":
+                    if args.registrationMethod1 is not None:
+                        reg_method_1 = reg_method_dict.get(args.registrationMethod1)
+                        reg_flag = True
+                elif default_reg_status_1 == 1 and args.registerStatus1 == "disable":
+                    if args.registrationMethod1 is not None:
+                        result.State('Failure')
+                        result.Message(['-RM1 can not be set when RS1 is disable'])
+                        RestFunc.logout(client)
+                        return result
+                    reg_status_1 = reg_status_dict.get(args.registerStatus1)
+                    reg_flag = True
+
+                # BMC register 2
+                reg_status_2 = default_reg_status_2
+                reg_method_2 = default_reg_method_2
+                if default_reg_status_2 == 0 and args.registerStatus2 == "enable":
+                    if args.registrationMethod2 is None:
+                        result.State('Failure')
+                        result.Message(['-RM2 is needed when RS2 is enable'])
+                        RestFunc.logout(client)
+                        return result
+                    reg_status_2 = reg_status_dict.get(args.registerStatus2)
+                    reg_method_2 = reg_method_dict.get(args.registrationMethod2)
+                    reg_flag = True
+                elif default_reg_status_2 == 1 and args.registerStatus2 != "disable":
+                    if args.registrationMethod2 is not None:
+                        reg_method_2 = reg_method_dict.get(args.registrationMethod2)
+                        reg_flag = True
+                elif default_reg_status_2 == 1 and args.registerStatus2 == "disable":
+                    if args.registrationMethod2 is not None:
+                        result.State('Failure')
+                        result.Message(['-RM2 can not be set when RS2 is disable'])
+                        RestFunc.logout(client)
+                        return result
+                    reg_status_2 = reg_status_dict.get(args.registerStatus2)
+                    reg_flag = True
+
+
                 # domainManual
                 if args.domainManual == 'auto':
                     domain_manual = 0
@@ -8404,42 +8504,72 @@ class CommonM6(Base):
                     RestFunc.logout(client)
                     return result
 
-                if not edit_flag:
+                if not edit_flag and not reg_flag:
                     result.State('Failure')
                     result.Message(['No setting changed!'])
                     RestFunc.logout(client)
                     return result
-            data['dns_iface'] = dns_iface
-            data['dns_manual'] = dns_manual
-            data['dns_priority'] = dns_priority
-            data['dns_server1'] = dnsServer1
-            data['dns_server2'] = dnsServer2
-            data['dns_server3'] = dnsServer3
-            data['dns_status'] = 1
-            data['domain_iface'] = domain_iface
-            data['domain_manual'] = domain_manual
-            data['domain_name'] = domain_name
-            data['host_cfg'] = host_cfg
-            data['host_name'] = host_name
             try:
-                dns_re = RestFunc.setDNSBMCByRest(client, data)
-                if dns_re.get('code') == 0 and dns_re.get('data') is not None:
+                dns_result = "Success"
+                reg_result = "Success"
+                if edit_flag:
+                    data['dns_iface'] = dns_iface
+                    data['dns_manual'] = dns_manual
+                    data['dns_priority'] = dns_priority
+                    data['dns_server1'] = dnsServer1
+                    data['dns_server2'] = dnsServer2
+                    data['dns_server3'] = dnsServer3
+                    data['dns_status'] = 1
+                    data['domain_iface'] = domain_iface
+                    data['domain_manual'] = domain_manual
+                    data['domain_name'] = domain_name
+                    data['host_cfg'] = host_cfg
+                    data['host_name'] = host_name
+                    dns_re = RestFunc.setDNSBMCByRest(client, data)
+                    if dns_re.get('code') == 0 and dns_re.get('data') is not None:
+                        dns_result = "Success"
+                    else:
+                        dns_result = "Failure"
+                if reg_flag:
+                    if default_reg_interface_1 == "bond0":
+                        data = {
+                            "reg_mdns": 0,
+                            "reg_tsig": "0,0,0,0",
+                            "reg_enable": "0,0," + str(reg_status_1) + ",0",
+                            "reg_option": "0,0," + str(reg_method_1) + ",0"
+                        }
+                    else:
+                        data = {
+                            "reg_mdns": 0,
+                            "reg_tsig": "0,0,0,0",
+                            "reg_enable": str(reg_status_1) + "," + str(reg_status_2) + ",0,0",
+                            "reg_option": str(reg_method_1) + "," + str(reg_method_2) + ",0,0"
+                        }
+                    reg_res = RestFunc.setDNSRegByRest(client, data)
+                    if reg_res.get('code') == 0 and reg_res.get('data') is not None:
+                        reg_result = "Success"
+                    else:
+                        reg_result = "Failure"
+                if dns_result == "Success" and reg_result == "Success":
                     data = {
                         'dns_status': 1
                     }
-                    restart_info = RestFunc.setDNSRestartBMCByRest(
-                        client, data)
-                    if restart_info.get('code') == 0 and restart_info.get(
-                            'data') is not None:
-                        result.State('Success')
-                        result.Message(
-                            ['DNS is reseting, please wait for a few minutes.'])
+                    restart_info = RestFunc.setDNSRestartBMCByRest(client, data)
+                    if restart_info.get('code') == 0 and restart_info.get('data') is not None:
+                        result.State("Success")
+                        result.Message(["DNS is reseting, please wait for a few minutes."])
                     else:
                         result.State('Failure')
-                        result.Message(['set DNS Failure.'])
+                        result.Message(['set DNS BMC restart failure.'])
+                elif dns_result == "Success" and reg_result == "Failure":
+                    result.State('Failure')
+                    result.Message(['set DNS BMC registration failure.'])
+                elif dns_result == "Failure" and reg_result == "Success":
+                    result.State('Failure')
+                    result.Message(['set DNS info failure.'])
                 else:
                     result.State('Failure')
-                    result.Message(['set DNS Failure.'])
+                    result.Message(['set DNS failure.'])
             except(AttributeError, KeyError):
                 result.State('Failure')
                 result.Message(['can not set DNS.'])
@@ -11419,10 +11549,44 @@ class CommonM6(Base):
         return result
 
     def getgpu(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
+        res = ResultBean()
+        state = "Failure"
+        message = ""
+        id_res = RedfishFunc.getChassisID(client)
+        if id_res.get('code') == 0 and id_res.get('data') is not None:
+            id_data = id_res.get('data')
+            id_url = None
+            for item in id_data:
+                id_url = item.get("@odata.id")
+                if id_url is not None:
+                    break
+            if id_url is not None:
+                pcie_res = RedfishFunc.getPCIEDevices(client, id_url)
+                if pcie_res.get('code') == 0 and pcie_res.get('data') is not None:
+                    pcie_data = pcie_res.get('data')
+                    gpu_list = []
+                    for item in pcie_data:
+                        gpu_url = item.get('@odata.id')
+                        if gpu_url is not None:
+                            gpu_res = RedfishFunc.getPCIEInfo(client, gpu_url)
+                            if gpu_res.get('code') == 0 and gpu_res.get('data') is not None:
+                                gpu_data = gpu_res.get('data')
+                                if gpu_data.get("Oem", {}).get("Public", {}).get("PCIeCardType") == "GPU":
+                                    gpu_list.append(gpu_data)
+                    if len(gpu_list) > 0:
+                        state = "Success"
+                        message = gpu_list
+                    else:
+                        message = ""
+                else:
+                    message = "Cannot get pcie info."
+            else:
+                message = "No chassis id."
+        else:
+            message = "Cannot get chassis id."
+        res.State(state)
+        res.Message([message])
+        return res
 
     def exportbioscfg(self, client, args):
         res = ResultBean()
@@ -11856,22 +12020,39 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
 
 def setVirtualDrive(client, args):
     result = ResultBean()
+    if args.duration is not None:
+        if args.duration < 1 or args.duration > 255:
+            print("Failure: Please enter an integer from 1 to 255")
+            print("-" * 70)
+            return
+
     ctrl_id_name_dict = {}
+    ctrl_type_dict = {
+        "LSI": [],
+        "PMC": []
+    }
     ctrl_id_list = []
     res = RestFunc.getRaidCtrlInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
         ctrls = res.get('data')
         for ctrl in ctrls:
-            if ctrl.get("RaidType") == "LSI":
+            if str(ctrl.get("RaidType")).upper() == "PMC":
+                ctrl_type_dict['PMC'].append(ctrl["Name"])
+            else:
+                ctrl_type_dict['LSI'].append(ctrl["Name"])
+            if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
+            elif "id" in ctrl.keys():
+                ctrl_id_name_dict[ctrl["id"]] = ctrl["Name"]
+                ctrl_id_list.append(str(ctrl["id"]))
     else:
         result.State("Failure")
         result.Message(["ctrl Information Request Fail!" + res.get('data')])
         return result
     if ctrl_id_list == []:
         result.State("Failure")
-        result.Message(["No LSI raid controller!"])
+        result.Message(["No raid controller!"])
         return result
     # ld
     ctrl_ld_list_dict = {}
@@ -11882,7 +12063,10 @@ def setVirtualDrive(client, args):
         for ld in lds:
             if ld['ControllerName'] not in ctrl_ld_list_dict:
                 ctrl_ld_list_dict[ld['ControllerName']] = []
-            ctrl_ld_list_dict[ld['ControllerName']].append(ld['Index'])
+            if "Index" in ld:
+                ctrl_ld_list_dict[ld['ControllerName']].append(ld['Index'])
+            elif "TargetID" in ld:
+                ctrl_ld_list_dict[ld['ControllerName']].append(ld['TargetID'])
     else:
         result.State("Failure")
         result.Message([res.get('data')])
@@ -11926,7 +12110,7 @@ def setVirtualDrive(client, args):
         return result
     if args.ldiskId is None:
         result.State('Failure')
-        result.Message(['Virtual drive id is needed.'])
+        result.Message(['Logical drive id is needed.'])
         return result
 
     if args.ctrlId not in ctrl_id_name_dict:
@@ -11935,7 +12119,24 @@ def setVirtualDrive(client, args):
         return result
 
     the_ld_list = ctrl_ld_list_dict.get(ctrl_id_name_dict.get(args.ctrlId))
+    if str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
+        ctrl_type = "PMC"
+        if args.option != "LOC" and args.option != "STL" and args.option != "DEL":
+            result.State('Failure')
+            result.Message(["Logical drive under PMC raid controller only support LOC, STL, DEL."])
+            return result
+        if args.option == "LOC" and args.duration is None:
+            result.State('Failure')
+            result.Message(["Please input duration parameter while setting LOC of logical drive under PMC raid controller."])
+            return result
+    else:
+        ctrl_type = "LSI"
 
+    if args.deviceId not in the_ld_list:
+        result.State('Failure')
+        result.Message(["Invalid virtual drive id, choose from " + str(the_ld_list)])
+        return result
+    args.ctrl_type = ctrl_type
     args.location = None
     args.init = None
     args.delete = None
@@ -11956,11 +12157,17 @@ def setVirtualDrive(client, args):
     elif args.option == 'DEL':
         args.delete = "NotNone"
     if args.location is not None:
-        res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.ldiskId, args.location)
+        if args.ctrl_type == "LSI":
+            res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.ldiskId, args.location)
+        else:
+            res = RestFunc.locateLogicalDiskPMC(client, args.ctrlId, args.ldiskId, args.location, args.duration)
     elif args.init is not None:
         res = RestFunc.initLogicalDisk(client, args.ctrlId, args.ldiskId, args.init)
     elif args.delete is not None:
-        res = RestFunc.deleteLogicalDisk(client, args.ctrlId, args.ldiskId)
+        if args.ctrl_type == "LSI":
+            res = RestFunc.deleteLogicalDisk(client, args.ctrlId, args.ldiskId)
+        else:
+            res = RestFunc.deleteLogicalDiskPMC(client, args.ctrlId, args.ldiskId)
     if res == {}:
         result.State("Failure")
         result.Message(["disk operation failed"])
@@ -11977,22 +12184,38 @@ def setVirtualDrive(client, args):
 
 def setPhysicalDrive(client, args):
     result = ResultBean()
+    if args.duration is not None:
+        if args.duration < 1 or args.duration > 255:
+            result.State("Failure")
+            result.Message(["Please enter an integer from 1 to 255."])
+            return result
+    ctrl_type_dict = {
+        "LSI": [],
+        "PMC": []
+    }
     ctrl_id_name_dict = {}
     ctrl_id_list = []
     res = RestFunc.getRaidCtrlInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
         ctrls = res.get('data')
         for ctrl in ctrls:
-            if ctrl.get("RaidType") == "LSI":
+            if str(ctrl.get("RaidType")).upper() == "PMC":
+                ctrl_type_dict['PMC'].append(ctrl["Name"])
+            else:
+                ctrl_type_dict['LSI'].append(ctrl["Name"])
+            if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
+            elif "id" in ctrl.keys():
+                ctrl_id_name_dict[ctrl["id"]] = ctrl["Name"]
+                ctrl_id_list.append(str(ctrl["id"]))
     else:
         result.State("Failure")
         result.Message(["ctrl Information Request Fail!" + res.get('data')])
         return result
     if ctrl_id_list == []:
         result.State("Failure")
-        result.Message(["No LSI raid controller!"])
+        result.Message(["No raid controller!"])
         return result
 
     ctrl_list_dict = {}
@@ -12055,9 +12278,20 @@ def setPhysicalDrive(client, args):
         return result
 
     the_pd_list = ctrl_list_dict.get(ctrl_id_name_dict.get(args.ctrlId))
-
+    if str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
+        ctrl_type = "PMC"
+        if args.option != "LOC" and args.option != "STL":
+            result.State('Failure')
+            result.Message(["Physical drive under PMC raid controller only support LOC and STL."])
+            return result
+        if args.option == "LOC" and args.duration is None:
+            result.State('Failure')
+            result.Message(["Please input duration parameter while setting LOC of physical drive under PMC raid controller"])
+            return result
+    else:
+        ctrl_type = "LSI"
+    args.ctrl_type = ctrl_type
     if args.deviceId not in the_pd_list:
-        print("Failure:Invalid physical drive slot num, choose from " + str(the_pd_list))
         result.State('Failure')
         result.Message(["Invalid physical drive slot num, choose from " + str(the_pd_list)])
         return result
@@ -12088,8 +12322,10 @@ def setPhysicalDrive(client, args):
     elif args.option == 'JB':
         args.status = 'JBOD'
     if args.location is not None:
-        res = RestFunc.locateDiskByRest(
-            client, args.ctrlId, args.deviceId, args.location)
+        if args.ctrl_type == "LSI":
+            res = RestFunc.locateDiskByRest(client, args.ctrlId, args.deviceId, args.location)
+        else:
+            res = RestFunc.locateDiskByRestPMC(client, args.ctrlId, args.deviceId, args.location, args.duration)
     elif args.erase is not None:
         res = RestFunc.erasePhysicalDisk(
             client, args.ctrlId, args.deviceId, args.erase)
