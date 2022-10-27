@@ -4627,10 +4627,7 @@ class CommonM5(Base):
                 user.UserId(userdata['id'])
                 user.UserName(userdata['name'])
                 # user.RoleId(userdata['network_privilege'])
-                user.RoleId(
-                    userRoleIdDict.get(
-                        userdata['network_privilege'],
-                        userdata['network_privilege']))
+                user.RoleId(userdata['group_name'])
                 prilist = []
                 if userdata['kvm'] == 1:
                     prilist.append("KVM")
@@ -4638,11 +4635,10 @@ class CommonM5(Base):
                     prilist.append("VMM")
                 user.Privilege(prilist)
                 if userdata['access'] == 1:
-                    user.Locked(False)
                     user.Enable(True)
                 else:
-                    user.Locked(True)
                     user.Enable(False)
+                user.Email(userdata['email_id'])
                 userlist.append(user.dict)
             userinfo.Message([{"User": userlist}])
         elif res.get('code') != 0 and res.get('data') is not None:
@@ -15022,36 +15018,46 @@ def addUser(client, args):
             userinfo.Message(['username already exist.'])
         elif space_flag:
             # add
-            if "kvm" in args.priv:
-                args.kvm = 1
-            else:
-                args.kvm = 0
-            if "vmm" in args.priv:
-                args.vmm = 1
+            args.sol = None
+            if args.priv is not None:
+                if "kvm" in args.priv:
+                    args.kvm = 1
+                else:
+                    args.kvm = 0
+                if "vmm" in args.priv:
+                    args.vmm = 1
+                else:
+                    args.vmm = 0
+                if "none" in args.priv:
+                    args.vmm = 0
+                    args.kvm = 0
             else:
                 args.vmm = 0
-            if "sol" in args.priv:
-                args.sol = 1
-            else:
-                args.sol = 0
-            if "none" in args.priv:
-                args.sol = 0
-                args.vmm = 0
                 args.kvm = 0
-            if args.roleid == "NoAccess":
-                # 权限为无权限 则无法登陆以及默认为用户
-                args.access = 0
+            if args.roleid is not None:
+                if args.roleid == "NoAccess":
+                    if args.uname == client.username:
+                        userinfo.State("Failure")
+                        userinfo.Message(["cannot disable yourself"])
+                        RestFunc.logout(client)
+                        return userinfo
+                    # 权限为无权限 则无法登陆以及默认为用户
+                    args.access = 0
+                    args.group = "User"
+                elif args.roleid == "OEM":
+                    args.access = 1
+                    args.group = "Operator"
+                elif args.roleid == "Commonuser":
+                    args.roleid = "user"
+                    args.group = 'User'
+                    args.access = 1
+                else:
+                    args.group = args.roleid
+                    args.access = 1
+            else:
+                args.roleid = "user"
                 args.group = "User"
-            elif args.roleid == "Commonuser":
-                args.roleid = "User"
-                args.group = args.roleid
-                args.access = 1
-            elif args.roleid == "OEM":
-                args.group = "Administrator"
-                args.access = 1
-            else:
-                args.group = args.roleid
-                args.access = 1
+                args.access = 0
             if args.email is None:
                 args.email = ""
             res_add = RestFunc.addUserByRest(client, args)
@@ -15119,6 +15125,7 @@ def setUser(client, args):
         # 有该用户
         if user_flag:
             # set
+            args.sol = None
             if args.priv is not None:
                 if "kvm" in args.priv:
                     args.kvm = 1
@@ -15128,14 +15135,12 @@ def setUser(client, args):
                     args.vmm = 1
                 else:
                     args.vmm = 0
-                if "sol" in args.priv:
-                    args.sol = 1
-                else:
-                    args.sol = 0
                 if "none" in args.priv:
-                    args.sol = 0
                     args.vmm = 0
                     args.kvm = 0
+            else:
+                args.vmm = user_old['vmedia']
+                args.kvm = user_old['kvm']
             if args.roleid is not None:
                 if args.roleid == "NoAccess":
                     if args.uname == client.username:
@@ -15156,8 +15161,12 @@ def setUser(client, args):
                 else:
                     args.group = args.roleid
                     args.access = 1
+            else:
+                args.roleid = user_old["network_privilege"]
+                args.group = user_old["group_name"]
+                args.access = user_old["access"]
             if args.email is None:
-                args.email = ""
+                args.email = user_old["email_id"]
             res_set = RestFunc.setUserByRest(client, args)
             if res_set.get('code') == 0:
                 # 设置权限none
@@ -15191,6 +15200,214 @@ def setUser(client, args):
                     else:
                         userinfo.State("Failure")
                         userinfo.Message(result.Message)
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_set.get('data')])
+        else:
+            userinfo.State('Failure')
+            userinfo.Message(['no user named ' + args.uname])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(["get user information error"])
+    return userinfo
+
+
+def addUser1(client, args):
+    userinfo = ResultBean()
+    # 校验
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+
+    if not RegularCheckUtil.checkUsername(args.uname):
+        userinfo.State('Failure')
+        userinfo.Message(['Illegal username.'])
+        return userinfo
+    if not RegularCheckUtil.checkPassword(args.upass):
+        userinfo.State('Failure')
+        userinfo.Message(['Illegal password.'])
+        return userinfo
+    # get
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get user information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        space_flag = False
+        duplication_flag = False
+        data = res.get('data')
+        for userdata in data:
+            if userdata['name'] == "":
+                if args.uid is None:
+                    if not space_flag:
+                        space_flag = True
+                        args.userID = userdata['id']
+                else:
+                    if not space_flag and str(userdata['id']) == str(args.uid) :
+                        space_flag = True
+                        args.userID = userdata['id']
+            elif userdata['name'] == args.uname:
+                duplication_flag = True
+        # 有重名
+        if duplication_flag:
+            userinfo.State('Failure')
+            userinfo.Message(['username already exist.'])
+        elif space_flag:
+            # add
+            args.sol = None
+            if args.priv is None:
+                args.kvm = 0
+                args.vmm = 0
+            if "kvm" in args.priv:
+                args.kvm = 1
+            else:
+                args.kvm = 0
+            if "vmm" in args.priv:
+                args.vmm = 1
+            else:
+                args.vmm = 0
+            if "none" in args.priv:
+                args.vmm = 0
+                args.kvm = 0
+            if args.access is None:
+                args.access = 0
+            elif args.access == 'enable':
+                args.access = 1
+            else:
+                args.access = 0
+            if args.roleid is None:
+                args.roleid = 'Administrator'
+            groupDict = getGroup(client)
+            if args.roleid not in groupDict.keys():
+                userinfo.State("Failure")
+                userinfo.Message(['No user group ' + args.roleid + '.'])
+                return userinfo
+            else:
+                args.group = args.roleid
+                args.roleid = groupDict[args.group]
+            if args.email is None:
+                args.email = ''
+            res_add = RestFunc.addUserByRest(client, args)
+            if res_add.get('code') == 0:
+                userinfo.State("Success")
+                userinfo.Message(['add user success.'])
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_add.get('data')])
+        else:
+            userinfo.State('Failure')
+            userinfo.Message(['no space for new user, add user failed.'])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(["get user information error"])
+    return userinfo
+
+
+def getGroup(client):
+    groupDict = {}
+    default = {'Administrator': 'administrator', 'Operator': 'operator', 'User': 'user'}
+    responds = RestFunc.getUserGroupByRest(client)
+    if responds['code'] == 0 and responds['data'] is not None:
+        result = responds['data']
+        for item in result:
+            if 'GroupName' in item:
+                groupDict[item['GroupName']] = item['GroupPriv']
+            else:
+                return default
+        return groupDict
+    else:
+        return default
+
+
+def setUser1(client, args):
+    userinfo = ResultBean()
+    # 校验
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+    if not RegularCheckUtil.checkUsername(args.uname):
+        userinfo.State('Failure')
+        userinfo.Message(['Illegal username.'])
+        return userinfo
+    # get
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get user information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        # if user exist
+        user_flag = False
+        user_old = {}
+        data = res.get('data')
+        for userdata in data:
+            if args.uid is None:
+                if userdata['name'] == args.uname and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userID = userdata['id']
+                    user_old = userdata
+                    break
+            else:
+                if str(userdata['id']) == str(args.uid) and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userID = userdata['id']
+                    user_old = userdata
+                    break
+        # 有该用户
+        if user_flag:
+            # set
+            if args.uname is None:
+                args.uname = user_old['name']
+            args.sol = None
+            if args.priv is None:
+                args.kvm = user_old['kvm']
+                args.vmm = user_old['vmedia']
+            if "kvm" in args.priv:
+                args.kvm = 1
+            else:
+                args.kvm = 0
+            if "vmm" in args.priv:
+                args.vmm = 1
+            else:
+                args.vmm = 0
+            if "none" in args.priv:
+                args.vmm = 0
+                args.kvm = 0
+            if args.access is None:
+                args.access = user_old['access']
+            elif args.access == 'enable':
+                args.access = 1
+            else:
+                args.access = 0
+            if args.roleid is None:
+                args.roleid = user_old['group_name']
+            groupDict = getGroup(client)
+            if args.roleid not in groupDict.keys():
+                userinfo.State("Failure")
+                userinfo.Message(['No user group ' + args.roleid + '.'])
+                return userinfo
+            else:
+                args.group = args.roleid
+                args.roleid = groupDict[args.group]
+            if args.email is None:
+                args.email = user_old['email_id']
+            res_set = RestFunc.setUserByRest(client, args)
+            if res_set.get('code') == 0:
+                # 设置权限none
+                result = setPwd(client, args)
+                if result.State == "Success":
+                    userinfo.State("Success")
+                    userinfo.Message(['set user success.'])
+                else:
+                    userinfo.State("Failure")
+                    userinfo.Message(result.Message)
             else:
                 userinfo.State('Failure')
                 userinfo.Message([res_set.get('data')])
@@ -15274,35 +15491,120 @@ def delUser(client, args):
     return userinfo
 
 
+def delUser1(client, args):
+    userinfo = ResultBean()
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+    # get
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get user information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        user_flag = False
+        data = res.get('data')
+        for userdata in data:
+            if args.uid is None:
+                if userdata['name'] == args.uname and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userID = userdata['id']
+                    break
+            else:
+                if str(userdata['id']) == str(args.uid) and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userID = userdata['id']
+                    args.uname = userdata['name']
+                    break
+        # 有该用户
+        if user_flag:
+            # del
+            res_del = RestFunc.delUserByRest(
+                client, args.userID, args.uname)
+            if res_del.get('code') == 0:
+                userinfo.State("Success")
+                userinfo.Message(['del user success.'])
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_del.get('data')])
+        else:
+            userinfo.State('Failure')
+            userinfo.Message([str(args.uname) + ' does not exits.'])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(["get user information error"])
+    return userinfo
+
+
 def editUser(client, args):
     result = ResultBean()
-    if args.state == 'absent':
-        result = delUser(client, args)
-    elif args.state == 'present':
-        res = RestFunc.getUserByRest(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            space_flag = False
-            duplication_flag = False
-            data = res.get('data')
-            for userdata in data:
-                if userdata['name'] == "":
-                    if not space_flag:
-                        space_flag = True
-                        args.userID = userdata['id']
-                elif userdata['name'] == args.uname:
-                    duplication_flag = True
-        else:
-            result.State("Failure")
-            result.Message(["get user information error"])
-            return result
-        # 有重名
-        if duplication_flag:
-            result = setUser(client, args)
-        elif space_flag:
-            result = addUser(client, args)
-        else:
-            result.State("Failure")
-            result.Message(['user is full.'])
+    if args.__contains__('uid'):
+        if args.state == 'absent':
+            result = delUser1(client, args)
+        elif args.state == 'present':
+            res = RestFunc.getUserByRest(client)
+            if res.get('code') == 0 and res.get('data') is not None:
+                space_flag = False
+                duplication_flag = False
+                data = res.get('data')
+                for userdata in data:
+                    if args.uid is None:
+                        if userdata['name'] == "":
+                            if not space_flag:
+                                space_flag = True
+                                args.userID = userdata['id']
+                        elif userdata['name'] == args.uname:
+                            duplication_flag = True
+                    else:
+                        if str(userdata['id']) == str(args.uid):
+                            if len(userdata['name']) > 0:
+                                duplication_flag = True
+                            else:
+                                space_flag = True
+            else:
+                result.State("Failure")
+                result.Message(["get user information error"])
+                return result
+            # 有重名
+            if duplication_flag:
+                result = setUser1(client, args)
+            elif space_flag:
+                result = addUser1(client, args)
+            else:
+                result.State("Failure")
+                result.Message(['user is full.'])
+    else:
+        if args.state == 'absent':
+            result = delUser(client, args)
+        elif args.state == 'present':
+            res = RestFunc.getUserByRest(client)
+            if res.get('code') == 0 and res.get('data') is not None:
+                space_flag = False
+                duplication_flag = False
+                data = res.get('data')
+                for userdata in data:
+                    if userdata['name'] == "":
+                        if not space_flag:
+                            space_flag = True
+                            args.userID = userdata['id']
+                    elif userdata['name'] == args.uname:
+                        duplication_flag = True
+            else:
+                result.State("Failure")
+                result.Message(["get user information error"])
+                return result
+            # 有重名
+            if duplication_flag:
+                result = setUser(client, args)
+            elif space_flag:
+                result = addUser(client, args)
+            else:
+                result.State("Failure")
+                result.Message(['user is full.'])
     return result
 
 
@@ -16505,9 +16807,9 @@ def delPolicy(client, args):
 
 def addpolicy(client, args):
     result = ResultBean()
-    if args.id is None or args.watts is None:
+    if args.id is None or args.watts is None or args.domain is None:
         result.State('Failure')
-        result.Message('when action is delete,id and watts cannot be empty!')
+        result.Message('when action is delete,id,watts and domain cannot be empty!')
         return result
     power_info = RestFunc.getPowerPolicy(client)
     if power_info['code'] == 0 and power_info['data'] is not None:
@@ -16524,7 +16826,11 @@ def addpolicy(client, args):
         result.State('Failure')
         result.Message('Cannot get power budget information.')
         return result
-    range_info = RestFunc.getRangeWatts(client)
+    domain_dict = {
+        "cpu": 1,
+        "system": 0
+    }
+    range_info = RestFunc.getRangeWatts(client, domain_dict.get(args.domain))
     if range_info['code'] == 0 and range_info['data'] is not None:
         data = range_info['data']
         if args.watts > data['MaxPower'] or args.watts < data['MinPower']:
@@ -16574,7 +16880,7 @@ def addpolicy(client, args):
     list = setList(list)
     data = {
         "BLADE_NUM": 1,
-        "DOMAIN_ID": 0,
+        "DOMAIN_ID": domain_dict.get(args.domain),
         "POLICY_ID": args.id,
         "TARGET_LIMIT": args.watts,
         "suspend": list

@@ -11,6 +11,31 @@ from inspur_sm_sdk.interface.ResEntity import ResultBean, SnmpBean, DestinationT
 
 class CommonM6_4140a(CommonM6_41401):
 
+    def getalertpolicy(self, client, args):
+        alertinfo = ResultBean()
+        result = self.gettrap(client, args)
+        if result.State == "Success" and len(result.Message) > 0:
+            alert_policy = result.Message[0].get('Destination')
+            alertinfo.State("Success")
+            alertinfo.Message(alert_policy)
+        else:
+            alertinfo.State("Failure")
+            alertinfo.Message(["get alert policy information error"])
+        return alertinfo
+
+    def getsnmptrap(self, client, args):
+        trapinfo = ResultBean()
+        result = self.gettrap(client, args)
+        if result.State == "Success" and len(result.Message) > 0:
+            snmptrap = result.Message[0]
+            del snmptrap['Destination']
+            trapinfo.State("Success")
+            trapinfo.Message(snmptrap)
+        else:
+            trapinfo.State("Failure")
+            trapinfo.Message(["get snmp trap information error"])
+        return trapinfo
+
     def gettrap(self, client, args):
         # login
         headers = RestFunc.login_M6(client)
@@ -79,6 +104,10 @@ class CommonM6_4140a(CommonM6_41401):
         RestFunc.logout(client)
         return snmpinfo
 
+    def setsnmptrap(self, client, args):
+        alertinfo = self.settrapcom(client, args)
+        return alertinfo
+
     def settrapcom(self, client, args):
         # login
         headers = RestFunc.login_M6(client)
@@ -118,11 +147,11 @@ class CommonM6_4140a(CommonM6_41401):
             RestFunc.logout(client)
             return snmpinfo
         # 2c for T6
-        version_dict = {
-            '1': "V1",
-            '2c': "V2",
-            '3': "V3",
-            '0': "Disable",
+        version_dict = {1: "V1", 2: "V2", 3: "V3", "V2": "V2C", 0: "Disable"}
+        evnent_severity = {
+            'all': 'Info',
+            'warning': 'Warning',
+            'critical': 'Critical'
         }
         if args.version is None:
             version = str(default_trap_version)
@@ -283,7 +312,7 @@ class CommonM6_4140a(CommonM6_41401):
             if args.eventSeverity is None:
                 eventSeverity = default_enent_severity
             else:
-                eventSeverity = args.eventSeverity
+                eventSeverity = evnent_severity.get(args.eventSeverity, 'Info')
                 editFlag = True
             if args.hostid is None:
                 hostid = default_host_id

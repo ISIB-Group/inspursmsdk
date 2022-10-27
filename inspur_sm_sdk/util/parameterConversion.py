@@ -132,6 +132,8 @@ setsnmp = {
     'auth_password': 'authPassword',
     'priv_protocol': 'privProtocol',
     'priv_password': 'privPassword',
+    'read_community': 'readCommunity',
+    'read_write_community': 'readWriteCommunity',
 }
 
 setsnmptrap = {
@@ -228,6 +230,15 @@ setsmtpdest = {
     'status': 'enabled',
 }
 
+setbmclogcfg = {
+    'host_tag': 'hosttag',
+    'protocol_type': 'protocolType',
+    'server_id': 'serverId',
+    'server_addr': 'serverAddr',
+    'server_port': 'serverPort',
+    'log_type': 'logType',
+
+}
 
 def getParam(dictobj):
     param = {
@@ -263,6 +274,7 @@ def getParam(dictobj):
         'edituser': edituser,
         'setsmtpcom': setsmtpcom,
         'setsmtpdest': setsmtpdest,
+        'setbmclogcfg': setbmclogcfg,
     }
     if 'subcommand' in dictobj:
         subcommand = dictobj['subcommand']

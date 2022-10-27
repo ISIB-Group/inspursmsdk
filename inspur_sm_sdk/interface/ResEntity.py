@@ -159,6 +159,18 @@ class ProductBean():
     def UUID(self, value):
         self.dict['UUID'] = value
 
+    def SystemUUID(self):
+        return self.dict['SystemUUID']
+
+    def SystemUUID(self, value):
+        self.dict['SystemUUID'] = value
+
+    def DeviceUUID(self):
+        return self.dict['DeviceUUID']
+
+    def DeviceUUID(self, value):
+        self.dict['DeviceUUID'] = value
+
     def HostingRole(self):
         return self.dict['HostingRole']
 
@@ -194,6 +206,12 @@ class ProductBean():
 
     def Health(self, value):
         self.dict['Health'] = value
+
+    def IndependentPowerSupply(self):
+        return self.dict['IndependentPowerSupply']
+
+    def IndependentPowerSupply(self, value):
+        self.dict['IndependentPowerSupply'] = value
 
 
 class PowerBean():
@@ -1951,6 +1969,11 @@ class UserBean():
     def Enable(self, value):
         self.dict['Enable'] = value
 
+    def Email(self):
+        return self.dict['Email']
+
+    def Email(self, value):
+        self.dict['Email'] = value
 
 class PcieBean():
     def __init__(self):
@@ -4047,6 +4070,12 @@ class NCSIBean():
     def NicType(self, value):
         self.dict['NicType'] = value
 
+    def NCSIMode(self):
+        return self.dict['NCSIMode']
+
+    def NCSIMode(self, value):
+        self.dict['NCSIMode'] = value
+
     def NicName(self):
         return self.dict['NicName']
 
@@ -4058,6 +4087,12 @@ class NCSIBean():
 
     def PortNum(self, value):
         self.dict['PortNum'] = value
+
+    def Nicinfo(self):
+        return self.dict['Nicinfo']
+
+    def Nicinfo(self, value):
+        self.dict['Nicinfo'] = value
 
 
 class SMTPM5Bean():

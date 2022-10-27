@@ -92,7 +92,7 @@ class RequestClient():
     # timeout 请求过期时间
 
     def request(self, method, resource, headers=None, stream=None,
-                data=None, files=None, json=None, timeout=80):
+                data=None, files=None, json=None, auth='', timeout=80):
         """
         if self.type == 'M4':
             if self.port is not None:

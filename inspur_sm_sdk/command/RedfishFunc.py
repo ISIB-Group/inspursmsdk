@@ -304,6 +304,86 @@ def resetBiosByRedfish(client, data):
     return JSON
 
 
+def getChassisID(client):
+    JSON = {}
+    response = client.request("GET", "redfish/v1/Chassis",
+                              auth=HTTPBasicAuth(client.username, client.passcode))
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            JSON['data'] = result.get('Members')
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = e
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, response status code is ' + str(response.status_code)
+    return JSON
+
+
+def getPCIEDevices(client, chassis_id):
+    JSON = {}
+    response = client.request("GET", "%s/PCIeDevices" % str(chassis_id)[1:],
+                              auth=HTTPBasicAuth(client.username, client.passcode))
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            JSON['data'] = result.get('Members')
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = e
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, response status code is ' + str(response.status_code)
+    return JSON
+
+
+def getPCIEInfo(client, url):
+    JSON = {}
+    response = client.request("GET", url, auth=HTTPBasicAuth(client.username, client.passcode))
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            JSON['data'] = result
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = e
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, response status code is ' + str(response.status_code)
+    return JSON
+
+
 def login(client):
     data = {
         "UserName": str(client.username),

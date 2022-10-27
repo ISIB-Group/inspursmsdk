@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+import copy
 import os
 import yaml
 import sys
@@ -41,60 +42,41 @@ class configUtil():
                 serverconfig = yaml.load(f.read())
                 return serverconfig
 
-    # get Product and BmcVersion configuration option
     def getRouteOption(self, productName, bmcVersion):
-        '''
-        :param productName: Product Name
-        :param bmcVersion: BMC Version X.XX
-        :return:
-        '''
-        config = None
-        if os.path.exists(routePath):
-            with open(routePath, 'r') as f:
-                serverconfig = yaml.load(f.read())
-                # if route.yml has configuration get
-                productName = productName.upper()
-                if serverconfig.get(productName):
-                    if serverconfig.get(productName).get(float(bmcVersion)):
-                        config = serverconfig.get(
-                            productName).get(float(bmcVersion))
-                    elif 13 < int(bmcVersion.split(".")[0]) < 16 and serverconfig.get(productName).get('blackstone'):
-                        config = serverconfig.get(
-                            productName).get('blackstone')
-                    elif serverconfig.get(productName).get('common'):
-                        config = serverconfig.get(productName).get('common')
-                    else:
-                        config = "Error: Not Supported Version: " + bmcVersion
-                elif "M5" in productName:
-                    if serverconfig.get('M5') and serverconfig.get(
-                            'M5').get('common'):
-                        config = serverconfig.get('M5').get('common')
-                    else:
-                        config = "Error: Not Supported ProductName: " + productName
-                elif "M4" in productName:
-                    if serverconfig.get('M4') and serverconfig.get(
-                            'M4').get('common'):
-                        config = serverconfig.get('M4').get('common')
-                    else:
-                        config = "Error: Not Supported ProductName: " + productName
-                elif "T6" in productName:
-                    if serverconfig.get('T6') \
-                            and serverconfig.get('T6').get('common'):
-                        config = serverconfig.get('T6').get('common')
-                    else:
-                        config = "Error: Not Supported ProductName: " + productName
-                else:
-                    config = "Error: Not Supported ProductName: " + productName
-        else:
-            config = "Error: route.yml is not Exist " + routePath
-        return config
+        # try:
+        yaml1 = open(routePath)
+        content = yaml.load(yaml1, Loader=yaml.BaseLoader)
+        yaml1.close()
+        if "G220-A" in productName.upper():
+            productName = "G220-A"
+        elif "G226-A" in productName.upper():
+            productName = "G226-A"
+        elif "S520-A" in productName.upper():
+            productName = "S520-A"
+        if content.get(productName.upper(), None):
+            model_info = content.get(productName.upper())
+            model_keys = copy.deepcopy(list(model_info.keys()))
+            model_keys.remove('common')
+            if (bmcVersion is None or len(model_keys) == 0) and model_info.get('common'):
+                return model_info.get("common")
+            elif len(model_keys) >= 1:
+                model_keys.sort()
+                # model_keys = map(eval, model_keys)
+                if float(bmcVersion) < float(model_keys[0]):
+                    return model_info.get("common")
+                if len(model_keys) > 1:
+                    for i in range(len(model_keys) - 1):
+                        if float(bmcVersion) >= float(model_keys[i]) and float(bmcVersion) < float(model_keys[i + 1]):
+                            return model_info.get(str(model_keys[i]))
+                return model_info.get(str(model_keys[len(model_keys) - 1]))
+            else:
+                return "Error: Not find interface of {0}".format(productName)
+        return "Error: sdk does not support {0} at present.".format(productName)
+
 
     # xmlfilepath 文件路径
     def getSetOption(self, xmlfilepath):
-        '''python在安装时默认编码是ascii，出现非ascii编码时会报错，
-           此时需要自己设置python的默认编码，一般设为utf-8
-           直接setdefaulttencoding会AttributeError，需要先执行reload(sys)
-        '''
+
         tree = ET.parse(xmlfilepath)  # 调用parse方法返回解析树
         server = tree.getroot()  # 获取根节点
 
@@ -112,9 +94,7 @@ class configUtil():
                     for belongto in name.getiterator('belongto'):
                         blongto_text = belongto.text
                     for description in name.getiterator('description'):
-                        description_text = str(
-                            description.text).replace(
-                            " ", "")
+                        description_text = str(description.text).replace(" ", "")
 
                 blongtoSet.add(blongto_text)
                 descriptionList.append(description_text)
@@ -124,17 +104,15 @@ class configUtil():
                 for getter in cfgItem.getiterator('getter'):
                     getterCMD = str(getter.text).replace('raw', '')
 
-                # setters标签
-                # 后面嵌套了setOption，是一个字典列表，每一项都是一个字典，字典里面包含{cmd，value，validation}
-                setterlist = []
+                # #setters标签
+                setterlist = []  # 后面嵌套了setOption，是一个字典列表，每一项都是一个字典，字典里面包含{cmd，value，validation}
                 sin = False
                 for setters in cfgItem.getiterator('setters'):
                     for setter in setters.getiterator('setter'):
                         setOption = {}
                         for cmd in setter.getiterator('cmd'):
                             # 将tab键替换，换行键替换
-                            setOption['cmd'] = cmd.text.replace("\\t", "") \
-                                .replace("\\n", " xxxxx ").replace('raw', '')
+                            setOption['cmd'] = cmd.text.replace("\\t", "").replace("\\n", " xxxxx ").replace('raw', '')
                         for value in setter.getiterator('value'):
                             setOption['value'] = value.text
                         for validation in setter.getiterator('validation'):
