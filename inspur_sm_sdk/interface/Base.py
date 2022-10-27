@@ -1428,6 +1428,10 @@ class Base(IBase):
     def methods(self, client, args):
         return(list(filter(lambda m: not m.startswith("__") and not m.endswith("__") and callable(getattr(self, client, args, m)), dir(self, client, args))))
 
+    def setbmclogcfg(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        return result
 # Ascii转十六进制
 
 

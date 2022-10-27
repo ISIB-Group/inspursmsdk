@@ -316,7 +316,14 @@ class CommonM6(Base):
                 if start > end:
                     value = 'start time should not be greater than end time!'
                     return -1, value
-                weeks = str(week_str).split(',')
+                weeks = []
+                if type(week_str) is str:
+                    weeks = str(week_str).split(',')
+                elif type(week_str) is list:
+                    weeks = week_str
+                else:
+                    value = 'Invalid week!'
+                    return -1, value
                 week_dict = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thur': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7}
                 list_week = []
                 for week in weeks:
@@ -521,7 +528,7 @@ class CommonM6(Base):
                     res.Message([result_system.get('data')])
         except Exception as e:
             res.State("Failure")
-            res.Message(["get power budget info failed, " + str(e)])
+            res.Message(["set power budget info failed, " + str(e)])
         RestFunc.logout(client)
         return res
 
@@ -3294,10 +3301,8 @@ class CommonM6(Base):
                     prilist.append("SOL")
                 user["Privilege"] = prilist
                 if userdata['access'] == 1:
-                    user["Locked"] = False
                     user["Enable"] = True
                 else:
-                    user["Locked"] = True
                     user["Enable"] = False
                 user["Email"] = userdata['email_id']
                 userlist.append(user)
@@ -4069,8 +4074,8 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return nicRes
 
-    def getbmclogbasiccfg(self, client, args):
-        result = ResultBean()
+    def getbmclogsettings(self, client, args):
+        bmcresult = ResultBean()
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
@@ -4078,39 +4083,80 @@ class CommonM6(Base):
             login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
-        res = RestFunc.getBMCLogBasicCfg(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            result.State("Success")
-            result.Message([res.get('data')])
-        else:
-            result.State("Failure")
-            result.Message(["get BMC log basic config error, " + res.get('data')])
-
+        try:
+            res = RestFunc.getBMCLogBasicCfg(client)
+            if res.get('code') != 0 or res.get('data') is None:
+                bmcresult.State("Failure")
+                bmcresult.Message(["get BMC log basic config error, " + res.get('data')])
+                return bmcresult
+            setting = collections.OrderedDict()
+            result = res.get('data')
+            SystemLog = collections.OrderedDict()
+            setting['Basic'] = SystemLog
+            if result['SyslogEnable'] == "local enable":
+                SystemLog['Syslog'] = 'Local'
+                if 'SyslogTag' in result.keys():
+                    tag_dict = {
+                        "serial number": "SerialNum",
+                        "hostname": "HostName",
+                        "part number": "AssertTag"
+                    }
+                    SystemLog['SyslogTag'] = str(tag_dict.get(result['SyslogTag'], result['SyslogTag']))
+                if 'SyslogLevel' in result.keys():
+                    SystemLog['SyslogLevel'] = str(result['SyslogLevel'])
+                if 'SyslogProtocol' in result.keys():
+                    SystemLog['"SyslogProtocol'] = str(result['SyslogProtocol'])
+                elif 'SyslogProtocal' in result.keys():
+                    SystemLog['"SyslogProtocol'] = str(result['SyslogProtocal'])
+            else:
+                SystemLog['Syslog'] = str("Remote&Local")
+                if 'SyslogTag' in result.keys():
+                    tag_dict = {
+                        "serial number": "SerialNum",
+                        "hostname": "HostName",
+                        "part number": "AssertTag"
+                    }
+                    SystemLog['SyslogTag'] = str(tag_dict.get(result['SyslogTag'], result['SyslogTag']))
+                if 'SyslogLevel' in result.keys():
+                    SystemLog['SyslogLevel'] = str(result['SyslogLevel'])
+                if 'SyslogProtocol' in result.keys():
+                    SystemLog['SyslogProtocol'] = str(result['SyslogProtocol'])
+                elif 'SyslogProtocal' in result.keys():
+                    SystemLog['SyslogProtocol'] = str(result['SyslogProtocal'])
+                dest_res = RestFunc.getBMCLogDestCfg(client)
+                if dest_res.get('code') != 0 or dest_res.get('data') is None:
+                    bmcresult.State("Failure")
+                    bmcresult.Message(["get BMC log basic config error, " + dest_res.get('data')])
+                    return bmcresult
+                destList = []
+                setting['Dest'] = destList
+                dest_result = dest_res.get('data')['SyslogDestConf']
+                i = 0
+                for item in dest_result:
+                    dest = collections.OrderedDict()
+                    dest["DestIndex"] = str(i)
+                    i += 1
+                    if "Enable" in item:
+                        dest["Enable"] = str(item['Enable'])
+                    if "HostName" in item:
+                        if str(item['HostName']) != "":
+                            dest["HostName"] = str(item['HostName'])
+                        else:
+                            dest["HostName"] = None
+                    if "SyslogPort" in item:
+                        dest["SyslogPort"] = str(item['SyslogPort'])
+                    if "SyslogType" in item:
+                        dest["SyslogType"] = str(item['SyslogType'])
+                    destList.append(dest)
+            bmcresult.State('Success')
+            bmcresult.Message([setting])
+        except Exception as e:
+            bmcresult.State("Failure")
+            bmcresult.Message(["get BMC Log Settings failed. " + str(e)])
         RestFunc.logout(client)
-        return result
-
-    def getbmclogdestcfg(self, client, args):
-        result = ResultBean()
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-        res = RestFunc.getBMCLogDestCfg(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            result.State("Success")
-            result.Message([res.get('data')])
-        else:
-            result.State("Failure")
-            result.Message(["get BMC log basic config error, " + res.get('data')])
-
-        RestFunc.logout(client)
-        return result
+        return bmcresult
 
     def setbmclogcfg(self, client, args):
-        result = ResultBean()
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
@@ -4118,6 +4164,11 @@ class CommonM6(Base):
             login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
+        result = ResultBean()
+        if args.logType is not None and args.logType == 'sel':
+            result.State('Failure')
+            result.Message(['This server not support set sel log type.'])
+            return result
         basic_res = RestFunc.getBMCLogBasicCfg(client)
         if basic_res.get('code') == 0 and basic_res.get('data') is not None:
             basic_result = basic_res.get('data')
@@ -4128,8 +4179,8 @@ class CommonM6(Base):
                 return result
             if basic_result['SyslogEnable'] == "local enable":
                 if args.status is None:
-                    if args.serverId is not None or args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
-                            or args.test:
+                    if args.serverId is not None or args.serverAddr is not None or args.serverPort is not None or \
+                            args.logType is not None or args.test:
                         result.State('Failure')
                         result.Message(['Please enable remote setting first.'])
                         RestFunc.logout(client)
@@ -4137,7 +4188,7 @@ class CommonM6(Base):
                 elif args.status == "disable":
                     if args.level is not None or args.protocolType is not None or args.serverId is not None or \
                             args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
-                            or args.test:
+                            or args.hosttag is not None or args.test:
                         result.State('Failure')
                         result.Message(['Not support setting BMC log while remote log status is disable.'])
                     else:
@@ -4150,8 +4201,8 @@ class CommonM6(Base):
             else:
                 if args.status == "disable":
                     basic_result["SyslogEnable"] = "local enable"
-                    if args.serverId is not None or  args.serverAddr is not None or args.serverPort is not None or args.logType is not None \
-                            or args.test:
+                    if args.serverId is not None or args.serverAddr is not None or args.serverPort is not None or \
+                            args.logType is not None or args.test:
                         result.State('Failure')
                         result.Message(['Not support setting BMC log while remote log status is disable.'])
                         RestFunc.logout(client)
@@ -4160,6 +4211,13 @@ class CommonM6(Base):
                 basic_result['SyslogProtocal'] = args.protocolType
             if args.level is not None:
                 basic_result['SyslogLevel'] = args.level
+            tag_dict = {
+                "SerialNum": "serial number",
+                "HostName": "hostname",
+                "AssertTag": "part number"
+            }
+            if args.hosttag is not None:
+                basic_result['SyslogTag'] = tag_dict.get(args.hosttag)
             set_basic_result = RestFunc.setBMCLogBasicCfg(client, basic_result)
             if set_basic_result.get('code') == 0 and set_basic_result.get('data') is not None:
                 if args.serverId is not None:
@@ -4223,6 +4281,151 @@ class CommonM6(Base):
         else:
             result.State('Failure')
             result.Message(['Get BMC log basic config error, ' + str(basic_res.get('data'))])
+        RestFunc.logout(client)
+        return result
+
+    def setbmclogsettings(self, client, args):
+        result = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        getres = RestFunc.getBMCLogSettingsM6(client)
+        if getres.get('code') == 0 and getres.get('data') is not None:
+            settings_old = getres.get('data')
+        else:
+            result.State("Failure")
+            result.Message(["get BMC system and audit log settings error, " + getres.get('data')])
+            RestFunc.logout(client)
+            return result
+
+        # print(settings_old)
+        if args.auditLogStatus is not None:
+            settings_old['audit_log'] = 1 if args.auditLogStatus == "enable" else 0
+
+        if args.status is not None:
+            settings_old['system_log'] = 1 if args.status == "enable" else 0
+
+        # get 获取3  put的时候是1
+        if settings_old['system_log'] == 3:
+            settings_old['system_log'] = 1
+
+        if settings_old['system_log'] == 1 or settings_old['audit_log'] == 1:
+            if settings_old['system_log'] == 0:
+                if not (
+                        args.type is None and args.fileSize is None and args.rotateCount is None and args.serverAddr is None and args.serverPort is None):
+                    result.State("Failure")
+                    result.Message([
+                        "type(-T),fileSize(-L),rotateCount(-C),serverAddr(-A),serverPort(-R) can not be set when Status(-S) is disable."])
+                    RestFunc.logout(client)
+                    return result
+
+            if args.type is not None:
+                if args.type == "both":
+                    settings_old['local'] = 1
+                    settings_old['remote'] = 1
+                elif args.type == "local":
+                    settings_old['local'] = 1
+                    settings_old['remote'] = 0
+                elif args.type == "remote":
+                    settings_old['remote'] = 1
+                    settings_old['local'] = 0
+
+            if settings_old['local'] == 0 and settings_old['remote'] == 0:
+                result.State("Failure")
+                result.Message(["type(-T) is needed."])
+                RestFunc.logout(client)
+                return result
+
+            # 配置 local
+            if settings_old['local'] == 1:
+                # rotateCount
+                if args.rotateCount is not None:
+                    settings_old['rotate_count'] = args.rotateCount
+
+                # fileSize
+                if args.fileSize is not None:
+                    settings_old['file_size'] = args.fileSize
+                    if args.fileSize < 3 or args.fileSize > 65535:
+                        result.State("Failure")
+                        result.Message(["File Size(-L) must be int and between 3 to 65535 bytes"])
+                        RestFunc.logout(client)
+                        return result
+
+                if settings_old['file_size'] == 0:
+                    result.State("Failure")
+                    result.Message(["File Size(-L) is needed"])
+                    RestFunc.logout(client)
+                    return result
+
+
+            else:
+                if args.fileSize is not None or args.rotateCount is not None:
+                    result.State("Failure")
+                    result.Message(["File Size(-L) and Rotate Count(-C) can not be set when type(-T) is not local"])
+                    RestFunc.logout(client)
+                    return result
+
+            if settings_old['remote'] == 1:
+                if args.serverAddr is not None:
+                    settings_old['server_addr'] = args.serverAddr
+                    if not RegularCheckUtil.checkIP46d(args.serverAddr):
+                        result.State("Failure")
+                        result.Message(
+                            ["Server Address(-A) must be ipv4 or ipv6 or FQDN (Fully qualified domain name) format"])
+                        RestFunc.logout(client)
+                        return result
+                else:
+                    if settings_old['server_addr'] == "":
+                        result.State("Failure")
+                        result.Message(["Server Address(-A) is needed when type(-T) is remote or both"])
+                        RestFunc.logout(client)
+                        return result
+
+                if args.serverPort is not None:
+                    settings_old['port'] = args.serverPort
+                    if settings_old['port'] < 0 or settings_old['port'] > 65535:
+                        result.State("Failure")
+                        result.Message(["Server Port(-R) must between 0-65535"])
+                        RestFunc.logout(client)
+                        return result
+                else:
+                    if settings_old['port'] == 0:
+                        result.State("Failure")
+                        result.Message(["Server Port(-R) is needed when type(-T) is remote or both"])
+                        RestFunc.logout(client)
+                        return result
+
+                if args.protocolType is not None:
+                    settings_old['port_type'] = "0" if args.protocolType == "UDP" else "2"
+                else:
+                    if settings_old['port_type'] != 1 and settings_old['port_type'] != 0:
+                        result.State("Failure")
+                        result.Message(["Protocol Type(-PT) is needed when type(-T) is remote or both"])
+                        RestFunc.logout(client)
+                        return result
+            else:
+                if args.serverAddr is not None or args.serverPort is not None or args.protocolType is not None:
+                    result.State("Failure")
+                    result.Message([
+                        "server address(-A), server port(-R), protocol type(-PT) can not be set when type(-T) is not remote"])
+                    RestFunc.logout(client)
+                    return result
+
+        res = RestFunc.setBMCLogSettingsM6(client, settings_old)
+
+        if res.get('code') == 0 and res.get('data') is not None:
+            result.State("Success")
+            result.Message(["set BMC system and audit log settings success"])
+        else:
+            result.State("Failure")
+            result.Message(["set BMC system and audit log settings error, " + res.get('data')])
+
         RestFunc.logout(client)
         return result
 
@@ -5149,12 +5352,6 @@ class CommonM6(Base):
             old_settings["same_settings"] = 1
         else:
             old_settings["same_settings"] = 0
-
-        if args.remote is not None:
-            if args.remote == "enable":
-                old_settings["remote_media_support"] = 1
-            else:
-                old_settings["remote_media_support"] = 0
 
         old_settings["hd_remote_retry_interval"] = old_settings["rmedia_retry_interval"]
         old_settings["hd_remote_retry_count"] = old_settings["rmedia_retry_count"]
@@ -9324,12 +9521,7 @@ class CommonM6(Base):
             snmpinfo.Message([res.get('data')])
             RestFunc.logout(client)
             return snmpinfo
-        version_dict = {
-            '1': "V1",
-            '2c': "V2C",
-            '3': "V3",
-            '0': "Disable",
-        }
+        version_dict = {1: "V1", 2: "V2C", 3: "V3", "V2": "V2C", 0: "Disable"}
         evnent_severity = {
             'all': 'Info',
             'warning': 'Warning',
@@ -10183,7 +10375,7 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return snmpinfo
 
-    def setsnmpm6(self, client, args):
+    def setsnmp(self, client, args):
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
@@ -10240,7 +10432,7 @@ class CommonM6(Base):
         if SnmpV1Enable == 1 or SnmpV2Enable == 1:
             if ReadOnlyCommunity == '' or ConfirmReadOnlyCommunity == '':
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["readCommunity(-RC) cannot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
+                snmpinfo.Message(["readCommunity cannot be empty,when v1status or v2status exists"])
                 RestFunc.logout(client)
                 return snmpinfo
             if len(ReadOnlyCommunity) < 1 or len(ReadOnlyCommunity) > 16:
@@ -10251,17 +10443,17 @@ class CommonM6(Base):
             if ReadWriteCommunity == '' or ConfirmReadWriteCommunity == '':
                 snmpinfo.State("Failure")
                 snmpinfo.Message(
-                    ["readWriteCommunity(-RWC) cannot be empty,when v1status(-V1S) or v2status(-V2S) exists"])
+                    ["readWriteCommunity(-RWC) cannot be empty,when v1status or v2status exists"])
                 RestFunc.logout(client)
                 return snmpinfo
             if len(ReadWriteCommunity) < 1 or len(ReadWriteCommunity) > 16:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["readWriteCommunity(-RWC) should between 1 and 16 characters"])
+                snmpinfo.Message(["readWriteCommunity should between 1 and 16 characters"])
                 RestFunc.logout(client)
                 return snmpinfo
             if ReadOnlyCommunity == ReadWriteCommunity:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["readWriteCommunity(-RWC)  must different from readCommunity(-RC)"])
+                snmpinfo.Message(["readWriteCommunit must different from readCommunity"])
                 RestFunc.logout(client)
                 return snmpinfo
         # ReadOnlyCommunity = Encrypt('secret', ReadOnlyCommunity)
@@ -10272,34 +10464,34 @@ class CommonM6(Base):
                 SnmpV3Enable = 0
         if args.authPassword is not None:
             AUTHPwd = args.authPassword
-        if args.authAlgorithms is not None:
-            AUTHProtocol = args.authAlgorithms
-        if args.authUser is not None:
-            AUTHUserName = args.authUser
-        if args.privacyAlgorithms is not None:
-            PrivProtocol = args.privacyAlgorithms
-        if args.privacyPassword is not None:
-            PRIVPwd = args.privacyPassword
+        if args.authProtocol is not None:
+            AUTHProtocol = args.authProtocol
+        if args.v3username is not None:
+            AUTHUserName = args.v3username
+        if args.privProtocol is not None:
+            PrivProtocol = args.privProtocol
+        if args.privPassword is not None:
+            PRIVPwd = args.privPassword
         if SnmpV3Enable == 1:
             if AUTHPwd == '' or PRIVPwd == '':
                 snmpinfo.State("Failure")
                 snmpinfo.Message(
-                    ["authPassword(-AP) and privacyPassword(-PrivP) cannot be empty, when v3status(-V3S) exists"])
+                    ["authPassword and privPassword cannot be empty, when v3status(-V3S) exists"])
                 RestFunc.logout(client)
                 return snmpinfo
             if len(AUTHPwd) < 8 or len(AUTHPwd) > 23:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["authPassword(-AP) should between 8 and 23 characters"])
+                snmpinfo.Message(["authPassword should between 8 and 23 characters"])
                 RestFunc.logout(client)
                 return snmpinfo
             if len(AUTHUserName) < 2 or len(AUTHUserName) > 16:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["authUser(-AU) should between 2 and 16 characters"])
+                snmpinfo.Message(["v3username should between 2 and 16 characters"])
                 RestFunc.logout(client)
                 return snmpinfo
             if len(PRIVPwd) < 8 or len(PRIVPwd) > 23:
                 snmpinfo.State("Failure")
-                snmpinfo.Message(["privacyPassword(-PrivP) should between 8 and 23 characters"])
+                snmpinfo.Message(["privPassword should between 8 and 23 characters"])
                 RestFunc.logout(client)
                 return snmpinfo
         snmp = {}
@@ -10329,6 +10521,7 @@ class CommonM6(Base):
         else:
             snmpinfo.State("Failure")
             snmpinfo.Message(["set snmp error, error code " + str(res.get('code'))])
+
         RestFunc.logout(client)
         return snmpinfo
 
@@ -10852,6 +11045,7 @@ class CommonM6(Base):
         return result
 
     def setpdisk(self, client, args):
+        result = ResultBean()
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
@@ -10862,11 +11056,11 @@ class CommonM6(Base):
             return login_res
         client.setHearder(headers)
         try:
-            pdisk = setPhysicalDrive(client, args)
+            result = setPhysicalDrive(client, args)
         except BaseException:
             RestFunc.logout(client)
         RestFunc.logout(client)
-        return pdisk
+        return result
 
     def setPhysicalDisk(self, client, args):
         '''
@@ -10981,6 +11175,7 @@ class CommonM6(Base):
 
 
     def setldisk(self, client, args):
+        result = ResultBean()
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
@@ -10991,11 +11186,11 @@ class CommonM6(Base):
             return login_res
         client.setHearder(headers)
         try:
-            ldisk = setVirtualDrive(client, args)
+            result = setVirtualDrive(client, args)
         except BaseException:
             RestFunc.logout(client)
         RestFunc.logout(client)
-        return ldisk
+        return result
 
 
     def setLogicalDisk(self, client, args):
@@ -11109,6 +11304,7 @@ class CommonM6(Base):
         return locate_Info
 
     def addldisk(self, client, args):
+        result = ResultBean()
         # login
         headers = RestFunc.login_M6(client)
         if headers == {}:
@@ -11119,11 +11315,11 @@ class CommonM6(Base):
             return login_res
         client.setHearder(headers)
         try:
-            ldisk = createVirtualDrive(client, args)
+            result = createVirtualDrive(client, args)
         except BaseException:
             RestFunc.logout(client)
         RestFunc.logout(client)
-        return ldisk
+        return result
 
     def addLogicalDisk(self, client, args):
         '''
@@ -11332,6 +11528,183 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return product_Result
 
+    def getncsi(self, client, args):
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        # get
+        res = RestFunc.getNCSI4jd(client)
+        ncsiinfo = ResultBean()
+        if res == {}:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message(["cannot get ncsi information"])
+        elif res.get('code') == 0 and res.get('data') is not None:
+            ncsiinfo.State("Success")
+            item = res.get('data')
+            ncsibean = NCSIBean()
+            ncsibean.NCSIMode(item.get('Swtich_Mode', None))
+            ncsibean.NicName(item.get('NIC_Name', None))
+            ncsibean.PortNum(item.get('Port_Status', 0))
+            ncsibean.Nicinfo(item.get('Support_Nic_Info', None))
+            ncsiinfo.Message([ncsibean.dict])
+        elif res.get('code') != 0 and res.get('data') is not None:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message([res.get('data')])
+        else:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message(["get ncsi information error, error code " + str(res.get('code'))])
+
+        RestFunc.logout(client)
+        return ncsiinfo
+
+    def setncsi(self, client, args):
+        ncsiinfo = ResultBean()
+        if args.mode == "auto" and args.channel_number is not None:
+            ncsiinfo.State('Failure')
+            ncsiinfo.Message('port cannot be set when NCSI mode is auto')
+            return ncsiinfo
+        if args.mode == "disable" and (args.nic_type is not None or args.channel_number is not None):
+            ncsiinfo.State('Failure')
+            ncsiinfo.Message('port and nicname cannot be set when NCSI mode is disable')
+            return ncsiinfo
+        if args.mode == "disable":
+            set_cmd = " 0x3c 0x13 0x01 0x00 0x0f"
+            set_res = IpmiFunc.sendRawByIpmi(client, set_cmd)
+            if set_res.get('code') == 0:
+                ncsiinfo.State("Success")
+                ncsiinfo.Message([""])
+            else:
+                ncsiinfo.State("Failure")
+                ncsiinfo.Message(["set ncsi disable failed."])
+            return ncsiinfo
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        if args.mode == "auto":
+            mode = "AutoFailover"
+        else:
+            mode = "Manual"
+        res = RestFunc.setNCSI4jd(client, mode, args.nic_type, args.channel_number)
+        if res == {}:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message(["set ncsi error"])
+        elif res.get('code') == 0:
+            ncsiinfo.State("Success")
+            ncsiinfo.Message([""])
+        elif res.get('code') != 0 and res.get('data') is not None:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message([res.get('data')])
+        else:
+            ncsiinfo.State("Failure")
+            ncsiinfo.Message(["set ncsi error, error code " + str(res.get('code'))])
+
+        RestFunc.logout(client)
+        return ncsiinfo
+
+    def setpsuconfig(self, client, args):
+        res = ResultBean()
+        try:
+            count_res = IpmiFunc.getPsuCountByIpmi(client)
+            if count_res.get('code') == 0:
+                count_data = str(count_res.get('data')).split(" ")
+                max_count = int(count_data[0])  # 该设备的最大配置的数量
+                current_count = int(count_data[1])  # 设备出厂配置的数量/设备实际在位数量, 默认出货配置等于满配数量
+                if args.id < 0 or args.id > (current_count - 1):
+                    res.State("Failure")
+                    res.Message(['Psu id error, please choose from ' + str(range(current_count))])
+                    return res
+                status_dict = {
+                    "normal": "00",
+                    "active": "01",
+                    "standby": "02",
+                }
+                set_cmd = "raw 0x3c 0x28 0x0" + str(current_count)
+                for i in range(current_count):
+                    single_res = IpmiFunc.getPsuConfigByIpmi(client, i)
+                    if single_res.get('code') == 0:
+                        single_data = str(single_res.get('data')).split(" ")
+                        if args.id == i:
+                            if single_data[1] != "01":
+                                res.State("Failure")
+                                res.Message(['this psu is not present.'])
+                                return res
+                            elif single_data[2] == status_dict.get(args.switch, ""):
+                                res.State("Success")
+                                res.Message(["this psu is already %s, no need to set" % str(args.switch)])
+                                return res
+                            else:
+                                set_cmd += " 0x" + str(i) + " 0x" + status_dict.get(args.switch)
+                        else:
+                            set_cmd += " 0x" + str(i) + " 0x" + str(single_data[2])
+                    else:
+                        res.State("Failure")
+                        res.Message(['get psu info failed.'])
+                        return res
+                set_res = IpmiFunc.setPsuConfigByIpmi(client, set_cmd)
+                if set_res.get('code') == 0:
+                    res.State("Success")
+                    res.Message(["set psu config success."])
+                else:
+                    res.State("Failure")
+                    res.Message(["set psu config failed."])
+            else:
+                res.State("Failure")
+                res.Message(["get psu count failed."])
+        except Exception as e:
+            res.State("Failure")
+            res.Message([str(e)])
+        return res
+
+    def getpsuconfig(self, client, args):
+        res = ResultBean()
+        try:
+            count_res = IpmiFunc.getPsuCountByIpmi(client)
+            if count_res.get('code') == 0:
+                count_data = str(count_res.get('data')).split(" ")
+                max_count = int(count_data[0])  # 该设备的最大配置的数量
+                current_count = int(count_data[1])  # 设备出厂配置的数量/设备实际在位数量, 默认出货配置等于满配数量
+                psu_list = []
+                present_dict = {
+                    "00": "No",
+                    "01": "Yes"
+                }
+                status_dict = {
+                    "00": "Normal",
+                    "01": "Active",
+                    "02": "Standby",
+                }
+                for i in range(current_count):
+                    single_res = IpmiFunc.getPsuConfigByIpmi(client, i)
+                    if single_res.get('code') == 0:
+                        single_data = str(single_res.get('data')).split(" ")
+                        single_dict = {}
+                        single_dict["Id"] = str(i)
+                        single_dict["Present"] = present_dict.get(single_data[1], "N/A")
+                        single_dict["Status"] = status_dict.get(single_data[2], "N/A")
+                        psu_list.append(single_dict)
+                res.State("Success")
+                res.Message([psu_list])
+            else:
+                res.State("Failure")
+                res.Message(["get psu count failed."])
+        except Exception as e:
+            res.State("Failure")
+            res.Message([str(e)])
+        return res
+
+
     def getbootimage(self, client, args):
         result = ResultBean()
         result.State("Not Support")
@@ -11357,12 +11730,6 @@ class CommonM6(Base):
         return result
 
     def getpowerrestore(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getpsuconfig(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         result.Message(['The M6 model does not support this feature.'])
@@ -11458,18 +11825,6 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
-    def setncsi(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getncsi(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
     def setnetworkbond(self, client, args):
         result = ResultBean()
         result.State("Not Support")
@@ -11506,43 +11861,7 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
-    def getpsuconfig(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setpsuconfig(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getpsupeak(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
     def setpsupeak(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setsnmp(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getbmclogsettings(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def setbmclogsettings(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         result.Message(['The M6 model does not support this feature.'])
@@ -11606,12 +11925,13 @@ class CommonM6(Base):
             else:
                 res.State("Failure")
                 res.Message([result.get('data')])
-            RedfishFunc.logout(client)
+            RedfishFunc.logout(client, login_id, login_header)
             return res
         except Exception as e:
+            res = ResultBean()
             res.State("Failure")
             res.Message([str(e)])
-            RedfishFunc.logout(client)
+            RedfishFunc.logout(client, login_id, login_header)
             return res
 
     def importbioscfg(self, client, args):
@@ -11628,7 +11948,7 @@ class CommonM6(Base):
         else:
             res.State("Failure")
             res.Message([result.get('data')])
-        RedfishFunc.logout(client)
+        RedfishFunc.logout(client, login_id, login_header)
         return res
 
     def setsmtp(self, client, args):
@@ -11718,12 +12038,14 @@ def createVirtualDrive(client, args):
         for ctrl in ctrls:
             if str(ctrl.get("RaidType")).upper() == "PMC":
                 ctrl_type_dict['PMC'].append(ctrl["Name"])
-                ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
-                ctrl_id_list.append(str(ctrl["Index"]))
             elif str(ctrl.get("RaidType")).upper() == "LSI":
                 ctrl_type_dict['LSI'].append(ctrl["Name"])
+            if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
+            elif "id" in ctrl.keys():
+                ctrl_id_name_dict[ctrl["id"]] = ctrl["Name"]
+                ctrl_id_list.append(str(ctrl["id"]))
     else:
         result.State("Failure")
         result.Message(["ctrl Information Request Fail!" + res.get('data')])
@@ -11802,7 +12124,11 @@ def createVirtualDrive(client, args):
         result.State('Success')
         result.Message(raidList)
         return result
-    if str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('LSI'):
+    if args.ctrlId is None:
+        result.State('Failure')
+        result.Message(["Please input ctrlId parameter!"])
+        return result
+    elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('LSI'):
         result = addLogicalDisk(client, args, pds, ctrl_id_name_dict)
     elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
         result = addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict)
@@ -11822,7 +12148,14 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         return result
 
     # args.pd
-    args.pdlist = args.slot.strip().split(',')
+    if type(args.slot) is str:
+        args.pdlist = str(args.slot).split(',')
+    elif type(args.slot) is list:
+        args.pdlist = args.slot
+    else:
+        result.State('Failure')
+        result.Message(['Invalid slot'])
+        return result
     pd_para_len = len(args.pdlist)
 
     # set raid
@@ -11954,7 +12287,7 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
         return result
 
     # args.pd
-    args.pdlist = args.slot.strip().split(',')
+    args.pdlist = args.slot
     pd_para_len = len(args.pdlist)
 
     # set raid
@@ -12020,12 +12353,6 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
 
 def setVirtualDrive(client, args):
     result = ResultBean()
-    if args.duration is not None:
-        if args.duration < 1 or args.duration > 255:
-            print("Failure: Please enter an integer from 1 to 255")
-            print("-" * 70)
-            return
-
     ctrl_id_name_dict = {}
     ctrl_type_dict = {
         "LSI": [],
@@ -12132,10 +12459,6 @@ def setVirtualDrive(client, args):
     else:
         ctrl_type = "LSI"
 
-    if args.deviceId not in the_ld_list:
-        result.State('Failure')
-        result.Message(["Invalid virtual drive id, choose from " + str(the_ld_list)])
-        return result
     args.ctrl_type = ctrl_type
     args.location = None
     args.init = None
@@ -12160,6 +12483,11 @@ def setVirtualDrive(client, args):
         if args.ctrl_type == "LSI":
             res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.ldiskId, args.location)
         else:
+            if args.duration is not None:
+                if args.duration < 1 or args.duration > 255:
+                    result.State('Failure')
+                    result.Message(["Please enter an integer from 1 to 255"])
+                    return result
             res = RestFunc.locateLogicalDiskPMC(client, args.ctrlId, args.ldiskId, args.location, args.duration)
     elif args.init is not None:
         res = RestFunc.initLogicalDisk(client, args.ctrlId, args.ldiskId, args.init)
@@ -12184,11 +12512,6 @@ def setVirtualDrive(client, args):
 
 def setPhysicalDrive(client, args):
     result = ResultBean()
-    if args.duration is not None:
-        if args.duration < 1 or args.duration > 255:
-            result.State("Failure")
-            result.Message(["Please enter an integer from 1 to 255."])
-            return result
     ctrl_type_dict = {
         "LSI": [],
         "PMC": []
@@ -12325,6 +12648,11 @@ def setPhysicalDrive(client, args):
         if args.ctrl_type == "LSI":
             res = RestFunc.locateDiskByRest(client, args.ctrlId, args.deviceId, args.location)
         else:
+            if args.duration is not None:
+                if args.duration < 1 or args.duration > 255:
+                    result.State("Failure")
+                    result.Message(["Please enter an integer from 1 to 255."])
+                    return result
             res = RestFunc.locateDiskByRestPMC(client, args.ctrlId, args.deviceId, args.location, args.duration)
     elif args.erase is not None:
         res = RestFunc.erasePhysicalDisk(
@@ -12880,9 +13208,9 @@ def setUserGroup(client, args):
             if args.debug is not None:
                 group_data["DebugPriv"] = enable_dict.get(
                     args.debug.lower(), 0)
-            if args.selfset is not None:
+            if args.self is not None:
                 group_data["SelfSetPriv"] = enable_dict.get(
-                    args.selfset.lower(), 0)
+                    args.self.lower(), 0)
             set_res = RestFunc.setUserGroupM6(client, group_data)
             if set_res.get('code') == 0:
                 result.State("Success")
@@ -12891,7 +13219,6 @@ def setUserGroup(client, args):
                 result.State("Failure")
                 result.Message(
                     ["Set user group failed. " + set_res.get("data")])
-
         else:
             result.State("Failure")
             result.Message(["No group named " + args.name])
@@ -13055,6 +13382,8 @@ def setUser(client, args):
                 else:
                     args.group = args.roleid
                     args.access = 1
+                user_old["access"] = args.access
+                user_old["group_name"] = args.group
             user_old["UserOperation"] = 1
             user_old["changepassword"] = 0
             user_old["confirm_password"] = ""
@@ -13067,12 +13396,7 @@ def setUser(client, args):
                 user_old["email_id"] = args.email
             else:
                 user_old["email_id"] = ''
-            user_old["access"] = args.access
 
-            if args.group is not None:
-                user_old["group_name"] = args.group
-
-            args.json = user_old
             if args.priv is not None:
                 if "kvm" in args.priv:
                     args.kvm = 1
@@ -13090,6 +13414,10 @@ def setUser(client, args):
                     args.sol = 0
                     args.vmm = 0
                     args.kvm = 0
+                    user_old['kvm'] = args.kvm
+                    user_old['vmedia'] = args.vmm
+                    user_old['sol'] = args.sol
+            args.json = user_old
             res_set = RestFunc.setUserByRestM6(client, args)
             if res_set.get('code') == 0:
                 # 设置权限none
@@ -13211,35 +13539,338 @@ def delUser(client, args):
     return userinfo
 
 
-def editUser(client, args):
-    result = ResultBean()
-    if args.state == 'absent':
-        result = delUser(client, args)
-    elif args.state == 'present':
-        res = RestFunc.getUserByRest(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            space_flag = False
-            duplication_flag = False
-            data = res.get('data')
-            for userdata in data:
+def addUser1(client, args):
+    userinfo = ResultBean()
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+    if not RegularCheckUtil.checkUsername(args.uname):
+        userinfo.State('Failure')
+        userinfo.Message(['Illegal username.'])
+        return userinfo
+    if not RegularCheckUtil.checkPassword(args.upass):
+        userinfo.State('Failure')
+        userinfo.Message(['Illegal password.'])
+        return userinfo
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        space_flag = False
+        duplication_flag = False
+        exist_flag = False
+        data = res.get('data')
+        user16 = 0
+        id_list = []
+        for userdata in data:
+            if userdata['id'] == 1:
+                continue
+            user16 = user16 + 1
+            if user16 > 16:
+                break
+            if args.uid is None:
                 if userdata['name'] == "":
+                    id_list.append(userdata['id'])
                     if not space_flag:
                         space_flag = True
-                        args.userID = userdata['id']
-                elif userdata['name'] == args.uname:
-                    duplication_flag = True
-        else:
-            result.State("Failure")
-            result.Message(["get user information error"])
-            return result
+                        args.userid = userdata['id']
+            else:
+                if userdata['name'] == "":
+                    id_list.append(userdata['id'])
+                if str(userdata['id']) == str(args.uid):
+                    if userdata['name'] == "":
+                        space_flag = True
+                        args.userid = args.uid
+                    else:
+                        exist_flag = True
+            if userdata['name'] == args.uname:
+                duplication_flag = True
+        # id 超出范围，返回当前可设置的id列表
+        if args.uid is not None and int(args.uid) > 16:
+            userinfo.State("Failure")
+            userinfo.Message(["please choose user id from " + str(id_list)])
+        # id 用户已存在
+        elif exist_flag:
+            userinfo.State("Failure")
+            userinfo.Message(["user id " + str(args.uid) + " has exist."])
         # 有重名
         if duplication_flag:
-            result = setUser(client, args)
+            userinfo.State('Failure')
+            userinfo.Message(['username already exist.'])
         elif space_flag:
-            result = addUser(client, args)
+            # add
+            if args.priv is not None:
+                if "kvm" in args.priv:
+                    args.kvm = 1
+                else:
+                    args.kvm = 0
+                if "vmm" in args.priv:
+                    args.vmm = 1
+                else:
+                    args.vmm = 0
+                if "sol" in args.priv:
+                    args.sol = 1
+                else:
+                    args.sol = 0
+                if "none" in args.priv:
+                    args.sol = 0
+                    args.vmm = 0
+                    args.kvm = 0
+
+            if args.access is None:
+                args.access = 0
+            elif args.access == 'enable':
+                args.access = 1
+            else:
+                args.access = 0
+            if args.email is None:
+                args.email = ""
+            groupList = ['Administrator', 'Operator', 'User', 'OEM1', 'OEM2', 'OEM3', 'OEM4']
+            if args.roleid not in groupList:
+                userinfo.State("Failure")
+                userinfo.Message(['No user group ' + args.roleid + '.'])
+                return userinfo
+            args.group = args.roleid
+            res_add = RestFunc.addUserByRestM6(client, args)
+            if res_add.get('code') == 0:
+                userinfo.State("Success")
+                userinfo.Message(['add user success.'])
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_add.get('data')])
         else:
-            result.State("Failure")
-            result.Message(['user is full.'])
+            userinfo.State('Failure')
+            userinfo.Message(['no space for new user, add user failed.'])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(
+            ["get information error, error code " + str(res.get('code'))])
+    return userinfo
+
+
+def setUser1(client, args):
+    userinfo = ResultBean()
+    # get
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        # if user exist
+        user_flag = False
+        user_old = {}
+        data = res.get('data')
+        for userdata in data:
+            if args.uid is None:
+                if userdata['name'] == args.uname and len(userdata['name']) > 0:
+                    user_flag = True
+                    user_old = userdata
+                    break
+            else:
+                if str(userdata['id']) == str(args.uid) and len(userdata['name']) > 0:
+                    user_flag = True
+                    user_old = userdata
+                    break
+        # 有该用户
+        if user_flag:
+            if args.uname is None:
+                args.uname = user_old['name']
+            else:
+                user_old['name'] = args.uname
+            user_old["UserOperation"] = 1
+            user_old["changepassword"] = 0
+            user_old["confirm_password"] = ""
+            user_old["password"] = ""
+            user_old["session_confirm"] = ""
+            user_old["password_size"] = "bytes_16"
+            user_old["email_format"] = "ami_format"
+            if args.email is not None:
+                user_old["email_id"] = args.email
+            if args.access is not None:
+                if args.access == 'enable':
+                    user_old["access"] = 1
+                else:
+                    user_old["access"] = 0
+            if args.roleid is not None:
+                groupList = ['Administrator', 'Operator', 'User', 'OEM1', 'OEM2', 'OEM3', 'OEM4']
+                if args.roleid not in groupList:
+                    userinfo.State("Failure")
+                    userinfo.Message(['No user group ' + args.roleid + '.'])
+                    return userinfo
+                user_old["group_name"] = args.roleid
+            if args.priv is not None:
+                if "kvm" in args.priv:
+                    args.kvm = 1
+                else:
+                    args.kvm = 0
+                if "vmm" in args.priv:
+                    args.vmm = 1
+                else:
+                    args.vmm = 0
+                if "sol" in args.priv:
+                    args.sol = 1
+                else:
+                    args.sol = 0
+                if "none" in args.priv:
+                    args.sol = 0
+                    args.vmm = 0
+                    args.kvm = 0
+                user_old['kvm'] = args.kvm
+                user_old['vmedia'] = args.vmm
+                user_old['sol'] = args.sol
+            args.json = user_old
+            res_set = RestFunc.setUserByRestM6(client, args)
+            if res_set.get('code') == 0:
+                result = setPwd(client, args)
+                if result.State == "Success":
+                    userinfo.State("Success")
+                    userinfo.Message(['set user success.'])
+                else:
+                    userinfo.State("Failure")
+                    userinfo.Message(result.Message)
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_set.get('data')])
+        else:
+            userinfo.State('Failure')
+            userinfo.Message(['no user named ' + args.uname])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(
+            ["get information error, error code " + str(res.get('code'))])
+    return userinfo
+
+
+def delUser1(client, args):
+    userinfo = ResultBean()
+    if args.uid is None and args.uname is None:
+        userinfo.State('Failure')
+        userinfo.Message(['Uid and uname cannot both be empty.'])
+        return userinfo
+    # get
+    res = RestFunc.getUserByRest(client)
+    if res == {}:
+        userinfo.State("Failure")
+        userinfo.Message(["cannot get information"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        user_flag = False
+        data = res.get('data')
+        user16 = 0
+        for userdata in data:
+            user16 = user16 + 1
+            if user16 > 16:
+                break
+            if args.uid is None:
+                if userdata['name'] == args.uname and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userid = userdata['id']
+                    break
+            else:
+                if str(userdata['id']) == str(args.uid)  and len(userdata['name']) > 0:
+                    user_flag = True
+                    args.userid = userdata['id']
+                    args.uname = userdata['name']
+                    break
+        # 有该条目
+        if user_flag:
+            # del
+            res_del = RestFunc.delUserByRestM6(client, args)
+            if res_del.get('code') == 0:
+                userinfo.State("Success")
+                userinfo.Message(['del user success.'])
+            else:
+                userinfo.State('Failure')
+                userinfo.Message([res_del.get('data')])
+        else:
+            userinfo.State('Failure')
+            userinfo.Message([str(args.uname) + ' does not exist.'])
+    elif res.get('code') != 0 and res.get('data') is not None:
+        userinfo.State("Failure")
+        userinfo.Message([res.get('data')])
+    else:
+        userinfo.State("Failure")
+        userinfo.Message(
+            ["get information error, error code " + str(res.get('code'))])
+    return userinfo
+
+
+def editUser(client, args):
+    result = ResultBean()
+    if args.__contains__('uid'):
+        if args.state == 'absent':
+            result = delUser1(client, args)
+        elif args.state == 'present':
+            res = RestFunc.getUserByRest(client)
+            if res.get('code') == 0 and res.get('data') is not None:
+                space_flag = False
+                duplication_flag = False
+                data = res.get('data')
+                for userdata in data:
+                    if args.uid is None:
+                        if userdata['name'] == "":
+                            if not space_flag:
+                                space_flag = True
+                                args.userID = userdata['id']
+                        elif userdata['name'] == args.uname:
+                            duplication_flag = True
+                    else:
+                        if str(userdata['id']) == str(args.uid):
+                            if len(userdata['name']) > 0:
+                                duplication_flag = True
+                            else:
+                                space_flag = True
+            else:
+                result.State("Failure")
+                result.Message(["get user information error"])
+                return result
+            # 有重名
+            if duplication_flag:
+                result = setUser1(client, args)
+            elif space_flag:
+                result = addUser1(client, args)
+            else:
+                result.State("Failure")
+                result.Message(['user is full.'])
+    else:
+        if args.state == 'absent':
+            result = delUser(client, args)
+        elif args.state == 'present':
+            res = RestFunc.getUserByRest(client)
+            if res.get('code') == 0 and res.get('data') is not None:
+                space_flag = False
+                duplication_flag = False
+                data = res.get('data')
+                for userdata in data:
+                    if userdata['name'] == "":
+                        if not space_flag:
+                            space_flag = True
+                            args.userid = userdata['id']
+                    elif userdata['name'] == args.uname:
+                        duplication_flag = True
+            else:
+                result.State("Failure")
+                result.Message(["get user information error"])
+                return result
+            # 有重名
+            if duplication_flag:
+                result = setUser(client, args)
+            elif space_flag:
+                result = addUser(client, args)
+            else:
+                result.State("Failure")
+                result.Message(['user is full.'])
     return result
 
 

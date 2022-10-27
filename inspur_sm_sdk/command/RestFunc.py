@@ -1010,6 +1010,11 @@ def getMediaRedirectionGeneralSettingsByRest(client):
 
 def setMediaRedirection(client, mediaSettings):
     # print(mediaSettings)
+    flag = IpmiFunc.judge_encrypt(client)
+    if flag == 1:
+        mediaSettings['cd_remote_password'] = Encrypt(mediaSettings['cd_remote_password'])
+        mediaSettings['hd_remote_password'] = Encrypt(mediaSettings['hd_remote_password'])
+        mediaSettings['encrypt_flag'] = 1
     response = client.request("PUT", "api/settings/media/general", client.getHearder(), data=None, json=mediaSettings)
     JSON = {}
     if response is None:
@@ -6284,9 +6289,9 @@ def setPowerPolicy(client, data):
     return JSON
 
 
-def getRangeWatts(client):
+def getRangeWatts(client, domain):
     JSON = {}
-    data = {'BLADE_NUM': 1, 'DOMAIN_ID': 0}
+    data = {'BLADE_NUM': 1, 'DOMAIN_ID': domain}
     response = client.request("POST", "/api/getnmcapabilities", data=data, json=None, headers=client.getHearder())
     if response is None:
         JSON['code'] = 1
@@ -7375,6 +7380,56 @@ def createVirtualDrive_41401(client, data):
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/raid/Create_LogicalDisk", r)
+    return JSON
+
+
+# jd
+# { "Support_Nic_Info": [ { "NIC_Name": "PCIE", "Port_Num": 4 }, { "NIC_Name": "OCP", "Port_Num": 4 } ], "NIC_Name": "OCP", "Swtich_Mode": "AutoFailover", "Port_Status": 0 }
+def getNCSI4jd(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/ncsi-interfaces-normal", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/ncsi-interfaces-normal, response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            # result = { "Support_Nic_Info": [ { "NIC_Name": "PCIE", "Port_Num": 4 }, { "NIC_Name": "OCP", "Port_Num": 4 } ], "NIC_Name": "OCP", "Swtich_Mode": "AutoFailover", "Port_Status": 0 }
+            JSON['code'] = 0
+            JSON['data'] = result
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = "BMC interface api/settings/ncsi-interfaces-normal response is not ok, exception: " + str(e)
+    elif response.status_code == 500:
+        JSON['code'] = 0
+        JSON['data'] = {"Swtich_Mode": "disable"}
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/ncsi-interfaces-normal", response)
+    return JSON
+
+# {"NIC_Name":"OCP","Swtich_Mode":"AutoFailover","Port_Status":0}
+# {"NIC_Name": "OCP", "Swtich_Mode": "AutoFailover", "Port_Status": 0 }
+# {"NIC_Name":"PCIE","Swtich_Mode":"Manual","Port_Status":3}
+# {"NIC_Name": "PCIE", "Swtich_Mode": "Manual", "Port_Status": 3 }
+def setNCSI4jd(client, mode, nicname, portstatus):
+    data = {
+        "NIC_Name": nicname,
+        "Swtich_Mode": mode,
+        "Port_Status": portstatus
+    }
+    JSON = {}
+    response = client.request("POST", "api/settings/ncsi-interfaces-normal", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/ncsi-interfaces-normal, response is none'
+    elif response.status_code == 200:
+        # result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/ncsi-interfaces-normal", response)
     return JSON
 
 

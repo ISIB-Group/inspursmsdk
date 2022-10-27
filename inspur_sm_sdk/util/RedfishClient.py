@@ -54,7 +54,7 @@ class RedfishClient():
     # timeout 请求过期时间
 
     def request(self, method, resource, headers=None, stream=None,
-                data=None, files=None, timeout=50):
+                data=None, files=None, auth='', timeout=50):
         """
         if self.type == 'M4':
             if self.port is not None:

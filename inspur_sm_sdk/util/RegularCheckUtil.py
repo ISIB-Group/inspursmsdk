@@ -345,7 +345,7 @@ def checkBase(s):
     # 开头字符必须是字母。
     # 允许特殊字符如点(.)，逗号(,)，连字符(-)，下划线(_)，等于号(=)。
     # 范例: cn=manager,ou=login, dc=domain,dc=com
-    dn = r'^[a-zA-Z][a-zA-Z0-9\-_\.\,\=]{4,64}$'
+    dn = r'^[a-zA-Z][a-zA-Z\-_\.\,\=]{4,64}$'
     if re.search(dn, s, re.I):
         return True
     return False

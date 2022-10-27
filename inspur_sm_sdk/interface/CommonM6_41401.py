@@ -45,11 +45,6 @@ class CommonM6_41401(CommonM6):
 
 def setPhysicalDrive(client, args):
     result = ResultBean()
-    if args.duration is not None:
-        if args.duration < 1 or args.duration > 255:
-            result.State("Failure")
-            result.Message(["Please enter an integer from 1 to 255."])
-            return result
     ctrl_type_dict = {
         "LSI": [],
         "PMC": []
@@ -186,6 +181,11 @@ def setPhysicalDrive(client, args):
         if args.ctrl_type == "LSI":
             res = RestFunc.locateDiskByRest(client, args.ctrlId, args.deviceId, args.location)
         else:
+            if args.duration is not None:
+                if args.duration < 1 or args.duration > 255:
+                    result.State("Failure")
+                    result.Message(["Please enter an integer from 1 to 255."])
+                    return result
             res = RestFunc.locateDiskByRestPMC_41401(client, args.ctrlId, args.deviceId, args.location,
                                                      args.duration)
     elif args.erase is not None:
@@ -210,12 +210,6 @@ def setPhysicalDrive(client, args):
 
 def setVirtualDrive(client, args):
     result = ResultBean()
-    if args.duration is not None:
-        if args.duration < 1 or args.duration > 255:
-            print("Failure: Please enter an integer from 1 to 255")
-            print("-" * 70)
-            return
-
     ctrl_id_name_dict = {}
     ctrl_type_dict = {
         "LSI": [],
@@ -322,10 +316,6 @@ def setVirtualDrive(client, args):
     else:
         ctrl_type = "LSI"
 
-    if args.deviceId not in the_ld_list:
-        result.State('Failure')
-        result.Message(["Invalid virtual drive id, choose from " + str(the_ld_list)])
-        return result
     args.ctrl_type = ctrl_type
     args.location = None
     args.init = None
@@ -350,6 +340,11 @@ def setVirtualDrive(client, args):
         if args.ctrl_type == "LSI":
             res = RestFunc.locateLogicalDisk(client, args.ctrlId, args.ldiskId, args.location)
         else:
+            if args.duration is not None:
+                if args.duration < 1 or args.duration > 255:
+                    result.State("Failure")
+                    result.Message(["Please enter an integer from 1 to 255."])
+                    return result
             res = RestFunc.locateLogicalDiskPMC(client, args.ctrlId, args.ldiskId, args.location, args.duration)
     elif args.init is not None:
         res = RestFunc.initLogicalDisk(client, args.ctrlId, args.ldiskId, args.init)
@@ -381,7 +376,7 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
         return result
 
     # args.pd
-    args.pdlist = args.slot.strip().split(',')
+    args.pdlist = args.slot
     pd_para_len = len(args.pdlist)
 
     # set raid

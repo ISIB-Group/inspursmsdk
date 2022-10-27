@@ -678,7 +678,13 @@ def resetBMCByIpmi(client):
 # p5 Product Asset Tag
 def editFruByIpmi(client, fruid, section, index, value):
     cmd_get = 'fru edit ' + str(fruid) + ' field ' + str(section) + ' ' + str(index) + ' ' + value
-    return sendRawByIpmi(client, cmd_get)
+    res = {}
+    result = __getCmd_type(client, cmd_get, 'readline')
+    if result['code'] != 0:
+        return result
+    res['code'] = 0
+    res['data'] = 'Success'
+    return res
 
 
 # nouse
@@ -1171,7 +1177,7 @@ def getM6DeviceNumByIpmi(client,data):
     :return: Device Number
     '''
     cmd_get = 'raw 0x3c 0x2b ' + data
-    Num_Info = sendRawByIpmi(client, cmd_get)
+    Num_Info = getLinesRawByIpmi(client, cmd_get)
     Num = {}
     if Num_Info['code'] == 0:
         data_list = Num_Info['data'].split(' ')
@@ -1250,6 +1256,29 @@ def __setService(
     return sendRawByIpmi(client, cmd_set)
 
 
+def getPsuCountByIpmi(client):
+    cmd = "raw 0x3c 0x2b 0x00"
+    return getLineRawByIpmi(client, cmd)
+
+
+def getPsuConfigByIpmi(client, psu_index):
+    cmd = "raw  0x3c 0x29 0x0" + str(psu_index)
+    conf = getLinesRawByIpmi(client, cmd)
+    if conf["code"] == 0:
+        conf_data = conf['data']
+    else:
+        return conf
+    result = {}
+    result['code'] = 0
+    cmd_str = ''.join(conf_data).replace('\n', '').strip()
+    result['data'] = cmd_str
+    return result
+
+
+def setPsuConfigByIpmi(client, cmd):
+    return sendRawByIpmi(client, cmd)
+
+
 def sendRawByIpmi(client, raw):
     res = {}
     result = __getCmd_type(client, raw, 'readline')
@@ -1258,7 +1287,7 @@ def sendRawByIpmi(client, raw):
     cmd_str = result['data']
     if cmd_str != '\n':
         res['code'] = -1
-        res['Data'] = 'Failure: ' + cmd_str
+        res['data'] = 'Failure: ' + cmd_str
         return res
     res['code'] = 0
     res['data'] = 'Success'
@@ -1266,8 +1295,12 @@ def sendRawByIpmi(client, raw):
 
 
 def getLineRawByIpmi(client, raw):
+    result = {}
     res = __getCmd_type(client, raw, 'readline')
-    return res
+    result['code'] = res.get('code')
+    if res.get('code') == 0:
+        result['data'] = res.get('data').replace('\n', '').strip()
+    return result
 
 
 def getLinesRawByIpmi(client, raw):
@@ -1404,7 +1437,7 @@ def __getCmd_type(client, cmd_get, rt):
     import platform
     sysstr = platform.system()
     if sysstr == 'Windows':
-        cmdPrefix = "D:\\Users\\wbs\\coding\\inspursmsdk-dev\\inspur_sm_sdk\\tools\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
+        cmdPrefix = "D:\\Users\\wbs\\coding\\inspursmsdk-1.4.0\\inspur_sm_sdk\\tools\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
     elif sysstr == 'Linux':
         cmdPrefix = "ipmitool -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>/dev/null"
     cmd_str = ''
