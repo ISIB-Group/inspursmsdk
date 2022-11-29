@@ -7433,6 +7433,107 @@ def setNCSI4jd(client, mode, nicname, portstatus):
     return JSON
 
 
+def getI24M6FanInfoByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/status/fan_info/1", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call CMC interface api/status/fan_info/1, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = CMCformatError("api/status/fan_info/1", response)
+    return JSON
+
+
+def getI24M6FanModeByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/fans-mode/1", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call CMC interface api/settings/fans-mode/1, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = CMCformatError("api/settings/fans-mode/1", response)
+    return JSON
+
+
+def getI24M6PsuInfoByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/status/psu_info/1", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call CMC interface api/status/psu_info/1, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = CMCformatError("api/status/psu_info/1", response)
+    return JSON
+
+
+def setI24M6FanModeByRest(client, mode):
+    JSON = {}
+    data_mode = {}
+    data_mode['control_mode'] = mode
+    response = client.request("PUT", "api/settings/fans-mode/1", client.getHearder(), json=data_mode)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call CMC interface api/settings/fans-mode/1, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = CMCformatError("api/settings/fans-mode/1", response)
+    return JSON
+
+
+def setI24M6FanSpeedByRest(client, id, fanspeedlevel):
+    JSON = {}
+    data_fan = {}
+    data_fan['cmc_index'] = 1
+    data_fan['duty'] = fanspeedlevel + 1
+    response = client.request("PUT", "api/settings/fan/" + str(id), client.getHearder(), json=data_fan)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call CMC interface api/settings/fan/' + str(id) + ', response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = CMCformatError("api/settings/fan/" + str(id), response)
+    return JSON
+
+
+def getFruI24M6ByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/fru/1", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/fru/1, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/fru/1", response)
+    return JSON
+
+
 class NF5280M5_SensorType():
     def __init__(self):
         self.getSensorTypeKey = getSensorTypeKey

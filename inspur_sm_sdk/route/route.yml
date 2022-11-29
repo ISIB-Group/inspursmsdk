@@ -96,4 +96,8 @@ SN6115M6:
     common: CommonM6
     4.1401: CommonM6_41401
     4.141: CommonM6_4140a
+I24A6:
+    common: I24M6
+NS3160A6:
+    common: NF5280M5
 
