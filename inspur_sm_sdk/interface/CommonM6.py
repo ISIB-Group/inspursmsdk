@@ -1578,18 +1578,18 @@ class CommonM6(Base):
                     # Python3 不需要用ord函数
                     # if file_read[header + des_index + j] == 0:
                     # python2.7 读出来直接转化为str 此处不是 空格(32) 而是 空白(0)
-                    if ord(file_read[header + des_index + j]) == 0:
-                        file_des = file_read[header + des_index:header + des_index + j]
+                    if file_read[header + des_index + j] == 0:
+                        file_des = str(file_read[header + des_index:header + des_index + j], encoding='utf-8')
                         break
                 if file_des == "BOOT":
-                    file_header_len = ord(file_read[header + len_index + 3]) * 256 * 256 * 256 + \
-                                      ord(file_read[header + len_index + 2]) * 256 * 256 + \
-                                      ord(file_read[header + len_index + 1]) * 256 + \
-                                      ord(file_read[header + len_index])
+                    file_header_len = file_read[header + len_index + 3] * 256 * 256 * 256 + \
+                                      file_read[header + len_index + 2] * 256 * 256 + \
+                                      file_read[header + len_index + 1] * 256 + \
+                                      file_read[header + len_index]
                     header = header + len_index + len_len + file_header_len
                     for k in range(des_len):
-                        if ord(file_read[header + des_index + k]) == 0:
-                            file_des = str(file_read[header + des_index:header + des_index + k])
+                        if file_read[header + des_index + k] == 0:
+                            file_des = str(file_read[header + des_index:header + des_index + k], encoding='utf-8')
                             break
         except Exception as e:
             result.State("Failure")

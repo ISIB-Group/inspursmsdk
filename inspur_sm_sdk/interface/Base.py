@@ -1439,7 +1439,7 @@ def ascii2hex(data, length):
     count = length - len(data)
     list_h = []
     for c in data:
-        list_h.append(str(hex(ord(c))))
+        list_h.append(str(hex(c)))
     data = ' '.join(list_h) + ' 0x00' * count
     return data
 
