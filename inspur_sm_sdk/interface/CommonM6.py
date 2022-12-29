@@ -1042,7 +1042,7 @@ class CommonM6(Base):
         else:
             result.State("Failure")
             result.Message(["get uptime error, error code " +
-                            str(time_result.get('code'))])
+                            str(info.get('code'))])
         product = IpmiFunc.getAllFruByIpmi(client)
         if product:
             frubean = FruBean()
@@ -1779,6 +1779,7 @@ class CommonM6(Base):
                 Power = RestFunc.setM6PowerByRest(client, choices["off"])
                 if Power.get('code') == 0 and Power.get('data') is not None:
                     off_count = 0
+                    import time
                     while True:
                         if getServerStatus(client) == "off" or off_count > 5:
                             break
@@ -1798,7 +1799,7 @@ class CommonM6(Base):
                     continue
 
             # set syn mode
-            res_syn == {}
+            res_syn = {}
             if args.type == "BMC":
                 preserveConfig = RestFunc.preserveBMCConfig(
                     client, args.override)
@@ -2195,73 +2196,6 @@ class CommonM6(Base):
                 continue
 
             client.setHearder(headers)
-            # BMC有bug 回滚的时候CPU利用率超高不准 可能出现都不是active的bug
-            # 查看BMC启动的主备
-            fw_now = {}
-            bmcfw_try_count = 0
-            bmcfw_error_count = 0
-            # 放弃了
-            while False:
-                fw_now = {}
-                if bmcfw_try_count > 9:
-                    result.State('Failure')
-                    result.Message(["Get BMC active image fw version failed"])
-                    wirte_log(
-                        log_path,
-                        "Activate",
-                        "Version Verify Failed",
-                        result.Message)
-                    break
-                else:
-                    bmcfw_try_count = bmcfw_try_count + 1
-                if bmcfw_error_count > 3:
-                    result.State('Failure')
-                    result.Message(["Get BMC fw version failed"])
-                    wirte_log(
-                        log_path,
-                        "Activate",
-                        "Version Verify Failed",
-                        result.Message)
-                    break
-
-                res_fw = RestFunc.getFwVersion(client)
-                if res_fw == {}:
-                    bmcfw_error_count = bmcfw_error_count + 1
-                elif res_fw.get('code') == 0 and res_fw.get('data') is not None:
-                    fwlist = res_fw.get('data')
-                    for fw in fwlist:
-                        if fw.get('dev_version') == '':
-                            version = "0.00.00"
-                        else:
-                            index_version = fw.get('dev_version', "").find('(')
-                            if index_version == -1:
-                                version = fw.get('dev_version')
-                            else:
-                                version = fw.get('dev_version')[
-                                    :index_version].strip()
-                        if "BMC0" in fw.get("dev_name", ""):
-                            fw_now["BMC0"] = version
-                            if "Inactivate" in fw.get("dev_name", ""):
-                                fw_now["InactivateBMC"] = "BMC0"
-                            else:
-                                fw_now["ActivateBMC"] = "BMC0"
-                        elif "BMC1" in fw.get("dev_name", ""):
-                            fw_now["BMC1"] = version
-                            if "Inactivate" in fw.get("dev_name", ""):
-                                fw_now["InactivateBMC"] = "BMC1"
-                            else:
-                                fw_now["ActivateBMC"] = "BMC1"
-                        if "ActivateBMC" in fw_now:
-                            break
-                    if "BMC0" not in fw_now and "BMC1" not in fw_now:
-                        continue
-                    if "ActivateBMC" not in fw_now:
-                        continue
-                    if "ActivateBMC" in fw_now and fw_now[fw_now["ActivateBMC"]] != "0.00.00":
-                        break
-                else:
-                    bmcfw_error_count = bmcfw_error_count + 1
-                time.sleep(20)
 
             res_ver = IpmiFunc.getMcInfoByIpmi(client)
             image1_update_info = ""
@@ -6150,7 +6084,7 @@ class CommonM6(Base):
         else:
             result.State("Failure")
             result.Message(["get uptime error, error code " +
-                            str(time_result.get('code'))])
+                            str(info.get('code'))])
 
         RestFunc.logout(client)
         return result
@@ -11724,12 +11658,6 @@ class CommonM6(Base):
         return result
 
     def getpowerconsumption(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M6 model does not support this feature.'])
-        return result
-
-    def getpowerrestore(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         result.Message(['The M6 model does not support this feature.'])

@@ -39,6 +39,19 @@ def formatError(url, response):
     return res_info
 
 
+def CMCformatError(url, response):
+    try:
+        code = str(response.status_code)
+    except:
+        code = "1500"
+    try:
+        info = str(response.json())
+    except:
+        info = "response is none or response is not json"
+    res_info = "Failed to call CMC interface, response status code is " + code + ": [URL]" + url + " [MSG]" + info
+    return res_info
+
+
 def getRemoteServerByRest(client):
     # getinfo
     JSON = {}
@@ -7534,12 +7547,63 @@ def getFruI24M6ByRest(client):
     return JSON
 
 
+def getUserRuleByRest(client):
+    response = client.request("GET", "api/settings/user-rule", client.getHearder(), None, None, None, None)
+    JSON = {}
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/user-rule, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        result = response.json()
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/user-rule", response)
+    return JSON
+
+
+def setUserRuleByRest(client, args):
+    data = args.json
+    response = client.request("PUT", "api/settings/user-rule", client.getHearder(), data=None, json=data)
+    JSON = {}
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/user-rule, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/user-rule", response)
+    return JSON
+
+
 class NF5280M5_SensorType():
     def __init__(self):
         self.getSensorTypeKey = getSensorTypeKey
 
     def getSensorType(self, var):
         return self.getSensorTypeKey("en", var)
+
+
+def testAlertPolicy(client, settings):
+    JSON = {}
+    response = client.request("PUT", "api/settings/snmp", client.getHearder(), json=settings)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/snmp ,response is none'
+    elif response.status_code == 200:
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "test BMC alert policy settings success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settings/snmp", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/snmp", response)
+    return JSON
 
 
 class NF5280M5_SensorDesc():

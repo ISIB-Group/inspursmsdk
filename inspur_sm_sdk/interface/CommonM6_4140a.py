@@ -1,6 +1,4 @@
 # -*- coding:utf-8 -*-
-import os
-import sys
 
 from inspur_sm_sdk.util import RegularCheckUtil
 from inspur_sm_sdk.command import RestFunc
