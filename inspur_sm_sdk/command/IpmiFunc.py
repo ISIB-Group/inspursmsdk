@@ -1308,6 +1308,14 @@ def getLinesRawByIpmi(client, raw):
     return res
 
 
+def getBoardInfo(client):
+    # byte1: boardID 数目，主板为1
+    # byte2: a0-standard a1-hybrid
+    # byte10: bomID数目 主板为1
+    cmd_get = "raw 0x3c 0x0a 0x00"
+    return getLineRawByIpmi(client, cmd_get)
+
+
 # ip地址转换十六进制
 def __ip2hex(ip):
     tup_ip = str(ip).split('.')

@@ -10,8 +10,8 @@ import os
 import re
 import time
 from inspur_sm_sdk.interface.IBase import IBase
-from inspur_sm_sdk.interface.ResEntity import (ResultBean, CapabilitiesBean, Sensor, SensorBean, PowerBean, PowerSingleBean, Temperature,
-                                     TemperatureBean, Voltage, VoltBean, ServiceBean, ServiceSingleBean, )
+from inspur_sm_sdk.interface.ResEntity import (ResultBean, CapabilitiesBean, Sensor, SensorBean, Temperature,
+                                     TemperatureBean, Voltage, VoltBean,)
 import collections
 
 rootpath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

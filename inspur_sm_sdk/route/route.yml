@@ -100,4 +100,11 @@ I24A6:
     common: I24M6
 NS3160A6:
     common: NF5280M5
-
+I48M6:
+    common: I24M6
+I24M6:
+    common: I24M6
+I24A5:
+    common: I24M6
+NS5160M6:
+    common: NS5160M6

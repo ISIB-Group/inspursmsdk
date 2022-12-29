@@ -7,13 +7,10 @@ from inspur_sm_sdk.interface.CommonM5 import CommonM5
 
 
 class NF5280M5Impl(CommonM5):
-    def getfru(self):
+    def getfru(self, client, args):
         pass
 
     def cpuM1(self):
-        pass
-
-    def capabilities(self):
         pass
 
     def capabilities(self):

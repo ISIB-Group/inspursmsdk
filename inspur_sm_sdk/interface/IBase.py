@@ -25,7 +25,6 @@ class IBase():
 
         :return:
         """
-        print('cap')
 
     def getcpu(self, client, args):
         """
