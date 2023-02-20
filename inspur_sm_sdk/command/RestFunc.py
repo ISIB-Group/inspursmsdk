@@ -4415,74 +4415,20 @@ def importBmcRestoreByRest(client, filepath):
 # 保存配置 sdr始终改写
 def preserveBMCConfig(client, override):
     JSON = {}
-    if isinstance(override, list):
+    if override == 1:
         op = "preserve"
-        data = {
-            'authentication': 0,
-            'dcmi': 0,
-            'fru': 0,
-            'hostname': 0,
-            'ipmi': 0,
-            'kvm': 0,
-            'network': 0,
-            'ntp': 0,
-            'pef': 0,
-            'sdr': 0,
-            'sel': 0,
-            'smtp': 0,
-            'snmp': 0,
-            'sol': 0,
-            'ssh': 0,
-            'syslog': 0,
-            'user': 0,
-            'id': 1
-        }
+        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
+                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
+    elif override == 0:
+        op = "override"
+        data = {"id": 1, "sdr": 0, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1, "kvm": 1,
+                "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1, "rsd": 1}
+    elif isinstance(override, list):
+        op = "preserve"
+        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
+                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
         for key in override:
             data[key] = 1
-    elif override == 0:
-        op = "preserve"
-        data = {
-            'authentication': 0,
-            'dcmi': 0,
-            'fru': 0,
-            'hostname': 0,
-            'ipmi': 0,
-            'kvm': 0,
-            'network': 0,
-            'ntp': 0,
-            'pef': 0,
-            'sdr': 0,
-            'sel': 0,
-            'smtp': 0,
-            'snmp': 0,
-            'sol': 0,
-            'ssh': 0,
-            'syslog': 0,
-            'user': 0,
-            'id': 1
-        }
-    elif override == 1:
-        op = "override"
-        data = {
-            'authentication': 1,
-            'dcmi': 1,
-            'fru': 1,
-            'hostname': 1,
-            'ipmi': 1,
-            'kvm': 1,
-            'network': 1,
-            'ntp': 1,
-            'pef': 1,
-            'sdr': 1,
-            'sel': 1,
-            'smtp': 1,
-            'snmp': 1,
-            'sol': 1,
-            'ssh': 1,
-            'syslog': 1,
-            'user': 1,
-            'id': 1
-        }
     response = client.request("PUT", "api/maintenance/preserve", client.getHearder(), json=data, timeout=50)
     if response is None:
         JSON['code'] = 1
@@ -6760,18 +6706,18 @@ def setBMCLogSettingsM6(client, settings):
 # api/get_group_subitem_priv
 # [ { "GroupID": 1, "GroupName": "Administrator", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 1, "PowerConPriv": 1, "SecuConPriv": 1, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 1 }, { "GroupID": 2, "GroupName": "Operator", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 1, "SecuConPriv": 0, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 0 }, { "GroupID": 3, "GroupName": "User", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 4, "GroupName": "OEM1", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 5, "GroupName": "OEM2", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 6, "GroupName": "OEM3", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 }, { "GroupID": 7, "GroupName": "OEM4", "SelfSetPriv": 0, "InfoQueryPriv": 1, "DebugPriv": 0, "PowerConPriv": 0, "SecuConPriv": 0, "RemoteMediaPriv": 0, "RemoteKVMPriv": 0, "CommConfigPriv": 0, "UserConfigPriv": 0 } ]
 def getUserGroupM6(client):
-    response = client.request("GET", "api/api/get_group_subitem_priv", client.getHearder(), None, None, None, None)
+    response = client.request("GET", "api/get_group_subitem_priv", client.getHearder(), None, None, None, None)
     JSON = {}
     if response is None:
         JSON['code'] = 1
-        JSON['data'] = 'Failed to call BMC interface api/api/get_group_subitem_priv, response is none'
+        JSON['data'] = 'Failed to call BMC interface api/get_group_subitem_priv, response is none'
     elif response.status_code == 200:
         JSON['code'] = 0
         result = response.json()
         JSON['data'] = result
     else:
         JSON['code'] = 1
-        JSON['data'] = formatError("api/api/get_group_subitem_priv", response)
+        JSON['data'] = formatError("api/get_group_subitem_priv", response)
     return JSON
 
 
@@ -6780,17 +6726,17 @@ def getUserGroupM6(client):
 # POST {"GroupID":4,"GroupName":"OEM1","SelfSetPriv":1,"InfoQueryPriv":1,"DebugPriv":1,"PowerConPriv":1,"SecuConPriv":1,"RemoteMediaPriv":1,"RemoteKVMPriv":1,"CommConfigPriv":1,"UserConfigPriv":0}
 # RES { "GroupID": 4, "GroupName": "OEM1", "SelfSetPriv": 1, "InfoQueryPriv": 1, "DebugPriv": 1, "PowerConPriv": 1, "SecuConPriv": 1, "RemoteMediaPriv": 1, "RemoteKVMPriv": 1, "CommConfigPriv": 1, "UserConfigPriv": 0 }
 def setUserGroupM6(client, data):
-    response = client.request("POST", "api/api/set_group_subitem_priv", client.getHearder(), json=data)
+    response = client.request("POST", "api/set_group_subitem_priv", client.getHearder(), json=data)
     JSON = {}
     if response is None:
         JSON['code'] = 1
-        JSON['data'] = 'Failed to call BMC interface api/api/set_group_subitem_priv, response is none'
+        JSON['data'] = 'Failed to call BMC interface api/set_group_subitem_priv, response is none'
     elif response.status_code == 200:
         JSON['code'] = 0
         JSON['data'] = ""
     else:
         JSON['code'] = 1
-        JSON['data'] = formatError("api/api/set_group_subitem_priv", response)
+        JSON['data'] = formatError("api/set_group_subitem_priv", response)
     return JSON
 
 
@@ -7576,6 +7522,435 @@ def setUserRuleByRest(client, args):
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/settings/user-rule", response)
+    return JSON
+
+
+def getSystemLockdownMode(client):
+    JSON = {}
+    try:
+        response = client.request("GET", "api/settins/system_lock_mode", client.getHearder(), None, None, None, None)
+        if response is None:
+            JSON['code'] = 1
+            JSON['data'] = 'Failed to call BMC interface api/settins/system_lock_mode, response is none'
+        elif response.status_code == 200:
+            JSON['code'] = 0
+            JSON['data'] = response.json()
+        else:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/settins/system_lock_mode", response)
+    except Exception as e:
+        JSON['code'] = 1
+        JSON['data'] = str(e)
+    return JSON
+
+
+def setSystemLockdownMode(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settins/system_lock_mode", data=None, json=data, headers=client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settins/system_lock_mode, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settins/system_lock_mode", response)
+    return JSON
+
+
+# syncmode PFR
+def syncmodePFRByRest(client, flashconf, mode, update_type, image):
+    JSON = {}
+    if flashconf is not None and flashconf != 0 and flashconf != 1:
+        JSON['code'] = 1
+        JSON['data'] = "override should be 0 or 1"
+        return JSON
+    param_dict = {
+        "BMC_PFR": 1,
+        "BIOS_PFR": 2,
+        "CPLD_PFR": 3,
+        "FRONTDISKBPCPLD": 3,
+        "REARDISKBPCPLD": 3
+    }
+    ImageFlag = 0  # 默认保留配置
+    if flashconf is not None and flashconf == 1:
+        ImageFlag += 4
+    if update_type == "BMC_PFR":
+        if image == "active":
+            ImageFlag += 1
+        elif image == "standby":
+            ImageFlag += 2
+    else:
+        # BIOS和CPLD只更新active镜像
+        ImageFlag += 1
+
+    data = {
+        "ImageFlag": ImageFlag,
+        "param": param_dict.get(update_type)
+    }
+    if mode == "Auto":
+        data["firmwareActivation"] = 0
+    elif mode == "Manual":
+        data["firmwareActivation"] = 1
+    elif mode is not None:
+        JSON['code'] = 1
+        JSON['data'] = "mode should be Auto or Manual"
+        return JSON
+    response = client.request("PUT", "api/maintenance/pfr/fwupdateoptions", client.getHearder(), json=data, timeout=500)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/maintenance/hpm/syncmode ,response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = "syncmode ok"
+        return JSON
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/hpm/syncmode", response)
+    return JSON
+
+
+# update firmware
+def uploadfirmwareByRest1(client, filepath):
+    '''
+    import bios configure file
+    :param client:
+    :param filepath:
+    :return:
+    '''
+    JSON = {}
+    header = client.getHearder()
+    header["X-Requested-With"] = "XMLHttpRequest"
+    header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarydTPdpAwLgxeeqJki"
+    header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+
+    file_name = os.path.basename(filepath)
+    # print (file_name)
+    if not os.path.exists(filepath):
+        JSON["code"] = 1
+        JSON["data"] = "File path is error."
+        return JSON
+    if not os.path.isfile(filepath):
+        JSON["code"] = 2
+        JSON["data"] = "File name is needed."
+        return JSON
+    file_size = os.path.getsize(filepath)
+    if file_size > 5000000:
+        big_flag = True
+    else:
+        big_flag = False
+    global progress_show
+    global progress_show_time
+    global endflag
+    progress_show = 0
+    import datetime
+    progress_show_time = datetime.datetime.now()
+    endflag = False
+
+    from requests_toolbelt.multipart import encoder
+    def mycalback(monitor):
+        global progress_show
+        global progress_show_time
+        global endflag
+        progess_now = monitor.bytes_read * 100 // file_size
+        import datetime
+        localtime = datetime.datetime.now()
+        f_localtime = localtime.strftime("%Y-%m-%d %H:%M:%S ")
+        # windows \b无法退回到上一行
+        # linux会退回到上一行，导致每次上次的%无法被覆盖，因此必须打印多少退多少
+        if not endflag:
+            if progess_now >= 100:
+                pro = f_localtime + "Upload file inprogress, progress: 100%"
+                endflag = True
+            else:
+                if big_flag:
+                    if localtime > progress_show_time:
+                        pro = f_localtime + "Upload file inprogress, progress: " + str(progess_now) + "%"
+                        b_num = len(pro)
+                        # print(pro + "\b"*b_num, end="",flush=True)
+                        progress_show_time = localtime + datetime.timedelta(seconds=3)
+                else:
+                    if progess_now > progress_show:
+                        pro = f_localtime + "Upload file inprogress, progress: " + str(progess_now) + "%"
+                        b_num = len(pro)
+                        # print(pro + "\b"*b_num, end="",flush=True)
+                        progress_show = progess_now
+
+    e = encoder.MultipartEncoder(
+        fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+        boundary='----WebKitFormBoundarydTPdpAwLgxeeqJki'
+    )
+    m = encoder.MultipartEncoderMonitor(e, mycalback)
+    header["Content-Type"] = m.content_type
+
+    upload = client.request("POST", "api/maintenance/hpm/firmware", data=m, headers=header, timeout=500)
+    if upload is None:
+        JSON["code"] = 1
+        JSON["data"] = "Failed to call BMC interface api/maintenance/hpm/firmware ,response is none."
+    elif upload.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = "upload firmware success."
+        return JSON
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/hpm/firmware", upload)
+    return JSON
+
+
+def delIPFirewallByRest(client, id):
+    JSON = {}
+    response = client.request("DELETE", "api/settings/firewall-ip-rules/{0}".format(id), client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-ip-rules/{0}, response is none'.format(id)
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-ip-rules/{0}".format(id), response)
+    return JSON
+
+
+def delMacFirewallByRest(client, id):
+    JSON = {}
+    response = client.request("DELETE", "api/settings/firewall-mac-rules/{0}".format(id), client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-mac-rules/{0}, response is none'.format(id)
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-mac-rules/{0}".format(id), response)
+    return JSON
+
+
+def delPortFirewallByRest(client, id):
+    JSON = {}
+    response = client.request("DELETE", "api/settings/firewall-port-rules/{0}".format(id), client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-port-rules/{0}, response is none'.format(id)
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-port-rules/{0}".format(id), response)
+    return JSON
+
+
+def addIPFirewallByRest(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settings/firewall-ip-rules", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-ip-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-ip-rules", response)
+    return JSON
+
+
+def addMacFirewallByRest(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settings/firewall-mac-rules", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-mac-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-mac-rules", response)
+    return JSON
+
+
+def addPortFirewallByRest(client, data):
+    JSON = {}
+    response = client.request("POST", "api/settings/firewall-port-rules", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-port-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-port-rules", response)
+    return JSON
+
+
+def getIPFirewallByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/firewall-ip-rules", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-ip-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-ip-rules", response)
+    return JSON
+
+
+def getPortFirewallByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/firewall-port-rules", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-port-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-port-rules", response)
+    return JSON
+
+
+def getMacFirewallByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/firewall-mac-rules", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/firewall-mac-rules, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = response.json()
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/firewall-mac-rules", response)
+    return JSON
+
+
+# PFR security check
+def securityCheckByRest(client):
+    JSON = {}
+    data = {
+        "currentuserpassword": Encrypt1(client.passcode, "addadd")
+    }
+    response = client.request("PUT", "api/maintenance/hpm/security_check", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/maintenance/hpm/security_check, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = "check ok"
+        return JSON
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/hpm/security_check", response)
+    return JSON
+
+
+# t6
+def importBmcRestoreM7(client, filepath):
+    JSON = {}
+    header = client.getHearder()
+    x = header["Cookie"]
+    header["X-Requested-With"] = "XMLHttpRequest"
+    header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryF4ZROI7nayCrLnwy"
+    header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
+
+    file_name = os.path.basename(filepath)
+
+    if not os.path.exists(filepath):
+        JSON["code"] = 1
+        JSON["data"] = "File path is error."
+        return JSON
+    if not os.path.isfile(filepath):
+        JSON["code"] = 2
+        JSON["data"] = "File name is needed."
+        return JSON
+
+    try:
+        with open(filepath, 'r') as f:
+            # content = f.read().decode("utf8")
+            content = f.read()
+            data = '------{0}{1}Content-Disposition: form-data; name="conf"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
+                'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content, file_name)
+
+            upload = client.request("POST", "api/maintenance/ImportConfFile", data=data, headers=header, timeout=300)
+    except:
+        JSON["code"] = 3
+        JSON["data"] = "Please check the file content and check if there is Chinese in the path."
+        return JSON
+    if upload is None:
+        JSON["code"] = 4
+        JSON["data"] = 'Failed to call BMC interface api/maintenance/ImportConfFile, response is none'
+    elif upload.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = " import bmc cfg success."
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/ImportConfFile", upload)
+    return JSON
+
+
+def setBMCcfgByRestM7(client, filepath, data=None):
+    JSON = {}
+    if data is None:
+        data = {"syslog": 1, "network": 1, "nicswitch": 1, "service": 1, "biosconfig": 0}
+    response = client.request("POST", "api/maintenance/ExportConfiguration", client.getHearder(), json=data)
+    if response is None:
+        JSON["code"] = 1
+        JSON["data"] = 'Failed to call interface api/maintenance/ExportConfiguration, response is none'
+    elif response.status_code == 200:
+        try:
+            with open(filepath, 'wb') as f:
+                f.write(response.content)
+                f.close()
+                JSON["code"] = 0
+                JSON["data"] = "bmc config file export success: " + os.path.abspath(filepath)
+                return JSON
+        except:
+            JSON["code"] = 4
+            JSON["data"] = "please check the path."
+            return JSON
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/ExportConfiguration", response)
+    return JSON
+
+
+def getRemotesession(client):
+    JSON = {}
+    response = client.request("GET", "api/settings/media/remotesession", client.getHearder())
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [GET]api/settings/media/remotesession, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[GET]api/settings/media/remotesession", response)
+    return JSON
+
+
+def setRemotesession(client, remote_session_info):
+    JSON = {}
+    response = client.request("PUT", "api/settings/media/remotesession", client.getHearder(), json=remote_session_info)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface [PUT]api/settings/media/remotesession, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("[PUT]api/settings/media/remotesession", response)
     return JSON
 
 

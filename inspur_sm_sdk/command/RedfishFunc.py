@@ -414,3 +414,107 @@ def logout(client, login_id, login_header):
     # headers = {'Content-Type': 'application/json'}
     responds = client.request("DELETE", "redfish/v1/SessionService/Sessions/" + str(login_id), headers=headers)
     # print(responds)
+
+
+def getBiosFuture(client, login_header):
+    JSON = {}
+    response = client.request("GET", "redfish/v1/Systems/1/Bios/Settings", headers=login_header)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            JSON['data'] = result.get('Attributes')
+            JSON['headers'] = response.headers
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = e
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, BMC interface redfish/v1/Systems/1/Bios response status code is ' + \
+                           str(response.status_code) + ', text is ' + str(response.text)
+    return JSON
+
+
+def getBIOSAttrByRedfish(client, login_header):
+    JSON = {}
+    response = client.request("GET", "redfish/v1/Registries/BiosAttribute", headers=login_header)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            location = result.get('Location')
+            registry = result.get("Registry")
+            data = ""
+            for item in location:
+                if item.get('Uri', "") != "" and registry in item.get('Uri', ""):
+                    data = item.get("Uri", "")
+                    break
+            JSON['data'] = data
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = str(e)
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON[
+                'data'] = 'request failed, BMC interface redfish/v1/Registries/BiosAttribute response status code is ' + \
+                          str(response.status_code) + ', text is ' + str(response.text)
+    return JSON
+
+
+def getBIOSAttrJsonByRedfish(client, login_header, url):
+    JSON = {}
+    response = client.request("GET", url, headers=login_header)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 200:
+        try:
+            result = response.json()
+            JSON['code'] = 0
+            res_data = {}
+            if "RegistryEntries" in result:
+                data = result.get('RegistryEntries').get("Attributes")
+                for item in data:
+                    if "UefiBootOrder1" == item.get("AttributeName"):
+                        res_data["UefiBootOrder1"] = item.get("Value")
+                    elif "LegacyBootOrder1" == item.get("AttributeName"):
+                        res_data["LegacyBootOrder1"] = item.get("Value")
+            else:
+                data = result.get('Messages')
+                for key in data.keys():
+                    if "FBO" in key:
+                        res_data[key] = data.get(key).get("Value")
+
+            JSON['data'] = res_data
+        except Exception as e:
+            JSON['code'] = 1
+            JSON['data'] = str(e)
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(
+                res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, BMC interface ' + str(url) + ' response status code is ' + \
+                           str(response.status_code) + ', text is ' + str(response.text)
+    return JSON

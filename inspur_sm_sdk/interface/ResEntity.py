@@ -653,6 +653,12 @@ class PSUSingleBean():
     def Mode(self, value):
         self.dict['Mode'] = value
 
+    def ManufatureDate(self):
+        return self.dict['ManufatureDate']
+
+    def ManufatureDate(self, value):
+        self.dict['ManufatureDate'] = value
+
 
 class FanBean():
     def __init__(self):
@@ -883,6 +889,12 @@ class Cpu():
     def MaxSpeedMHz(self, value):
         self.dict['MaxSpeedMHz'] = value
 
+    def ProSpeedMHz(self):
+        return self.dict['ProSpeedMHz']
+
+    def ProSpeedMHz(self, value):
+        self.dict['ProSpeedMHz'] = value
+
     def TotalCores(self):
         return self.dict['TotalCores']
 
@@ -918,6 +930,7 @@ class Cpu():
 
     def TDP(self, value):
         self.dict['TDP'] = value
+
     def State(self):
         return self.dict['State']
 
@@ -929,6 +942,18 @@ class Cpu():
 
     def Health(self, value):
         self.dict['Health'] = value
+
+    def MicroCode(self):
+        return self.dict['MicroCode']
+
+    def MicroCode(self, value):
+        self.dict['MicroCode'] = value
+
+    def SerialNumber(self):
+        return self.dict['SerialNumber']
+
+    def SerialNumber(self, value):
+        self.dict['SerialNumber'] = value
 
 
 class MemoryBean():
@@ -1012,6 +1037,18 @@ class Memory():
     def OperatingSpeedMhz(self, value):
         self.dict['OperatingSpeedMhz'] = value
 
+    def CurrentSpeedMhz(self):
+        return self.dict['CurrentSpeedMhz']
+
+    def CurrentSpeedMhz(self, value):
+        self.dict['CurrentSpeedMhz'] = value
+
+    def AssetTag(self):
+        return self.dict['AssetTag']
+
+    def AssetTag(self, value):
+        self.dict['AssetTag'] = value
+
     def SerialNumber(self):
         return self.dict['SerialNumber']
 
@@ -1065,6 +1102,12 @@ class Memory():
 
     def Health(self, value):
         self.dict['Health'] = value
+
+    def BaseModule(self):
+        return self.dict['BaseModule']
+
+    def BaseModule(self, value):
+        self.dict['BaseModule'] = value
 
 
 class DiskBean():
@@ -2414,6 +2457,12 @@ class HealthBean():
 
     def ME(self, value):
         self.dict['ME'] = value
+
+    def Pcie(self):
+        return self.dict['Pcie']
+
+    def Pcie(self, value):
+        self.dict['Pcie'] = value
 
 
 class BiosDebugBean():

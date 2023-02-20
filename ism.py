@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '1.5.2'
+__version__ = '2.0.0'
 
 
 ERR_dict = {
@@ -58,6 +58,11 @@ def main(params):
     param = parameterConversion.getParam(params)
     args = dict_to_object(param)
     args.port = None
+    configutil = configUtil.configUtil()
+    if args.subcommand is not None and args.subcommand == 'support_model':
+        res['State'] = "Success"
+        res['Message'] = configutil.getModelSupport()
+        return res
     # 使用fru获取机型信息
     hostTypeClient = HostTypeJudge.HostTypeClient()
     productName, firmwareVersion = hostTypeClient.getProductNameByIPMI(args)
@@ -80,10 +85,10 @@ def main(params):
         res['State'] = "Failure"
         res['Message'] = [impl]
         return res
-    if 'M5' not in impl and 'M6' not in impl and 'A5' not in impl and 'A6' not in impl:
-        res['State'] = "Failure"
-        res['Message'] = ['Not Support']
-        return res
+    # if 'M5' not in impl and 'M6' not in impl and 'A5' not in impl and 'A6' not in impl:
+    #     res['State'] = "Failure"
+    #     res['Message'] = ['Not Support']
+    #     return res
     module_impl = 'inspur_sm_sdk.interface.' + impl
     obj = import_module(module_impl)
     targetclass = getattr(obj, impl)

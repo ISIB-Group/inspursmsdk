@@ -1180,7 +1180,9 @@ def getM6DeviceNumByIpmi(client,data):
     Num_Info = getLinesRawByIpmi(client, cmd_get)
     Num = {}
     if Num_Info['code'] == 0:
-        data_list = Num_Info['data'].split(' ')
+        data_list = Num_Info['data']
+        cmd_str = data_list[0].replace('\n', '').strip()
+        data_list = cmd_str.split(' ')
         if len(data_list) == 2:
             Num['code'] = 0
             Num['data'] = {}
@@ -1200,6 +1202,7 @@ def getM6DeviceNumByIpmi(client,data):
         else:
             Num['code'] = 1
             Num['data'] = Num_Info['data']
+            return Num
     else:
         return Num_Info
 
@@ -1315,6 +1318,33 @@ def getBoardInfo(client):
     cmd_get = "raw 0x3c 0x0a 0x00"
     return getLineRawByIpmi(client, cmd_get)
 
+
+def getStatus(client, ctrlindex):
+    for num in range(0, 600):
+        cmd = "raw 0x3c 0xb9 0x05 0x00 " + hex(int(ctrlindex))
+        res = __getCmd_type(client, cmd, 'readline')
+        if res.get('code') == 0:
+            flg = res.get('data').replace("\n", "").replace(" ", "")[0:2]
+            if flg == "01":
+                time.sleep(5)
+                continue
+            elif flg == "02":
+                # print('Successful implementation')
+                return 2
+            elif flg == "00":
+                # print('No commands are being executed')
+                return 4
+            elif flg == "03" or flg == "10":
+                # print('Failure to execute')
+                return 3
+            else:
+                # print("Equipment query does not result in execution")
+                # break
+                return 5
+        else:
+            time.sleep(5)
+    else:
+        return 6
 
 # ip地址转换十六进制
 def __ip2hex(ip):

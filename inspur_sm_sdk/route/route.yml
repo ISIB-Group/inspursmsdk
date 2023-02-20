@@ -108,3 +108,27 @@ I24A5:
     common: I24M6
 NS5160M6:
     common: NS5160M6
+NF5468M7:
+    common: CommonM7
+NF5688M7:
+    common: CommonM7
+NS5170-M7-A0-R0-00:
+    common: CommonM7
+NF5180M7:
+    common: CommonM7
+NF5280M7:
+    common: CommonM7
+NF8260M7:
+    common: CommonM7
+I24M7:
+    common: CommonM7
+NF5180A7:
+    common: CommonM7
+NF5280A7:
+    common: CommonM7
+I24A7:
+    common: CommonM7
+NF5468A7:
+    common: CommonM7
+NF5688A7:
+    common: CommonM7

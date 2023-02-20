@@ -327,8 +327,8 @@ class CommonM6(Base):
                 week_dict = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thur': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7}
                 list_week = []
                 for week in weeks:
-                    if week not in week_dict:
-                        value = 'Invalid week !'
+                    if week not in week_dict.keys():
+                        value = "Invalid week! The input parameters are 'Mon, Tue, Wed, Thur, Fri, Sat, Sun', separated by commas,such as Mon,Wed,Fri"
                         return -1, value
                     list_week.append(week_dict[week])
                 list_bin = []
@@ -357,17 +357,28 @@ class CommonM6(Base):
                 return login_res
             client.setHearder(headers)
             if args.range is False:
+                if not hasattr(args, "action"):
+                    res.State('Failure')
+                    res.Message(["action cannot be empty!"])
+                    RestFunc.logout(client)
+                    return res
+                if args.action == "delete" and args.id is None:
+                    res.State("Failure")
+                    res.Message(['when action is delete, id cannot be empty!'])
+                    RestFunc.logout(client)
+                    return res
+                if args.action == "add" and (
+                        args.id is None or args.watts is None or args.domain is None or args.except_action is None):
+                    res.State("Failure")
+                    res.Message(['when action is add, id, watts, except_action and domain cannot be empty!'])
+                    RestFunc.logout(client)
+                    return res
                 result = RestFunc.getPowerBudget(client)
                 if result.get('code') == 0:
                     get_result = result.get('data')
                 else:
                     res.State('Failure')
                     res.Message([result.get('data')])
-                    RestFunc.logout(client)
-                    return res
-                if not hasattr(args, "action"):
-                    res.State('Failure')
-                    res.Message(["action cannot be empty!"])
                     RestFunc.logout(client)
                     return res
                 if args.action == "add":
@@ -605,59 +616,116 @@ class CommonM6(Base):
         return res
 
     def setbios(self, client, args):
+        def update_infoList(infoList):
+            flag = False
+            attr_result = RedfishFunc.getBIOSAttrByRedfish(client, login_header)
+            if "code" in attr_result and attr_result.get('code') == 0 and attr_result.get('data') != "":
+                json_url = attr_result.get('data')
+                json_result = RedfishFunc.getBIOSAttrJsonByRedfish(client, login_header, json_url)
+                if "code" in json_result and json_result.get('code') == 0 and json_result.get('data') != {}:
+                    flag = True
+                    json_data = json_result.get('data')
+                    if "UefiBootOrder1" in json_data.keys():
+                        item_value = json_data.get("UefiBootOrder1")
+                        for item_1 in infoList:
+                            if item_1.get('getter') == "UefiBootOrder1" or \
+                                    item_1.get('getter') == "UefiBootOrder2" or \
+                                    item_1.get('getter') == "UefiBootOrder3" or \
+                                    item_1.get('getter') == "UefiBootOrder4":
+                                setter_list = []
+                                for item_2 in item_value:
+                                    setter_list.append(
+                                        {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
+                                item_1['setter'] = setter_list
+                    elif "LegacyBootOrder1" in json_data.keys():
+                        item_value = json_data.get("LegacyBootOrder1")
+                        for item_1 in infoList:
+                            if item_1.get('getter') == "LegacyBootOrder1" or \
+                                    item_1.get('getter') == "LegacyBootOrder2" or \
+                                    item_1.get('getter') == "LegacyBootOrder3" or \
+                                    item_1.get('getter') == "LegacyBootOrder4":
+                                setter_list = []
+                                for item_2 in item_value:
+                                    setter_list.append(
+                                        {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
+                                item_1['setter'] = setter_list
+            return flag, infoList
+
         Bios_result = ResultBean()
-        xml_path = os.path.join(IpmiFunc.command_path, "bios")
-        xmlfilepath = xml_path + os.path.sep + "M6.xml"
-        if os.path.exists(xmlfilepath) is False:
-            Bios_result.Message(['M6.xml file not exist.'])
-            Bios_result.State('Failure')
-            return Bios_result
-        biosconfutil = configUtil.configUtil()  # 实例化类对象
-        blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(xmlfilepath)  # 读取xml文件，返回信息
-        if args.attribute is None and args.value is None and args.fileurl is None:
-            Bios_result.Message(['please input a command at least.'])
-            Bios_result.State('Failure')
-            return Bios_result
-        elif args.attribute is None and args.value is None and args.fileurl is not None:
-            if not os.path.exists(args.fileurl) or not os.path.isfile(args.fileurl):
-                Bios_result.Message(['file path error.'])
+        if 'list' not in args or ('list' in args and args.list is False):
+            if args.attribute is None and args.value is None and args.fileurl is None:
+                Bios_result.Message(['please input a command at least.'])
                 Bios_result.State('Failure')
                 return Bios_result
-            try:
-                biosJson = restore_bios(client, args.fileurl)
-                if len(biosJson) == 0:
-                    Bios_result.Message(['file is empty.'])
+            elif args.attribute is None and args.value is None and args.fileurl is not None:
+                if not os.path.exists(args.fileurl) or not os.path.isfile(args.fileurl):
+                    Bios_result.Message(['file path error. Please input correct filepath.'])
                     Bios_result.State('Failure')
                     return Bios_result
-            except:
-                Bios_result.Message(['file format error.'])
+                try:
+                    biosJson = self.restore(client, args.fileurl)
+                    if len(biosJson) == 0:
+                        Bios_result.Message(['file is empty.'])
+                        Bios_result.State('Failure')
+                        return Bios_result
+                except:
+                    Bios_result.Message(['file format error.'])
+                    Bios_result.State('Failure')
+                    return Bios_result
+            elif args.attribute is not None and args.value is not None and args.fileurl is None:
+                pass
+            else:
+                Bios_result.Message(['-a must be used with -v,mutually exclusive with -f.'])
                 Bios_result.State('Failure')
                 return Bios_result
-        elif args.attribute is not None and args.value is not None and args.fileurl is None:
-            pass
-        else:
-            Bios_result.Message(['"attribute" must be used with "value",mutually exclusive with "fileurl".'])
-            Bios_result.State('Failure')
-            return Bios_result
-
-        des_value = {}  # description和支持设置的value对应
-        des_key = {}  # description和getter对应
-        for list_1 in infoList:
-            des_key[list_1['description']] = list_1['getter']
-            setter_value = []
-            for item in list_1['setter']:
-                setter_value.append(item['value'])
-            des_value[list_1['description']] = setter_value
 
         login_header, login_id = RedfishFunc.login(client)
         if login_header == {} or "login error" in login_id or login_id == '':
             Bios_result.State("Failure")
-            Bios_result.Message(['login session service failed.'])
-            return
+            Bios_result.Message(['login session service failed, please check username/password/host/port'])
+            return Bios_result
         data = {'Attributes': {}}
         result = RedfishFunc.getBiosV1ByRedfish(client, login_header)
+        boot_option = ['UEFIBootOption1', 'UEFIBootOption2', 'UEFIBootOption3', 'UEFIBootOption4', 'LegacyBootOption1',
+                       'LegacyBootOption2', 'LegacyBootOption3', 'LegacyBootOption4']
         if result.get('code') == 0 and result.get('data') is not None:
-            # data = {'Attributes': {args.attribute: args.value}}
+            xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
+            if "IioVmdOnStackPch" in result.get('data').keys():
+                xmlfilepath = xml_path + "M6-N.xml"
+                xmlfilename = "M6-N.xml"
+            else:
+                xmlfilepath = xml_path + "M6.xml"
+                xmlfilename = "M6.xml"
+            if os.path.exists(xmlfilepath) is False:
+                Bios_result.Message([str(xmlfilename) + ' file not exist.'])
+                Bios_result.State('Failure')
+                RedfishFunc.logout(client, login_id, login_header)
+                return Bios_result
+            biosconfutil = configUtil.configUtil()  # 实例化类对象
+            blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(xmlfilepath)  # 读取xml文件，返回信息
+            flag, infoList = update_infoList(infoList)
+            if not flag:
+                Bios_result.Message(["get BIOS attribute failed."])
+                Bios_result.State('Failure')
+                RedfishFunc.logout(client, login_id, login_header)
+                return Bios_result
+            if 'list' in args and args.list:
+                help_list = []
+                for info in infoList:
+                    help_list.append('{:<35}: {}'.format(info['description'], list(item.get('value') for item in info.get('setter'))))
+                Bios_result.Message(help_list)
+                Bios_result.State('Success')
+                RedfishFunc.logout(client, login_id, login_header)
+                return Bios_result
+            des_value = {}  # description和支持设置的value对应
+            des_key = {}  # description和getter对应
+            for list_1 in infoList:
+                des_key[list_1['description']] = list_1['getter']
+                setter_value = []
+                for item in list_1['setter']:
+                    setter_value.append(item['value'])
+                des_value[list_1['description']] = setter_value
+
             if args.attribute is None and args.value is None and args.fileurl is not None:
                 for key, value in biosJson.items():
                     if str(value).lower() == "enable":
@@ -666,27 +734,33 @@ class CommonM6(Base):
                         value = "Disabled"
                     if judgeAttInList(key.replace(" ", ""), descriptionList) is False:
                         Bios_result.State('Failure')
-                        Bios_result.Message(["Please check your attribute spell of '{0}'!".format(key)])
+                        Bios_result.Message(["Please check your attribute spell of '{0}' by -L parameter!".format(key)])
                         # logout
-                        RestFunc.logout(client)
+                        RedfishFunc.logout(client, login_id, login_header)
                         return Bios_result
                     # 执行单个设置 先读取文件，判断-a -v是否在列表中
                     if judgeAttInList(des_key[key.replace(" ", "")], result.get('data').keys()) is False:
                         Bios_result.State('Failure')
                         Bios_result.Message(["'{0}' is not in set options.".format(key)])
                         # logout
-                        RestFunc.logout(client)
+                        RedfishFunc.logout(client, login_id, login_header)
                         return Bios_result
+                    if key in boot_option:
+                        for item in des_value[key.replace(" ", "")]:
+                            if str(item).startswith(value):
+                                value = item
+                                break
                     if value not in des_value[key.replace(" ", "")]:
                         Bios_result.State('Failure')
                         Bios_result.Message(["{0} does not support setting to {1}!".format(key, value)])
                         # logout
-                        RestFunc.logout(client)
+                        RedfishFunc.logout(client, login_id, login_header)
                         return Bios_result
-                    if str(value).isdigit():
-                        data['Attributes'][des_key[key.replace(" ", "")]] = int(value)
-                    else:
-                        data['Attributes'][des_key[key.replace(" ", "")]] = value
+                    # if str(value).isdigit():
+                    #     data['Attributes'][des_key[key.replace(" ", "")]] = int(value)
+                    # else:
+                    #     data['Attributes'][des_key[key.replace(" ", "")]] = value
+                    data['Attributes'][des_key[key.replace(" ", "")]] = value
             elif args.attribute is not None and args.value is not None and args.fileurl is None:
                 if str(args.value).lower() == "enable":
                     args.value = "Enabled"
@@ -695,27 +769,39 @@ class CommonM6(Base):
                 if judgeAttInList(args.attribute.replace(" ", ""), descriptionList) is False:
                     Bios_result.State('Failure')
                     Bios_result.Message(
-                        ["Please check your attribute spell of '{0}'!".format(args.attribute)])
+                        ["Please check your attribute spell of '{0}' by -L parameter!".format(args.attribute)])
                     # logout
-                    RestFunc.logout(client)
+                    RedfishFunc.logout(client, login_id, login_header)
                     return Bios_result
                 if judgeAttInList(des_key[args.attribute.replace(" ", "")], result.get('data').keys()) is False:
                     Bios_result.State('Failure')
                     Bios_result.Message(["'{0}' is not in set options.".format(args.attribute)])
                     # logout
-                    RestFunc.logout(client)
+                    RedfishFunc.logout(client, login_id, login_header)
                     return Bios_result
+                if args.attribute in boot_option:
+                    for item in des_value[args.attribute.replace(" ", "")]:
+                        if str(item).startswith(args.value):
+                            args.value = item
+                            break
                 if args.value not in des_value[args.attribute.replace(" ", "")]:
                     Bios_result.State('Failure')
                     Bios_result.Message(["{0} does not support setting to {1}!".format(args.attribute, args.value)])
                     # logout
-                    RestFunc.logout(client)
+                    RedfishFunc.logout(client, login_id, login_header)
                     return Bios_result
-                if str(args.value).isdigit():
-                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = int(args.value)
-                else:
-                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = args.value
-            # print (data)
+                data['Attributes'][des_key[args.attribute.replace(" ", "")]] = args.value
+            # 获取future
+            future_result = RedfishFunc.getBiosFuture(client, login_header)
+            # 检查前置项
+            conditionflag, conditionmessage = judgeCondition(data['Attributes'], future_result.get('data'), result.get('data'), infoList)
+            if not conditionflag:
+                Bios_result.State('Failure')
+                Bios_result.Message([conditionmessage])
+                # logout
+                RedfishFunc.logout(client, login_id, login_header)
+                return Bios_result
+
             setbiosres = RedfishFunc.setBiosV1SDByRedfish(client, data, result.get('headers'), login_header)
             if setbiosres.get('code') == 0:
                 Bios_result.State("Success")
@@ -822,7 +908,7 @@ class CommonM6(Base):
                     if info == "":
                         fwsingle.Type(Type[key])
                         fwsingle.Version(fwversion)
-                        fwsingle.Updateable(Update[key])
+                        fwsingle.Updateable(Update.get(key, False))
                         fwsingle.SupportActivateType(
                             SupportActivateType.get(key, ['none']))
                     else:
@@ -877,7 +963,7 @@ class CommonM6(Base):
                     if key in data[i].get('dev_name'):
                         fwsingle.Type(Type[key])
                         fwsingle.Version(fwversion)
-                        fwsingle.Updateable(Update[key])
+                        fwsingle.Updateable(Update.get(key, False))
                         fwsingle.SupportActivateType(
                             SupportActivateType.get(key, ['none']))
                         flag = 1
@@ -934,9 +1020,9 @@ class CommonM6(Base):
             struct_time = time.localtime()
             logtime = time.strftime("%Y%m%d-%H%M", struct_time)
             file_name = "dump_" + psn + "_" + logtime + ".tar.gz"
-            args.fileurl = os.path.join(file_path, str(file_name).encode('utf-8'))
+            args.fileurl = os.path.join(file_path, str(file_name))
         else:
-            file_name = str(file_name).encode('utf-8')
+            file_name = str(file_name)
             p = r'\.tar\.gz$'
             if not re.search(p, file_name, re.I):
                 checkparam_res.State("Failure")
@@ -1408,7 +1494,7 @@ class CommonM6(Base):
         return import_Info
 
     def updatecpld(self, client, args):
-        args.type = "CPLD"
+        args.type = None
         result = self.fwupdate(client, args)
         return result
 
@@ -1450,7 +1536,7 @@ class CommonM6(Base):
                 with open(log_path, 'r') as logfile_last:
                     log_cur = logfile_last.read()
                     if log_cur != "":
-                        log_cur_dict = eval(log_cur)
+                        log_cur_dict = json.loads(str(log_cur).replace("'", '"'))
                         log_list = log_cur_dict.get("log")
 
                 with open(log_path, 'w') as logfile:
@@ -1624,11 +1710,7 @@ class CommonM6(Base):
                 result.State("Failure")
                 result.Message(
                     ["BMC upgrade cannot set mode to manual if override configuration."])
-                wirte_log(
-                    log_path,
-                    "Upload File",
-                    "File Not Exist",
-                    result.Message[0])
+                wirte_log(log_path, "Parameter Verify", "Parameter Error", result.Message[0])
                 return result
 
         upgrade_count = 0
@@ -1643,7 +1725,7 @@ class CommonM6(Base):
                     # 直接loads报错 json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
                     # 解决方法 1 单引号替换为双引号
                     # 解决方法 2 json.dumps(eval(headers))
-                    headers_json = json.loads(json.dumps(eval(headers)))
+                    headers_json = json.loads(str(headers).replace("'", '"'))
                     client.setHearder(headers_json)
                     # logout
                     RestFunc.logout(client)  # 删除session
@@ -3383,7 +3465,7 @@ class CommonM6(Base):
                 # 禁用->禁用
                 if args.state == "disable":
                     result.State('Failure')
-                    result.Message('No setting changed!')
+                    result.Message(['No setting changed!'])
                 # 禁用->启用
                 elif args.state == "enable":
                     old_json = {}
@@ -3403,15 +3485,15 @@ class CommonM6(Base):
                     response = RestFunc.setUserRuleByRest(client, args)
                     if response['code'] == 0:
                         result.State('Success')
-                        result.Message('set user rule success.')
+                        result.Message(['set user rule success.'])
                     else:
                         result.State('Failure')
-                        result.Message(response['data'])
+                        result.Message([response['data']])
                 # 禁用->状态为空，有其他值
                 else:
                     result.State('Failure')
                     result.Message(
-                        'Parameters can be set only when it is enabled!')
+                        ['Parameters can be set only when it is enabled!'])
             else:
                 old_json = {}
                 old_json['id'] = 1
@@ -3441,13 +3523,13 @@ class CommonM6(Base):
                 response = RestFunc.setUserRuleByRest(client, args)
                 if response['code'] == 0:
                     result.State('Success')
-                    result.Message('set user rule success.')
+                    result.Message(['set user rule success.'])
                 else:
                     result.State('Failure')
-                    result.Message(response['data'])
+                    result.Message([response['data']])
         else:
             result.State('Failure')
-            result.Message('get/set user rule failure!')
+            result.Message(['get/set user rule failure!'])
         RestFunc.logout(client)
         return result
 
@@ -4504,7 +4586,7 @@ class CommonM6(Base):
                     result.Message(['Bind DN is a string of 6 to 63 alpha-numeric characters'])
                     RestFunc.logout(client)
                     return result
-                if not str(args.dn).startswith("cn=") and not str(args.dn).startswith("uid="):
+                if not str(args.dn).startswith('cn=') and not str(args.dn).startswith('uid='):
                     result.State("Failure")
                     result.Message(["Bind DN must start with 'cn=' or 'uid='"])
                     RestFunc.logout(client)
@@ -4576,7 +4658,8 @@ class CommonM6(Base):
                 data_pk = '------{0}{1}Content-Disposition: form-data; name="private_key"; filename="{3}" {1}Content-Type: application/octet-stream{1}{1}{2}{1}------{0}--{1}'.format(
                     'WebKitFormBoundaryF4ZROI7nayCrLnwy', '\r\n', content_pk, file_name_pk)
                 data_file = data_ca + data_ce + data_pk
-
+        else:
+            ldap_raw['password'] = ""
         set_res = RestFunc.setLDAPM6(client, ldap_raw, data_file)
 
         if set_res.get('code') == 0 and set_res.get('data') is not None:
@@ -4788,6 +4871,7 @@ class CommonM6(Base):
                         ['Invalid Domain Controller Server Address. Input an IPv4 or IPv6 address'])
                     RestFunc.logout(client)
                     return result
+
         set_res = RestFunc.setADM6(client, ad_raw)
         if set_res.get('code') == 0 and set_res.get('data') is not None:
             result.State("Success")
@@ -4998,59 +5082,59 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return bmcres
 
-    def getpreserveconfig(self, client, args):
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        res = RestFunc.getPreserveConfig(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            pre_cfg = res.get('data')
-            result.State("Success")
-            result.Message([{"PreserveConfig": pre_cfg}])
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def preserveconfig(self, client, args):
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-        if args.setting == 'all':
-            override = 1
-        elif args.setting == 'none':
-            override = 0
-        else:
-            override = args.override
-        # overide 1改写  0保留    list [fru,sdr]中的为保留的
-        res = RestFunc.preserveBMCConfig(client, override)
-        if res.get('code') == 0 and res.get('data') is not None:
-            pre_cfg = res.get('data')
-            result.State("Success")
-            result.Message(["set preserve config success."])
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-
-        RestFunc.logout(client)
-        return result
+    # def getpreserveconfig(self, client, args):
+    #     result = ResultBean()
+    #     # login
+    #     headers = RestFunc.login_M6(client)
+    #     if headers == {}:
+    #         login_res = ResultBean()
+    #         login_res.State("Failure")
+    #         login_res.Message(
+    #             ["login error, please check username/password/host/port"])
+    #         return login_res
+    #     client.setHearder(headers)
+    #
+    #     res = RestFunc.getPreserveConfig(client)
+    #     if res.get('code') == 0 and res.get('data') is not None:
+    #         pre_cfg = res.get('data')
+    #         result.State("Success")
+    #         result.Message([{"PreserveConfig": pre_cfg}])
+    #     else:
+    #         result.State("Failure")
+    #         result.Message([res.get('data')])
+    #
+    #     RestFunc.logout(client)
+    #     return result
+    #
+    # def preserveconfig(self, client, args):
+    #     result = ResultBean()
+    #     # login
+    #     headers = RestFunc.login_M6(client)
+    #     if headers == {}:
+    #         login_res = ResultBean()
+    #         login_res.State("Failure")
+    #         login_res.Message(
+    #             ["login error, please check username/password/host/port"])
+    #         return login_res
+    #     client.setHearder(headers)
+    #     if args.setting == 'all':
+    #         override = 1
+    #     elif args.setting == 'none':
+    #         override = 0
+    #     else:
+    #         override = args.override
+    #     # overide 1改写  0保留    list [fru,sdr]中的为保留的
+    #     res = RestFunc.preserveBMCConfig(client, override)
+    #     if res.get('code') == 0 and res.get('data') is not None:
+    #         pre_cfg = res.get('data')
+    #         result.State("Success")
+    #         result.Message(["set preserve config success."])
+    #     else:
+    #         result.State("Failure")
+    #         result.Message([res.get('data')])
+    #
+    #     RestFunc.logout(client)
+    #     return result
 
     def restorefactorydefaults(self, client, args):
         result = ResultBean()
@@ -5708,12 +5792,12 @@ class CommonM6(Base):
                     kvm_settings["retry_count"] = args.retrycount
                 if args.retrytimeinterval is not None:
                     kvm_settings["retry_time_interval"] = args.retrytimeinterval
-                if args.offfeature is not None:
+                if args.localmonitoroff is not None:
                     kvm_settings["local_monitor_off"] = enable_dict.get(
-                        args.offfeature)
-                if args.autooff is not None:
+                        args.localmonitoroff)
+                if args.automaticoff is not None:
                     kvm_settings["automatic_off"] = enable_dict.get(
-                        args.autooff)
+                        args.automaticoff)
             else:
                 if args.nonsecure is not None:
                     kvm_settings["vnc_non_secure"] = enable_dict.get(
@@ -6467,6 +6551,8 @@ class CommonM6(Base):
                         1024 if 'mem_mod_size' in memory else None)
                     memory_singe.OperatingSpeedMhz(
                         memory.get('mem_mod_frequency', None))
+                    memory_singe.CurrentSpeedMhz(memory.get('mem_mod_current_frequency', None))
+                    memory_singe.AssetTag(memory.get('mem_mod_asset_tag', None))
                     memory_singe.SerialNumber(
                         memory.get('mem_mod_serial_num', None))
                     memory_singe.MemoryDeviceType(
@@ -6697,8 +6783,8 @@ class CommonM6(Base):
             result.Message(hardList)
         else:
             result.State("Failure")
-            result.Message(
-                ["get hard disk info error, error code " + str(hard_info.get('code'))])
+            result.Message(["get hard disk info error, error code " + str(
+                hard_info.get('code')) + ", error info: " + str(hard_info.get('data'))])
 
         RestFunc.logout(client)
         return result
@@ -8296,7 +8382,7 @@ class CommonM6(Base):
                         return result
                     else:
                         result.State('Failure')
-                        result.Message(['set DNS Failure.'])
+                        result.Message(['set DNS Failure.' + str(restart_info.get('data', ''))])
                         RestFunc.logout(client)
                         return result
             else:  # start
@@ -8763,8 +8849,10 @@ class CommonM6(Base):
                 if item_Info.get('maximum_sessions', 128) == 255:
                     service_item.MaximumSessions(None)
                 else:
-                    service_item.MaximumSessions(
-                        item_Info.get('maximum_sessions', 128) - 128)
+                    ms = item_Info.get('maximum_sessions', 128)
+                    if ms > 128:
+                        ms = ms - 128
+                    service_item.MaximumSessions(ms)
                 if item_Info.get('active_session', 128) == -1:
                     service_item.ActiveSessions(None)
                 else:
@@ -10009,7 +10097,7 @@ class CommonM6(Base):
                             ["SMTP server password(-PW) cannot contain ' '(space)."])
                         RestFunc.logout(client)
                         return smtpinfo
-                    PassWord = RestFunc.Encrypt1('add', PassWord)
+                    # PassWord = RestFunc.Encrypt1('add', PassWord)
                 else:
                     if SMTPAUTH == 1:
                         smtpinfo.State("Failure")
@@ -11525,24 +11613,60 @@ class CommonM6(Base):
             login_res.Message(["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
-
-        if args.mode == "auto":
-            mode = "AutoFailover"
-        else:
-            mode = "Manual"
-        res = RestFunc.setNCSI4jd(client, mode, args.nic_type, args.channel_number)
+        # get
+        res = RestFunc.getNCSI4jd(client)
         if res == {}:
             ncsiinfo.State("Failure")
-            ncsiinfo.Message(["set ncsi error"])
-        elif res.get('code') == 0:
-            ncsiinfo.State("Success")
-            ncsiinfo.Message([""])
+            ncsiinfo.Message(["cannot get ncsi information"])
+        elif res.get('code') == 0 and res.get('data') is not None:
+            data = res.get('data')
+            support_list = data.get('Support_Nic_Info', [])
+            support_dict = {}
+            for item in support_list:
+                if "NIC_Name" in item and "Port_Num" in item:
+                    support_dict[item.get('NIC_Name')] = item.get('Port_Num')
+
+            if args.mode == "auto":
+                mode = "AutoFailover"
+            else:
+                mode = "Manual"
+            # check
+            if args.nic_type:
+                if args.nic_type not in support_dict.keys():
+                    ncsiinfo.State("Failure")
+                    ncsiinfo.Message(["please choose nic_type from " + str(list(support_dict.keys()))])
+                    RestFunc.logout(client)
+                    return ncsiinfo
+                if args.channel_number and mode == "Manual":
+                    if args.portnumber not in [i for i in range(int(support_dict.get(args.nic_type)))]:
+                        ncsiinfo.State("Failure")
+                        ncsiinfo.Message(["please choose channel_number from " +
+                                          str([i for i in range(int(support_dict.get(args.nic_type)))])])
+                        RestFunc.logout(client)
+                        return ncsiinfo
+            else:
+                args.nic_type = data.get("NIC_Name")
+            # set
+            res = RestFunc.setNCSI4jd(client, mode, args.nic_type, args.channel_number)
+
+            if res == {}:
+                ncsiinfo.State("Failure")
+                ncsiinfo.Message(["set ncsi error"])
+            elif res.get('code') == 0:
+                ncsiinfo.State("Success")
+                ncsiinfo.Message([""])
+            elif res.get('code') != 0 and res.get('data') is not None:
+                ncsiinfo.State("Failure")
+                ncsiinfo.Message([res.get('data')])
+            else:
+                ncsiinfo.State("Failure")
+                ncsiinfo.Message(["set ncsi error, error code " + str(res.get('code'))])
         elif res.get('code') != 0 and res.get('data') is not None:
             ncsiinfo.State("Failure")
             ncsiinfo.Message([res.get('data')])
         else:
             ncsiinfo.State("Failure")
-            ncsiinfo.Message(["set ncsi error, error code " + str(res.get('code'))])
+            ncsiinfo.Message(["get ncsi information error, error code " + str(res.get('code'))])
 
         RestFunc.logout(client)
         return ncsiinfo
@@ -11557,7 +11681,7 @@ class CommonM6(Base):
                 current_count = int(count_data[1])  # 设备出厂配置的数量/设备实际在位数量, 默认出货配置等于满配数量
                 if args.id < 0 or args.id > (current_count - 1):
                     res.State("Failure")
-                    res.Message(['Psu id error, please choose from ' + str(range(current_count))])
+                    res.Message(['Psu id error, please choose from ' + str(list(range(current_count)))])
                     return res
                 status_dict = {
                     "normal": "00",
@@ -11795,6 +11919,18 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
+    def getpreserveconfig(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M6 model does not support this feature.'])
+        return result
+
+    def preserveconfig(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M6 model does not support this feature.'])
+        return result
+
     def getgpu(self, client, args):
         res = ResultBean()
         state = "Failure"
@@ -11863,12 +11999,65 @@ class CommonM6(Base):
             return res
 
     def importbioscfg(self, client, args):
+        import time
+
+        def ftime(ff="%Y%m%d%H%M%S"):
+            try:
+                localtime = time.localtime()
+                f_localtime = time.strftime(ff, localtime)
+                return f_localtime
+            except:
+                return ""
+
         res = ResultBean()
         login_header, login_id = RedfishFunc.login(client)
         if login_header == {} or "login error" in login_id or login_id == '':
             res.State("Failure")
             res.Message(['login session service failed.'])
             return
+
+        local_time = ftime()
+        file_name_init = str(args.host) + "_bios_" + str(local_time) + ".conf"
+        if args.fileurl == ".":
+            file_name = file_name_init
+            file_path = os.path.abspath(".")
+        elif args.fileurl == "..":
+            file_name = file_name_init
+            file_path = os.path.abspath("..")
+        elif re.search("^[C-Zc-z]\:$", args.fileurl, re.I):
+            file_name = file_name_init
+            file_path = os.path.abspath(args.fileurl + "\\")
+        else:
+            file_name = os.path.basename(args.fileurl)
+            file_path = os.path.dirname(args.fileurl)
+
+            if file_name == "":
+                file_name = file_name_init
+            if file_path == "":
+                file_path = os.path.abspath(".")
+
+        args.fileurl = os.path.join(file_path, file_name)
+
+        if not os.path.exists(file_path):
+            try:
+                os.makedirs(file_path)
+            except:
+                res.State("Failure")
+                res.Message(["cannot build path."])
+                return res
+        else:
+            filename_0 = os.path.splitext(file_name)[0]
+            filename_1 = os.path.splitext(file_name)[1]
+            if os.path.exists(args.fileurl):
+                name_id = 1
+                name_new = filename_0 + "(1)" + filename_1
+                file_new = os.path.join(file_path, name_new)
+                while os.path.exists(file_new):
+                    name_id = name_id + 1
+                    name_new = filename_0 + "(" + str(name_id) + ")" + filename_1
+                    file_new = os.path.join(file_path, name_new)
+                args.fileurl = file_new
+
         result = RedfishFunc.importbiosoption(client, login_header, args.fileurl)
         if result.get('code') == 0 and result.get('data') is not None:
             res.State("Success")
@@ -12188,7 +12377,8 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         "cachePolicy": args.cache,
         "ioPolicy": args.io,
         "initState": args.init,
-        "spanDepth": args.spanDepth
+        "spanDepth": args.spanDepth,
+                "raidname": args.vname
     }
     for i in range(len(pd_dev_list)):
         data["pdDeviceIndex" + str(i)] = pd_dev_list[i]
@@ -13096,7 +13286,7 @@ def editLDAPGroup(client, args):
 def addUserGroup(client, args):
     result = ResultBean()
     result.State("Failure")
-    result.Message(["Not Support,Cannot add new user group.(edit it instead)"])
+    result.Message(["M6 models only support user group names OEM1\\OEM2\\OEM3\\OEM4"])
     return result
 
 
@@ -13342,9 +13532,9 @@ def setUser(client, args):
                     args.sol = 0
                     args.vmm = 0
                     args.kvm = 0
-                    user_old['kvm'] = args.kvm
-                    user_old['vmedia'] = args.vmm
-                    user_old['sol'] = args.sol
+                user_old['kvm'] = args.kvm
+                user_old['vmedia'] = args.vmm
+                user_old['sol'] = args.sol
             args.json = user_old
             res_set = RestFunc.setUserByRestM6(client, args)
             if res_set.get('code') == 0:
@@ -13601,11 +13791,13 @@ def setUser1(client, args):
             if args.uid is None:
                 if userdata['name'] == args.uname and len(userdata['name']) > 0:
                     user_flag = True
+                    args.userid = userdata['id']
                     user_old = userdata
                     break
             else:
                 if str(userdata['id']) == str(args.uid) and len(userdata['name']) > 0:
                     user_flag = True
+                    args.userid = userdata['id']
                     user_old = userdata
                     break
         # 有该用户
@@ -13706,7 +13898,7 @@ def delUser1(client, args):
                     args.userid = userdata['id']
                     break
             else:
-                if str(userdata['id']) == str(args.uid)  and len(userdata['name']) > 0:
+                if str(userdata['id']) == str(args.uid) and len(userdata['name']) > 0:
                     user_flag = True
                     args.userid = userdata['id']
                     args.uname = userdata['name']
@@ -13802,7 +13994,6 @@ def editUser(client, args):
     return result
 
 
-
 def getWeek(binr):
     bin_dict = {1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thur', 5: 'Fri', 6: 'Sat', 7: 'Sun'}
     list = []
@@ -13812,6 +14003,70 @@ def getWeek(binr):
             list.append(bin_dict[i])
     return ','.join(list)
 
+
+
+# 判断是否可以设置
+def judgeCondition(self, biossetdict, biosfuturedict, bioscurdict, bioshelplist):
+    conditionflag = True
+    # getter: {conditiongetter:{}}
+    conditionDict = {}
+    # getter:  {getter2: value}
+    condition_dict = {}
+    # getter: description
+    bios_dict = {}
+    # getter: {cmd: value}
+    bios_value_dict = {}
+    for bioshelp in bioshelplist:
+        condition_dict[bioshelp.get("getter")] = bioshelp.get("condition")
+        bios_dict[bioshelp.get("getter")] = bioshelp.get("description")
+        setterlist = bioshelp.get("setter")
+        value_dict={}
+        for setter in setterlist:
+            value_dict[setter.get("cmd")] = setter.get("value")
+        bios_value_dict[bioshelp.get("getter")] = value_dict
+    errordict={}
+    for bioskey, biosvalue in biossetdict.items():
+        conditions = condition_dict.get(bioskey)
+        errorlist = []
+        errorinfo = ""
+        for conditionkey,conditionvalue in conditions.items():
+            #isrest展示key
+            conditionkeyshow = bios_dict.get(conditionkey)
+            #{bmc value: isrest value}
+            conditionvaluedict = bios_value_dict.get(conditionkey)
+            conditionvalueshow = conditionvaluedict.get(conditionvalue, conditionvalue)
+            #比较当前设置值
+            if biossetdict.get(conditionkey):
+                conditonvalue_set = biossetdict.get(conditionkey)
+                if conditionvalue == conditonvalue_set:
+                    continue
+                else:
+                    errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_set), 1))
+                    continue
+            #比较即将生效值
+            if biosfuturedict:
+                if biosfuturedict.get(conditionkey):
+                    conditonvalue_future = biosfuturedict.get(conditionkey)
+                    if conditionvalue == conditonvalue_future:
+                        continue
+                    else:
+                        errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_future), 2))
+                        continue
+            #比较当前值
+            if bioscurdict.get(conditionkey):
+                conditonvalue_current = bioscurdict.get(conditionkey)
+                if conditionvalue == conditonvalue_current:
+                    continue
+                else:
+                    errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_current), 3))
+                    continue
+        if errorlist != []:
+            errorinfo = ",".join(errorlist)
+            errordict[bios_dict.get(bioskey)]=errorinfo
+    if errordict == {}:
+        return True, None
+    else:
+        return False, errordict
 
 lanDict = {
     '1': 'dedicated',

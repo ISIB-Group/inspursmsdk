@@ -73,6 +73,14 @@ class configUtil():
                 return "Error: Not find interface of {0}".format(productName)
         return "Error: sdk does not support {0} at present.".format(productName)
 
+    def getModelSupport(self):
+        # try:
+        yaml1 = open(routePath)
+        content = yaml.load(yaml1, Loader=yaml.BaseLoader)
+        yaml1.close()
+        return list(content.keys())
+
+
 
     # xmlfilepath 文件路径
     def getSetOption(self, xmlfilepath):
