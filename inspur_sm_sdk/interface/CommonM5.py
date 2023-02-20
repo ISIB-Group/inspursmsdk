@@ -2280,6 +2280,17 @@ class CommonM5(Base):
             Bios_result.State('Failure')
             return Bios_result
 
+        if 'list' in args and args.list:  # 打印信息
+            biosconfutil = configUtil.configUtil()  # 实例化类对象
+            blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(
+                xmlfilepath)  # 读取xml文件，返回信息
+            help_list = []
+            for info in infoList:
+                help_list.append('{:<35}: {}'.format(info['description'], list(item.get('value') for item in info.get('setter'))))
+            Bios_result.Message(help_list)
+            Bios_result.State('Success')
+            return Bios_result
+
         if args.attribute is None and args.value is None and args.fileurl is None:
             Bios_result.Message(['please input a command at least.'])
             Bios_result.State('Failure')
@@ -8547,7 +8558,7 @@ class CommonM5(Base):
             return login_res
         client.setHearder(headers)
         if args.list is False:
-            if args.id is None or args.updatefile is None:
+            if args.id is None or args.url is None:
                 result.State("Failure")
                 result.Message(["please input id and updatefile or list! "])
                 return result
@@ -8571,7 +8582,7 @@ class CommonM5(Base):
                 result.State('Failure')
                 result.Message(['get cpld list failed!'])
                 return result
-            res = RestFunc.uploadCPLDFileByRest(client, args.updatefile)
+            res = RestFunc.uploadCPLDFileByRest(client, args.url)
             if res.get('code') == 0 and res.get('data') is not None:
                 res = RestFunc.gupdateCPLDByRest(client, args.id)
                 if res.get('code') == 0 and res.get('data') is not None:
@@ -8585,7 +8596,7 @@ class CommonM5(Base):
                 result.Message(res['data'])
             return result
         else:
-            if args.id is not None or args.updatefile is not None:
+            if args.id is not None or args.url is not None:
                 result.State('Failure')
                 result.Message(['Id or updatefile is not needed when input list.'])
                 return result

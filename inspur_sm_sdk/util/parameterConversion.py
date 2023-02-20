@@ -179,7 +179,7 @@ delsession = {
 
 collect = {'file_url': 'fileurl'}
 
-updatecpld = {'file_url': 'updatefile'}
+updatecpld = {'file_url': 'url'}
 
 setvirtualmedia = {
     'local_media_support': 'localMediaSupport',
