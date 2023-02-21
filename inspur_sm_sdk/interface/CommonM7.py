@@ -5042,6 +5042,89 @@ class CommonM7(CommonM6):
         RestFunc.logout(client)
         return result
 
+    # 获取电源还原设置
+    def getpowerrestore(self, client, args):
+        res = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        policy_dict = {
+            2: 'Always Power On',
+            0: 'Always Power Off',
+            1: 'Restore Last Power State',
+            3: 'UnKnown'}
+        policy_rest = RestFunc.getPowerPolicyByRest_m7(client)
+        if policy_rest.get('code') == 0 and policy_rest.get(
+                'data') is not None:
+            policy_serult = policy_rest['data']
+            JSON = {}
+            JSON['policy'] = policy_dict.get(
+                policy_serult.get('power_policy', 3), 'UnKnown')
+            res.State('Success')
+            res.Message([JSON])
+        else:
+            res.State("Failure")
+            res.Message(["get power restore failed"])
+        RestFunc.logout(client)
+        return res
+
+    # 设置电源还原设置
+    # action: on off restore
+    # return
+    def setpowerrestore(self, client, args):
+        result = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        res = {}
+        policy_dict = {'on': 2, 'off': 0, 'restore': 1}
+        action = policy_dict.get(args.option, None)
+        if action is None:
+            res['State'] = -1
+            res['Data'] = " parameter is invalid"
+        count = 0
+        while True:
+            policy_rest = RestFunc.setPowerPolicyByRest_m7(client, action)
+            if policy_rest['code'] == 0 and policy_rest['data'] is not None:
+                policy_serult = policy_rest['data']
+                if policy_serult is not None and 'power_command' in policy_serult:
+                    res['State'] = 0
+                    res['Data'] = 'set power policy success'
+                    break
+                else:
+                    if count == 0:
+                        count += 1
+                        continue
+                    res['State'] = -1
+                    res['Data'] = 'set power policy failed'
+                    break
+            else:
+                if count == 0:
+                    count += 1
+                    continue
+                res['State'] = -1
+                res['Data'] = 'request failed'
+                break
+        if res['State'] == 0:
+            result.State('Success')
+        else:
+            result.State('Failure')
+        result.Message(res['Data'])
+        RestFunc.logout(client)
+        return result
+
     def getbootimage(self, client, args):
         result = ResultBean()
         result.State("Not Support")
@@ -5120,17 +5203,17 @@ class CommonM7(CommonM6):
         result.Message(['The M7 model does not support this feature.'])
         return result
 
-    def getpowerrestore(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M7 model does not support this feature.'])
-        return result
-
-    def setpowerrestore(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The M7 model does not support this feature.'])
-        return result
+    # def getpowerrestore(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M7 model does not support this feature.'])
+    #     return result
+    #
+    # def setpowerrestore(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The M7 model does not support this feature.'])
+    #     return result
 
     def setpsupeak(self, client, args):
         result = ResultBean()

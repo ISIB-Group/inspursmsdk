@@ -5147,9 +5147,9 @@ class CommonM6(Base):
                 ["login error, please check username/password/host/port"])
             return login_res
         client.setHearder(headers)
-        if args.setting == 'all':
+        if args.mode == 'all':
             override = 1
-        elif args.setting == 'none':
+        elif args.mode == 'none':
             override = 0
         else:
             override = args.override

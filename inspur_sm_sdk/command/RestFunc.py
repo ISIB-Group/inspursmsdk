@@ -548,6 +548,39 @@ def setPowerPolicyByRest(client, action):
     return JSON
 
 
+def getPowerPolicyByRest_m7(client):
+    JSON = {}
+    response = client.request("GET", "api/power/power_policy", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/power/power_policy, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/power_policy", response)
+    return JSON
+
+
+def setPowerPolicyByRest_m7(client, action):
+    JSON = {}
+    data = {"power_command": action}
+    response = client.request("POST", "api/power/power_policy", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/power/power_policy, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/power/power_policy", response)
+    return JSON
+
+
 def getFanInfoByRest(client):
     JSON = {}
     response = client.request("GET", "api/status/fan_info", client.getHearder(), None, None, None, None)
