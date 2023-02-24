@@ -123,12 +123,12 @@ NF8260M7:
 I24M7:
     common: CommonM7
 NF5180A7:
-    common: CommonM7
+    common: CommonA7
 NF5280A7:
-    common: CommonM7
+    common: CommonA7
 I24A7:
-    common: CommonM7
+    common: CommonA7
 NF5468A7:
-    common: CommonM7
+    common: CommonA7
 NF5688A7:
-    common: CommonM7
+    common: CommonA7

@@ -1,0 +1,1345 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<server>
+    <cfgItems>
+        <cfgItem>
+            <name>
+                <description>SVM Mode</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>SVM Mode</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>CSM Support</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>CSM Support</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>GateA20 Active</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>GateA20 Active</getter>
+            <setters>
+                <setter>
+                    <cmd>Upon Request</cmd>
+                    <value>Upon Request</value>
+                </setter>
+                <setter>
+                    <cmd>Always</cmd>
+                    <value>Always</value>
+                </setter>
+            </setters>
+        </cfgItem>
+<!--        <cfgItem>-->
+<!--            <name>-->
+<!--                <description>INT19 Trap Response</description>-->
+<!--                <belongto>Advanced</belongto>-->
+<!--                <location>XXX</location>-->
+<!--            </name>-->
+<!--            <getter>INT19 Trap Response</getter>-->
+<!--            <setters>-->
+<!--                <setter>-->
+<!--                    <cmd>Postponed</cmd>-->
+<!--                    <value>Postponed</value>-->
+<!--                </setter>-->
+<!--                <setter>-->
+<!--                    <cmd>Immediate</cmd>-->
+<!--                    <value>Immediate</value>-->
+<!--                </setter>-->
+<!--            </setters>-->
+<!--        </cfgItem>-->
+        <cfgItem>
+            <name>
+                <description>Boot option filter</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Boot option filter</getter>
+            <setters>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy only</value>
+                </setter>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI only</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Option ROM execution</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Option ROM execution</getter>
+            <setters>
+                <setter>
+                    <cmd>CSM_OPROM_POLICY_AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>CSM_OPROM_POLICY_MANUAL</cmd>
+                    <value>Manual</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Network</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Network</getter>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+                <setter>
+                    <cmd>Do not launch</cmd>
+                    <value>Do not launch</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Storage</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Storage</getter>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+                <setter>
+                    <cmd>Do not launch</cmd>
+                    <value>Do not launch</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Video</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Video</getter>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+                <setter>
+                    <cmd>Do not launch</cmd>
+                    <value>Do not launch</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Other PCI devices</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Other PCI devices</getter>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+                <setter>
+                    <cmd>Do not launch</cmd>
+                    <value>Do not launch</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Security Device Support</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Security Device Support</getter>
+            <setters>
+                <setter>
+                    <cmd>Enable</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disable</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Enable ACPI Auto Configuration</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Enable ACPI Auto Configuration</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>RunTimeVariable Protection Support</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>RunTimeVariable Protection Support</getter>
+            <setters>
+                <setter>
+                    <cmd>Enable</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disable</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Console Redirection</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Console Redirection</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Terminal Type</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Terminal Type</getter>
+            <conditions>
+                <condition>
+                    <key>Console Redirection EMS</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>VT100Plus</cmd>
+                    <value>VT100Plus</value>
+                </setter>
+                <setter>
+                    <cmd>VT-UTF8</cmd>
+                    <value>VT-UTF8</value>
+                </setter>
+                <setter>
+                    <cmd>ANSI</cmd>
+                    <value>ANSI</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Bits per second</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Bits per second</getter>
+            <setters>
+                <setter>
+                    <cmd>9600</cmd>
+                    <value>9600</value>
+                </setter>
+                <setter>
+                    <cmd>19200</cmd>
+                    <value>19200</value>
+                </setter>
+                <setter>
+                    <cmd>38400</cmd>
+                    <value>38400</value>
+                </setter>
+                <setter>
+                    <cmd>57600</cmd>
+                    <value>57600</value>
+                </setter>
+                <setter>
+                    <cmd>115200</cmd>
+                    <value>115200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Data Bits</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Data Bits</getter>
+            <setters>
+                <setter>
+                    <cmd>7</cmd>
+                    <value>7</value>
+                </setter>
+                <setter>
+                    <cmd>8</cmd>
+                    <value>8</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Parity</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Parity</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Even</cmd>
+                    <value>Even</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>Odd</value>
+                </setter>
+                <setter>
+                    <cmd>Mark</cmd>
+                    <value>Mark</value>
+                </setter>
+                <setter>
+                    <cmd>Space</cmd>
+                    <value>Space</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Stop Bits</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Stop Bits</getter>
+            <setters>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>2</cmd>
+                    <value>2</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Flow Control</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Flow Control</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Hardware RTS/CTS</cmd>
+                    <value>Hardware RTS/CTS</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>VT-UTF8 Combo Key Support</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>VT-UTF8 Combo Key Support</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Recorder Mode</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Recorder Mode</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Resolution 100x31</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Resolution 100x31</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Putty KeyPad</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Putty KeyPad</getter>
+            <setters>
+                <setter>
+                    <cmd>VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>LINUX</cmd>
+                    <value>LINUX</value>
+                </setter>
+                <setter>
+                    <cmd>XTERMR6</cmd>
+                    <value>XTERMR6</value>
+                </setter>
+                <setter>
+                    <cmd>SCO</cmd>
+                    <value>SCO</value>
+                </setter>
+                <setter>
+                    <cmd>ESCN</cmd>
+                    <value>ESCN</value>
+                </setter>
+                <setter>
+                    <cmd>VT400</cmd>
+                    <value>VT400</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Resolution</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Resolution</getter>
+            <setters>
+                <setter>
+                    <cmd>80x24</cmd>
+                    <value>80x24</value>
+                </setter>
+                <setter>
+                    <cmd>80x25</cmd>
+                    <value>80x25</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Redirect After POST</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Redirect After POST</getter>
+            <setters>
+                <setter>
+                    <cmd>Always Enable</cmd>
+                    <value>Always Enable</value>
+                </setter>
+                <setter>
+                    <cmd>BootLoader</cmd>
+                    <value>BootLoader</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Console Redirection EMS</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Console Redirection EMS</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Terminal Type EMS</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Terminal Type EMS</getter>
+            <setters>
+                <setter>
+                    <cmd>VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>VT100Plus</cmd>
+                    <value>VT100Plus</value>
+                </setter>
+                <setter>
+                    <cmd>VT-UTF8</cmd>
+                    <value>VT-UTF8</value>
+                </setter>
+                <setter>
+                    <cmd>ANSI</cmd>
+                    <value>ANSI</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Bits per second EMS</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Bits per second EMS</getter>
+            <conditions>
+                <condition>
+                    <key>Console Redirection EMS</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>9600</cmd>
+                    <value>9600</value>
+                </setter>
+                <setter>
+                    <cmd>19200</cmd>
+                    <value>19200</value>
+                </setter>
+<!--                <setter>-->
+<!--                    <cmd>38400</cmd>-->
+<!--                    <value>38400</value>-->
+<!--                </setter>-->
+                <setter>
+                    <cmd>57600</cmd>
+                    <value>57600</value>
+                </setter>
+                <setter>
+                    <cmd>115200</cmd>
+                    <value>115200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Flow Control EMS</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>Setup</parent>
+            <getter>Flow Control EMS</getter>
+            <conditions>
+                <condition>
+                    <key>Console Redirection EMS</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Hardware RTS/CTS</cmd>
+                    <value>Hardware RTS/CTS</value>
+                </setter>
+                <setter>
+                    <cmd>Software Xon/Xoff</cmd>
+                    <value>Software Xon/Xoff</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Core Performance Boost</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Core Performance Boost</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Global C-state Control</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Global C-state Control</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>NUMA nodes per socket</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>NUMA nodes per socket</getter>
+            <setters>
+                <setter>
+                    <cmd>NPS0</cmd>
+                    <value>NPS0</value>
+                </setter>
+                <setter>
+                    <cmd>NPS1</cmd>
+                    <value>NPS1</value>
+                </setter>
+                <setter>
+                    <cmd>NPS2</cmd>
+                    <value>NPS2</value>
+                </setter>
+                <setter>
+                    <cmd>NPS4</cmd>
+                    <value>NPS4</value>
+                </setter>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Memory interleaving</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Memory interleaving</getter>
+            <setters>
+                <setter>
+                    <cmd>Enable</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Chipselect Interleaving</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Chipselect Interleaving</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IOMMU</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>IOMMU</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Ac Loss Control</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Ac Loss Control</getter>
+            <setters>
+                <setter>
+                    <cmd>Always Off</cmd>
+                    <value>Always Off</value>
+                </setter>
+                <setter>
+                    <cmd>Always Off</cmd>
+                    <value>Always Off</value>
+                </setter>
+                <setter>
+                    <cmd>Previous</cmd>
+                    <value>Previous</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Power Down Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Power Down Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>APBDIS</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>APBDIS</getter>
+            <setters>
+                <setter>
+                    <cmd>0</cmd>
+                    <value>0</value>
+                </setter>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SATA Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>SATA Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SATA Mode</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>SATA Mode</getter>
+            <conditions>
+                <condition>
+                    <key>SATA Enable</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>AHCI</cmd>
+                    <value>AHCI</value>
+                </setter>
+                <setter>
+                    <cmd>AHCI as ID 0x7904</cmd>
+                    <value>AHCI as ID 0x7904</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata0 Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata0 Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata1 Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata1 Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata2 Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata2 Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata3 Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata3 Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata4 (Socket1) Enable</description>
+                <belongto>Chipset</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata4 (Socket1) Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata5 (Socket1) Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata5 (Socket1) Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata6 (Socket1) Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata6 (Socket1) Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Sata7 (Socket1) Enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Sata7 (Socket1) Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>xGMI Link Width Control</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>xGMI Link Width Control</getter>
+            <setters>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>Manual</cmd>
+                    <value>Manual</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>xGMI Force Link Width Control</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>xGMI Force Link Width Control</getter>
+            <conditions>
+                <condition>
+                    <key>xGMI Link Width Control</key>
+                    <value>Manual</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Unforce</cmd>
+                    <value>Unforce</value>
+                </setter>
+                <setter>
+                    <cmd>Force</cmd>
+                    <value>Force</value>
+                </setter>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>xGMI Force Link Width</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>xGMI Force Link Width</getter>
+            <conditions>
+                <condition>
+                    <key>xGMI Force Link Width Control</key>
+                    <value>Force</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>0</cmd>
+                    <value>0</value>
+                </setter>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>2</cmd>
+                    <value>2</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>xGMI Max Link Width Control</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>xGMI Max Link Width Control</getter>
+            <conditions>
+                <condition>
+                    <key>xGMI Link Width Control</key>
+                    <value>Manual</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>Manual</cmd>
+                    <value>Manual</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Platform First Error Handling</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Platform First Error Handling</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>MCA error thresh enable</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>MCA error thresh enable</getter>
+            <setters>
+                <setter>
+                    <cmd>False</cmd>
+                    <value>False</value>
+                </setter>
+                <setter>
+                    <cmd>True</cmd>
+                    <value>True</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>L1 Stream HW Prefetcher</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>L1 Stream HW Prefetcher</getter>
+            <setters>
+                <setter>
+                    <cmd>Disable</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enable</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>L2 Stream HW Prefetcher</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>L2 Stream HW Prefetcher</getter>
+            <setters>
+                <setter>
+                    <cmd>Disable</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enable</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>OC Mode</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>OC Mode</getter>
+            <setters>
+                <setter>
+                    <cmd>Normal Operation</cmd>
+                    <value>Normal Operation</value>
+                </setter>
+                <setter>
+                    <cmd>Customized</cmd>
+                    <value>Customized</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Custom Pstate0</description>
+                <belongto>Chipset</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>Custom Pstate0</getter>
+            <setters>
+                <setter>
+                    <cmd>Custom</cmd>
+                    <value>Custom</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>DF Cstates</description>
+                <belongto>AMD CBS</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>DF Cstates</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>ACPI SRAT L3 Cache As NUMA Domain</description>
+                <belongto>Advanced</belongto>
+            </name>
+            <parent>AmdSetup</parent>
+            <getter>ACPI SRAT L3 Cache As NUMA Domain</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+    </cfgItems>
+</server>
