@@ -573,47 +573,345 @@ class CommonM6(Base):
         RestFunc.logout(client)
         return clear_result
 
+    def _get_xml_mapper(self, args, key, value, xmlfilepath):
+        """
+            {
+                'descriptionName': {
+                    'description': 'descriptionName',
+                    'type': 'int/str/list/dict',
+                    'match': True/False,
+                    'parent': 'server_bios_parent_key',
+                    'getter': 'server_bios_key',
+                    'setter': {
+                        'cmd': 'value' 或 'value': 'cmd' 根据参数确定
+                    }
+                }
+            }
+        """
+        try:
+            #xml_filepath = sys.path[0] + '/mappers/bios/M7.xml'
+            xml_filepath = xmlfilepath
+            import xml.etree.ElementTree as ET
+            tree = ET.parse(xml_filepath)
+            server = tree.getroot()
+            map_dict = {}
+            for items in server:
+                for item in items:
+                    map_dict[item.find('name').find('description').text.lower().replace(" ", "")] = {
+                        'description': item.find('name').find('description').text,
+                        'type': 'str' if item.find('type') is None else item.find('type').text,
+                        'match': True if item.find('match') is None else False if item.find(
+                            'match').text == 'False' else True,
+                        'parent': None if item.find('parent') is None else item.find('parent').text,
+                        'getter': item.find('getter').text,
+                        'setter': {
+                            setter.find(key).text: setter.find(value).text for setter in item.find('setters')
+                        },
+                        'conditions': {} if item.find('conditions') is None else {
+                            setter.find("key").text: setter.find("value").text for setter in item.find('conditions')
+                        },
+                    }
+            return True, map_dict
+        except Exception as e:
+            return False, str(e)
+
+    def _get_xml(self, args):
+        """
+            {
+                'getter': {
+                    'description': 'descriptionName',
+                    'type': 'int/str/list/dict',
+                    'match': True/False,
+                    'parent': 'server_bios_parent_key',
+                    'getter': 'server_bios_key',
+                    'setter': {
+                        'cmd': 'value'
+                    },
+                    'condition': {
+                        'getter': 'cmd'
+                    }
+                }
+            }
+        """
+        try:
+            #xml_filepath = sys.path[0] + '/mappers/bios/M7.xml'
+            xml_filepath = self._get_xml_file()
+            import xml.etree.ElementTree as ET
+            tree = ET.parse(xml_filepath)
+            server = tree.getroot()
+            map_dict = {}
+            for items in server:
+                for item in items:
+                    map_dict[item.find('getter').text] = {
+                        'description': item.find('name').find('description').text,
+                        'type': 'str' if item.find('type') is None else item.find('type').text,
+                        'match': True if item.find('match') is None else False if item.find(
+                            'match').text == 'False' else True,
+                        'parent': None if item.find('parent') is None else item.find('parent').text,
+                        'getter': item.find('getter').text,
+                        'setter': {
+                            setter.find("cmd").text: setter.find("value").text for setter in item.find('setters')
+                        },
+                        'conditions': {} if item.find('conditions') is None else {
+                            setter.find("key").text: setter.find("value").text for setter in item.find('conditions')
+                        },
+                    }
+            return True, map_dict
+        except Exception as e:
+            return False, str(e)
+
+    def _transfer_value(self, origin_value, value_map, user_key):
+        """
+        服务器原始bios配置值 -> 符合配置文件约束的配置值
+        args:
+            origin_value: 服务器原始bios值
+            value_map: 机型映射文件{cmd: value}
+            user_key: 当前需要转换的description，用来特殊处理BootOption
+        returns:
+            转换后的值
+        """
+        if isinstance(origin_value, list):
+            if user_key.startswith(('UEFIBootOption', 'LegacyBootOption')):
+                index = int(user_key[-1:]) - 1
+                return value_map.get(origin_value[index], origin_value[index])
+            else:
+                return [value_map.get(str(value), str(value)) for value in origin_value]
+        elif isinstance(origin_value, dict):
+            return {k: value_map.get(str(v), str(v)) for k, v in origin_value}
+        else:
+            return value_map.get(str(origin_value), None)
+
     def getbios(self, client, args):
-        res = ResultBean()
+        bios_result = ResultBean()
         login_header, login_id = RedfishFunc.login(client)
-        if login_header == {} or "login error" in login_id or login_id == '':
-            res.State("Failure")
-            res.Message(['login session service failed.'])
-            return res
-        result = RedfishFunc.getBiosV1ByRedfish(client, login_header)
-        if result.get('code') == 0 and result.get('data') is not None:
+        if not login_header or not login_id or 'login error' in login_id:
+            bios_result.State('Failure')
+            bios_result.Message(['login session service failed, please check username/password/host/port'])
+            return bios_result
+        args.Attribute = None
+        server_result = RedfishFunc.getBiosV1ByRedfish(client, login_header)
+        if server_result.get('code') == 0 and server_result.get('data'):
+            server_bios = server_result.get('data')
+            RedfishFunc.logout(client, login_id, login_header)
+            xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
+            if "IioVmdOnStackPch" in server_result.get('data').keys():
+                xmlfilepath = xml_path + "M6-N.xml"
+            else:
+                xmlfilepath = xml_path + "M6.xml"
+
+            # 获取映射信息
+            mapper_result = self._get_xml_mapper(args, 'cmd', 'value', xmlfilepath)
+            attr_dict = {}
+            if mapper_result[0]:
+                attr_dict = mapper_result[1]
+            else:
+                bios_result.Message([mapper_result[1]])
+                bios_result.State('Failure')
+                return bios_result
+
+            attr_request = []  # 统一处理-A指定的配置项或所有可获取的配置项
+            if args.Attribute:  # 获取指定BIOS
+                if args.Attribute.strip().lower() not in attr_dict:
+                    bios_result.Message(["[{}] is invalid option.".format(args.Attribute)])
+                    bios_result.State('Failure')
+                    return bios_result
+                attr_request.append(args.Attribute.strip().lower())
+            else:  # 获取全部BIOS项
+                attr_request = list(attr_dict.keys())
+
+            bios = {}
+            for attr_lower in attr_request:
+                attr = attr_dict[attr_lower]['getter']
+                attr_parent = attr
+                attr_desc = attr_dict[attr_lower]['description']
+                if attr_parent not in server_bios:
+
+                    # 根据指定的参数确定输出的提示信息
+                    if args.Attribute:
+                        bios_result.State('Failure')
+                        bios_result.Message(["can't get the value of [{}].".format(attr_desc)])
+                        return bios_result
+                    else:
+                        bios[attr_desc] = None
+
+                else:
+                    l1_bios_value = server_bios[attr_parent]
+                    if isinstance(l1_bios_value, dict):
+                        if attr in l1_bios_value:
+                            bios[attr_desc] = self._transfer_value(l1_bios_value[attr], attr_dict[attr_lower]['setter'],
+                                                                   attr_desc)
+                        elif attr[:-1] in l1_bios_value:
+                            bios[attr_desc] = self._transfer_value(l1_bios_value[attr[:-1]][int(attr[-1])], attr_dict[attr_lower]['setter'],
+                                                                   attr_desc)
+                        else:
+
+                            # 根据指定的参数确定输出的提示信息
+                            if args.Attribute:
+                                bios_result.State('Failure')
+                                bios_result.Message(
+                                    ["can't get value of [{}].".format(attr_desc)])
+                                return bios_result
+                            else:
+                                bios[attr_desc] = None
+
+                    else:
+                        bios[attr_desc] = l1_bios_value
             if 'fileurl' not in args:
-                res.State('Success')
-                res.Message([result.get('data')])
+                bios_result.State('Success')
+                bios_result.Message([bios])
             elif args.fileurl is not None:
                 flag, file_path, file_name = fileUtil.parseUrl(args.fileurl)
                 if not flag:
-                    res.State("Failure")
-                    res.Message(['bios file path is not valid.'])
+                    bios_result.State("Failure")
+                    bios_result.Message(['bios file path is not valid.'])
                 else:
                     if file_name == "":
                         file_name = "bios.json"
                     if os.path.splitext(file_name)[1] != ".json":
-                        res.State("Failure")
-                        res.Message(['bios file should be xxx.json.'])
-                        return res
+                        bios_result.State("Failure")
+                        bios_result.Message(['bios file should be xxx.json.'])
+                        return bios_result
                     flag2, fileurl_last = fileUtil.checkUrl(os.path.join(file_path, file_name))
                     if flag2:
                         with open(fileurl_last, 'w') as f:
-                            f.write(json.dumps(result.get('data'), default=lambda o: o.__dict__, indent=4, ensure_ascii=True))
-                        res.State('Success')
-                        res.Message(["bios export to " + fileurl_last])
+                            f.write(json.dumps(bios, default=lambda o: o.__dict__, indent=4, ensure_ascii=True))
+                        bios_result.State('Success')
+                        bios_result.Message(["bios export to " + fileurl_last])
                     else:
-                        res.State("Failure")
-                        res.Message([fileurl_last])
+                        bios_result.State("Failure")
+                        bios_result.Message([fileurl_last])
             else:
-                res.State('Success')
-                res.Message([result.get('data')])
+                bios_result.State('Success')
+                bios_result.Message([bios])
         else:
-            res.State("Failure")
-            res.Message([result.get('data')])
-        RedfishFunc.logout(client, login_id, login_header)
-        return res
+            bios_result.State('Failure')
+            bios_result.Message([server_result.get('data')])
+        return bios_result
+    #
+    # def getbios(self, client, args):
+    #     res = ResultBean()
+    #     login_header, login_id = RedfishFunc.login(client)
+    #     if login_header == {} or "login error" in login_id or login_id == '':
+    #         res.State("Failure")
+    #         res.Message(['login session service failed.'])
+    #         return res
+    #     result = RedfishFunc.getBiosV1ByRedfish(client, login_header)
+    #     if result.get('code') == 0 and result.get('data') is not None:
+    #         if 'fileurl' not in args:
+    #             res.State('Success')
+    #             res.Message([result.get('data')])
+    #         elif args.fileurl is not None:
+    #             flag, file_path, file_name = fileUtil.parseUrl(args.fileurl)
+    #             if not flag:
+    #                 res.State("Failure")
+    #                 res.Message(['bios file path is not valid.'])
+    #             else:
+    #                 if file_name == "":
+    #                     file_name = "bios.json"
+    #                 if os.path.splitext(file_name)[1] != ".json":
+    #                     res.State("Failure")
+    #                     res.Message(['bios file should be xxx.json.'])
+    #                     return res
+    #                 flag2, fileurl_last = fileUtil.checkUrl(os.path.join(file_path, file_name))
+    #                 if flag2:
+    #                     with open(fileurl_last, 'w') as f:
+    #                         f.write(json.dumps(result.get('data'), default=lambda o: o.__dict__, indent=4, ensure_ascii=True))
+    #                     res.State('Success')
+    #                     res.Message(["bios export to " + fileurl_last])
+    #                 else:
+    #                     res.State("Failure")
+    #                     res.Message([fileurl_last])
+    #         else:
+    #             res.State('Success')
+    #             res.Message([result.get('data')])
+    #     else:
+    #         res.State("Failure")
+    #         res.Message([result.get('data')])
+    #     RedfishFunc.logout(client, login_id, login_header)
+    #     return res
+
+
+    # 整理输出
+    # type 1本次设置不符合 2即将生效不符合 3当前值不符合
+    def formatCondition(self, conditionkey, conditionvalue, conditionvalue2, type):
+        conditioninfo = ""
+        if type == 1:
+            conditioninfo = conditionkey + " must be " + conditionvalue + ", but the value is setted to " + conditionvalue2
+        elif type == 2:
+            conditioninfo = conditionkey + " must be " + conditionvalue + ", but the value will be setted to " + conditionvalue2
+        elif type == 3:
+            conditioninfo = conditionkey + " must be " + conditionvalue + ", but the current value is " + conditionvalue2
+        return conditioninfo
+
+    # 判断-A的值是否在选项中
+    def judgeAttInListM5(self, attr, descriptionList):
+        flag = False
+        if attr in descriptionList:
+            flag = True
+        return flag
+
+    # 判断是否可以设置
+    def judgeCondition(self, biossetdict, biosfuturedict, bioscurdict, bioshelplist):
+        conditionflag = True
+        # getter: {conditiongetter:{}}
+        conditionDict = {}
+        # getter:  {getter2: value}
+        condition_dict = {}
+        # getter: description
+        bios_dict = {}
+        # getter: {cmd: value}
+        bios_value_dict = {}
+        for bioshelp in bioshelplist:
+            condition_dict[bioshelp.get("getter")] = bioshelp.get("condition")
+            bios_dict[bioshelp.get("getter")] = bioshelp.get("description")
+            setterlist = bioshelp.get("setter")
+            value_dict={}
+            for setter in setterlist:
+                value_dict[setter.get("cmd")] = setter.get("value")
+            bios_value_dict[bioshelp.get("getter")] = value_dict
+        errordict={}
+        for bioskey, biosvalue in biossetdict.items():
+            conditions = condition_dict.get(bioskey)
+            errorlist = []
+            errorinfo = ""
+            for conditionkey,conditionvalue in conditions.items():
+                #isrest展示key
+                conditionkeyshow = bios_dict.get(conditionkey)
+                #{bmc value: isrest value}
+                conditionvaluedict = bios_value_dict.get(conditionkey)
+                conditionvalueshow = conditionvaluedict.get(conditionvalue, conditionvalue)
+                #比较当前设置值
+                if biossetdict.get(conditionkey):
+                    conditonvalue_set = biossetdict.get(conditionkey)
+                    if conditionvalue == conditonvalue_set:
+                        continue
+                    else:
+                        errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_set), 1))
+                        continue
+                #比较即将生效值
+                if biosfuturedict:
+                    if biosfuturedict.get(conditionkey):
+                        conditonvalue_future = biosfuturedict.get(conditionkey)
+                        if conditionvalue == conditonvalue_future:
+                            continue
+                        else:
+                            errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_future), 2))
+                            continue
+                #比较当前值
+                if bioscurdict.get(conditionkey):
+                    conditonvalue_current = bioscurdict.get(conditionkey)
+                    if conditionvalue == conditonvalue_current:
+                        continue
+                    else:
+                        errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_current), 3))
+                        continue
+            if errorlist != []:
+                errorinfo = ",".join(errorlist)
+                errordict[bios_dict.get(bioskey)]=errorinfo
+        if errordict == {}:
+            return True, None
+        else:
+            return False, errordict
 
     def setbios(self, client, args):
         def update_infoList(infoList):
@@ -652,6 +950,7 @@ class CommonM6(Base):
             return flag, infoList
 
         Bios_result = ResultBean()
+        args.list = False
         if 'list' not in args or ('list' in args and args.list is False):
             if args.attribute is None and args.value is None and args.fileurl is None:
                 Bios_result.Message(['please input a command at least.'])
@@ -794,7 +1093,7 @@ class CommonM6(Base):
             # 获取future
             future_result = RedfishFunc.getBiosFuture(client, login_header)
             # 检查前置项
-            conditionflag, conditionmessage = judgeCondition(data['Attributes'], future_result.get('data'), result.get('data'), infoList)
+            conditionflag, conditionmessage = self.judgeCondition(data['Attributes'], future_result.get('data'), result.get('data'), infoList)
             if not conditionflag:
                 Bios_result.State('Failure')
                 Bios_result.Message([conditionmessage])
@@ -11972,6 +12271,15 @@ class CommonM6(Base):
         return res
 
     def exportbioscfg(self, client, args):
+        import time
+        def ftime(ff="%Y%m%d%H%M%S"):
+            try:
+                localtime = time.localtime()
+                f_localtime = time.strftime(ff, localtime)
+                return f_localtime
+            except:
+                return ""
+
         res = ResultBean()
         try:
             login_header, login_id = RedfishFunc.login(client)
@@ -11979,9 +12287,52 @@ class CommonM6(Base):
                 res.State("Failure")
                 res.Message(['login session service failed.'])
                 return
+
+            local_time = ftime()
+            file_name_init = str(args.host) + "_bios_" + str(local_time) + ".conf"
+            if args.fileurl == ".":
+                file_name = file_name_init
+                file_path = os.path.abspath(".")
+            elif args.fileurl == "..":
+                file_name = file_name_init
+                file_path = os.path.abspath("..")
+            elif re.search("^[C-Zc-z]\:$", args.fileurl, re.I):
+                file_name = file_name_init
+                file_path = os.path.abspath(args.fileurl + "\\")
+            else:
+                file_name = os.path.basename(args.fileurl)
+                file_path = os.path.dirname(args.fileurl)
+
+                if file_name == "":
+                    file_name = file_name_init
+                if file_path == "":
+                    file_path = os.path.abspath(".")
+
+            args.fileurl = os.path.join(file_path, file_name)
+
+            if not os.path.exists(file_path):
+                try:
+                    os.makedirs(file_path)
+                except:
+                    res.State("Failure")
+                    res.Message(["cannot build path."])
+                    return res
+            else:
+                filename_0 = os.path.splitext(file_name)[0]
+                filename_1 = os.path.splitext(file_name)[1]
+                if os.path.exists(args.fileurl):
+                    name_id = 1
+                    name_new = filename_0 + "(1)" + filename_1
+                    file_new = os.path.join(file_path, name_new)
+                    while os.path.exists(file_new):
+                        name_id = name_id + 1
+                        name_new = filename_0 + "(" + str(name_id) + ")" + filename_1
+                        file_new = os.path.join(file_path, name_new)
+                    args.fileurl = file_new
+
             result = RedfishFunc.exportbiosoption(client, login_header)
             if result.get('code') == 0 and result.get('data') is not None:
-                option = result.get('data')['Attributes']
+                option = result.get('data')#['Attributes']
                 with open(args.fileurl, mode='w') as f:
                     f.write(json.dumps(option, indent=4))
                 res.State("Success")
@@ -11998,65 +12349,41 @@ class CommonM6(Base):
             RedfishFunc.logout(client, login_id, login_header)
             return res
 
-    def importbioscfg(self, client, args):
-        import time
-
-        def ftime(ff="%Y%m%d%H%M%S"):
+    def checkBiosCfg(self, biospath):
+        res = ResultBean()
+        if not os.path.exists(biospath):
+            res.State("Failure")
+            res.Message(["File does not exist."])
+            return res
+        if not os.path.isfile(biospath):
+            res.State("Failure")
+            res.Message(["Not a valid file."])
+            return res
+        with open(biospath, 'r') as f:
+            biosInfo = f.read()
             try:
-                localtime = time.localtime()
-                f_localtime = time.strftime(ff, localtime)
-                return f_localtime
-            except:
-                return ""
+                biosJson = json.loads(biosInfo)
+                if biosJson.get("Attributes") is None:
+                    res.State("Failure")
+                    res.Message(["The bios json file needs an Attributes layer."])
+                else:
+                    res.State("Success")
+                    res.Message([""])
+            except Exception as e:
+                res.State("Failure")
+                res.Message(["File content must be in json format."])
+            return res
 
+    def importbioscfg(self, client, args):
+        checkres = self.checkBiosCfg(args.fileurl)
+        if checkres.State == "Failure":
+            return checkres
         res = ResultBean()
         login_header, login_id = RedfishFunc.login(client)
         if login_header == {} or "login error" in login_id or login_id == '':
             res.State("Failure")
             res.Message(['login session service failed.'])
             return
-
-        local_time = ftime()
-        file_name_init = str(args.host) + "_bios_" + str(local_time) + ".conf"
-        if args.fileurl == ".":
-            file_name = file_name_init
-            file_path = os.path.abspath(".")
-        elif args.fileurl == "..":
-            file_name = file_name_init
-            file_path = os.path.abspath("..")
-        elif re.search("^[C-Zc-z]\:$", args.fileurl, re.I):
-            file_name = file_name_init
-            file_path = os.path.abspath(args.fileurl + "\\")
-        else:
-            file_name = os.path.basename(args.fileurl)
-            file_path = os.path.dirname(args.fileurl)
-
-            if file_name == "":
-                file_name = file_name_init
-            if file_path == "":
-                file_path = os.path.abspath(".")
-
-        args.fileurl = os.path.join(file_path, file_name)
-
-        if not os.path.exists(file_path):
-            try:
-                os.makedirs(file_path)
-            except:
-                res.State("Failure")
-                res.Message(["cannot build path."])
-                return res
-        else:
-            filename_0 = os.path.splitext(file_name)[0]
-            filename_1 = os.path.splitext(file_name)[1]
-            if os.path.exists(args.fileurl):
-                name_id = 1
-                name_new = filename_0 + "(1)" + filename_1
-                file_new = os.path.join(file_path, name_new)
-                while os.path.exists(file_new):
-                    name_id = name_id + 1
-                    name_new = filename_0 + "(" + str(name_id) + ")" + filename_1
-                    file_new = os.path.join(file_path, name_new)
-                args.fileurl = file_new
 
         result = RedfishFunc.importbiosoption(client, login_header, args.fileurl)
         if result.get('code') == 0 and result.get('data') is not None:
@@ -14004,69 +14331,6 @@ def getWeek(binr):
     return ','.join(list)
 
 
-
-# 判断是否可以设置
-def judgeCondition(self, biossetdict, biosfuturedict, bioscurdict, bioshelplist):
-    conditionflag = True
-    # getter: {conditiongetter:{}}
-    conditionDict = {}
-    # getter:  {getter2: value}
-    condition_dict = {}
-    # getter: description
-    bios_dict = {}
-    # getter: {cmd: value}
-    bios_value_dict = {}
-    for bioshelp in bioshelplist:
-        condition_dict[bioshelp.get("getter")] = bioshelp.get("condition")
-        bios_dict[bioshelp.get("getter")] = bioshelp.get("description")
-        setterlist = bioshelp.get("setter")
-        value_dict={}
-        for setter in setterlist:
-            value_dict[setter.get("cmd")] = setter.get("value")
-        bios_value_dict[bioshelp.get("getter")] = value_dict
-    errordict={}
-    for bioskey, biosvalue in biossetdict.items():
-        conditions = condition_dict.get(bioskey)
-        errorlist = []
-        errorinfo = ""
-        for conditionkey,conditionvalue in conditions.items():
-            #isrest展示key
-            conditionkeyshow = bios_dict.get(conditionkey)
-            #{bmc value: isrest value}
-            conditionvaluedict = bios_value_dict.get(conditionkey)
-            conditionvalueshow = conditionvaluedict.get(conditionvalue, conditionvalue)
-            #比较当前设置值
-            if biossetdict.get(conditionkey):
-                conditonvalue_set = biossetdict.get(conditionkey)
-                if conditionvalue == conditonvalue_set:
-                    continue
-                else:
-                    errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_set), 1))
-                    continue
-            #比较即将生效值
-            if biosfuturedict:
-                if biosfuturedict.get(conditionkey):
-                    conditonvalue_future = biosfuturedict.get(conditionkey)
-                    if conditionvalue == conditonvalue_future:
-                        continue
-                    else:
-                        errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_future), 2))
-                        continue
-            #比较当前值
-            if bioscurdict.get(conditionkey):
-                conditonvalue_current = bioscurdict.get(conditionkey)
-                if conditionvalue == conditonvalue_current:
-                    continue
-                else:
-                    errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_current), 3))
-                    continue
-        if errorlist != []:
-            errorinfo = ",".join(errorlist)
-            errordict[bios_dict.get(bioskey)]=errorinfo
-    if errordict == {}:
-        return True, None
-    else:
-        return False, errordict
 
 lanDict = {
     '1': 'dedicated',

@@ -1525,5 +1525,840 @@
                 </setter>
             </setters>
         </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link Speed Mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Uncore Configuration/Uncore General Configuration/Link Speed Mode</location>
+            </name>
+            <getter>KtiLinkSpeedMode</getter>
+            <setters>
+                <setter>
+                    <cmd>Fast</cmd>
+                    <value>Fast</value>
+                </setter>
+                <setter>
+                    <cmd>Slow</cmd>
+                    <value>Slow</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link L0p Enable</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Uncore Configuration/Uncore General Configuration/Link Speed Mode/Link L0p Enable</location>
+            </name>
+            <getter>Linkl0P</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link L1 Enable</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Uncore Configuration/Uncore General Configuration/Link Speed Mode/Link L1 Enable</location>
+            </name>
+            <getter>Linkl1</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Core Disable Number</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Processor Configuration/Core Disable Number</location>
+            </name>
+            <getter>CoreEn</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0~38</value>
+                    <validation>com.inspur.ism.server.service.bios.BiosItemValueValidate.validateWaitTime</validation>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Memory Frequency</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Memory Configuration/Memory Frequency</location>
+            </name>
+            <getter>XmpDdrFreqLimit</getter>
+            <setters>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>1866</cmd>
+                    <value>1866</value>
+                </setter>
+                <setter>
+                    <cmd>2133</cmd>
+                    <value>2133</value>
+                </setter>
+                <setter>
+                    <cmd>2400</cmd>
+                    <value>2400</value>
+                </setter>
+                <setter>
+                    <cmd>2666</cmd>
+                    <value>2666</value>
+                </setter>
+                <setter>
+                    <cmd>2933</cmd>
+                    <value>2933</value>
+                </setter>
+                <setter>
+                    <cmd>3200</cmd>
+                    <value>3200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>System Errors</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/System Errors</location>
+            </name>
+            <getter>SystemErrors</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>System Memory Poison</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/System Memory Poison</location>
+            </name>
+            <getter>PoisonEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>EMCA Logging Suppor</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/eMCA Settings/EMCA Logging Support</location>
+            </name>
+            <getter>EmcalogSupportEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Whea Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/Whea Settings/WHEA Support</location>
+            </name>
+            <getter>WheaSupportEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+                <cfgItem>
+            <name>
+                <description>Whea Log Memory Error</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/Whea Settings/WHEA Log Memory Error</location>
+            </name>
+            <getter>WheaLogMemErrEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>LMCE Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/eMCA Settings/LMCE Support</location>
+            </name>
+            <getter>LmceSupportEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IIO eDPC Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/IIO Error Enabling/IIO eDPC Support</location>
+            </name>
+            <getter>IioEdpcSupportEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>On Fatal Error</cmd>
+                    <value>On Fatal Error</value>
+                </setter>
+                <setter>
+                    <cmd>On Fatal and Non-Fatal Errors</cmd>
+                    <value>On Fatal and Non-Fatal Errors</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <!--SW Guard Extensions(SGX)-->
+                <description>SW Guard Extensions</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Processor Configuration/SW Guard Extensions (SGX)(Only for ICX)</location>
+            </name>
+            <getter>Sgx</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>HDD Frozen</description>
+                <belongto>Processor</belongto>
+                <location>Security/HDD Frozen</location>
+            </name>
+            <getter>AhciFrozen</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IPv4 HTTP Support</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Network Stack Configuration/IPv4 HTTP Support</location>
+            </name>
+            <getter>Ipv4HttpEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IPv6 HTTP Support</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Network Stack Configuration/IPv6 HTTP Support</location>
+            </name>
+            <getter>Ipv6HttpEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Quiet Boot</description>
+                <belongto>Boot</belongto>
+                <location>Boot/Quiet Boot</location>
+            </name>
+            <getter>QuietBoot</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Restore AC Power Loss</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Miscellaneous Configuration/Restore AC Power Loss</location>
+            </name>
+            <getter>StateAfterG3</getter>
+            <setters>
+                <setter>
+                    <cmd>Power On</cmd>
+                    <value>Power On</value>
+                </setter>
+                <setter>
+                    <cmd>Power Off</cmd>
+                    <value>Power Off</value>
+                </setter>
+                <setter>
+                    <cmd>Last State</cmd>
+                    <value>Last State</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Console Redirection0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection</location>
+            </name>
+            <getter>ConsoleRedirection0</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Console Redirection1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection</location>
+            </name>
+            <getter>ConsoleRedirection1</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Terminal Type0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Terminal Type</location>
+            </name>
+            <getter>TerminalType0</getter>
+            <setters>
+                <setter>
+                    <cmd>VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>VT100+</cmd>
+                    <value>VT100+</value>
+                </setter>
+                <setter>
+                    <cmd>VT-UTF8</cmd>
+                    <value>VT-UTF8</value>
+                </setter>
+                <setter>
+                    <cmd>ANSI</cmd>
+                    <value>ANSI</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Terminal Type1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Terminal Type</location>
+            </name>
+            <getter>TerminalType1</getter>
+            <setters>
+                <setter>
+                    <cmd>VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>VT100+</cmd>
+                    <value>VT100+</value>
+                </setter>
+                <setter>
+                    <cmd>VT-UTF8</cmd>
+                    <value>VT-UTF8</value>
+                </setter>
+                <setter>
+                    <cmd>ANSI</cmd>
+                    <value>ANSI</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Bits per second0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Bits per second</location>
+            </name>
+            <getter>Bitspersecond0</getter>
+            <setters>
+                <setter>
+                    <cmd>9600</cmd>
+                    <value>9600</value>
+                </setter>
+                <setter>
+                    <cmd>19200</cmd>
+                    <value>19200</value>
+                </setter>
+                <setter>
+                    <cmd>38400</cmd>
+                    <value>38400</value>
+                </setter>
+                <setter>
+                    <cmd>57600</cmd>
+                    <value>57600</value>
+                </setter>
+                <setter>
+                    <cmd>115200</cmd>
+                    <value>115200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Bits per second1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Bits per second</location>
+            </name>
+            <getter>Bitspersecond1</getter>
+            <setters>
+                <setter>
+                    <cmd>9600</cmd>
+                    <value>9600</value>
+                </setter>
+                <setter>
+                    <cmd>19200</cmd>
+                    <value>19200</value>
+                </setter>
+                <setter>
+                    <cmd>38400</cmd>
+                    <value>38400</value>
+                </setter>
+                <setter>
+                    <cmd>57600</cmd>
+                    <value>57600</value>
+                </setter>
+                <setter>
+                    <cmd>115200</cmd>
+                    <value>115200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Flow Control0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Flow Control</location>
+            </name>
+            <getter>FlowControl0</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Hardware RTS/CTS</cmd>
+                    <value>Hardware RTS/CTS</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Flow Control1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Flow Control</location>
+            </name>
+            <getter>FlowControl1</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Hardware RTS/CTS</cmd>
+                    <value>Hardware RTS/CTS</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Data Bits0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Data Bits</location>
+            </name>
+            <getter>DataBits0</getter>
+            <setters>
+                <setter>
+                    <cmd>7</cmd>
+                    <value>7</value>
+                </setter>
+                <setter>
+                    <cmd>8</cmd>
+                    <value>8</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Data Bits1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Data Bits</location>
+            </name>
+            <getter>DataBits1</getter>
+            <setters>
+                <setter>
+                    <cmd>7</cmd>
+                    <value>7</value>
+                </setter>
+                <setter>
+                    <cmd>8</cmd>
+                    <value>8</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Parity0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Parity</location>
+            </name>
+            <getter>Parity0</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Even</cmd>
+                    <value>Even</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>Odd</value>
+                </setter>
+                <setter>
+                    <cmd>Mark</cmd>
+                    <value>Mark</value>
+                </setter>
+                <setter>
+                    <cmd>Space</cmd>
+                    <value>Space</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Parity1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Parity</location>
+            </name>
+            <getter>Parity1</getter>
+            <setters>
+                <setter>
+                    <cmd>None</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>Even</cmd>
+                    <value>Even</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>Odd</value>
+                </setter>
+                <setter>
+                    <cmd>Mark</cmd>
+                    <value>Mark</value>
+                </setter>
+                <setter>
+                    <cmd>Space</cmd>
+                    <value>Space</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Stop Bits0</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Stop Bits</location>
+            </name>
+            <getter>StopBits0</getter>
+            <setters>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>2</cmd>
+                    <value>2</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Stop Bits1</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirec/COM0/Console Redirection/Stop Bits</location>
+            </name>
+            <getter>StopBits1</getter>
+            <setters>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>2</cmd>
+                    <value>2</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Energy Efficient Turbo</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Advanced Power Management Configuration/ CPU P State Control/Energy Efficient Turbo</location>
+            </name>
+            <getter>EeTurboDis</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Uncore Freq Scaling</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Advanced Power Management Configuration/ CPU P State Control/Uncore Freq Scaling (UFS)</location>
+            </name>
+            <getter>UfsDis</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Min Frequency</cmd>
+                    <value>Min Frequency</value>
+                </setter>
+                <setter>
+                    <cmd>MAX Frequency</cmd>
+                    <value>MAX Frequency</value>
+                </setter>
+                <setter>
+                    <cmd>Custom</cmd>
+                    <value>Custom</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>ENERGY_PERF_BIAS_CFG mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Advanced Power Management Configuration/CPU - Advanced PM Tuning/Energy Perf BIAS</location>
+            </name>
+            <getter>PwrEnergyPerf</getter>
+            <setters>
+                <setter>
+                    <cmd>Performance</cmd>
+                    <value>Performance</value>
+                </setter>
+                <setter>
+                    <cmd>Balanced Performance</cmd>
+                    <value>Balanced Performance</value>
+                </setter>
+                <setter>
+                    <cmd>Balanced Power</cmd>
+                    <value>Balanced Power</value>
+                </setter>
+                <setter>
+                    <cmd>Power</cmd>
+                    <value>Power</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PPIN Control</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Processor Configuration/PPIN Control</location>
+            </name>
+            <getter>PpinControl</getter>
+            <setters>
+                <setter>
+                    <cmd>Lock/Disable</cmd>
+                    <value>Lock/Disable</value>
+                </setter>
+                <setter>
+                    <cmd>Unlock/Enable</cmd>
+                    <value>Unlock/Enable</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <!--天翼云定制 先注释-->
+        <!--cfgItem>
+            <name>
+                <description>Memory CE Accumulation Threshold</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Memory Configuration/Memory RAS Configuration/Memory CE Accumulation Threshold</location>
+            </name>
+            <getter>OemMemoryCeAccumulation</getter>
+            <setters>
+                <setter>
+                    <cmd>1200</cmd>
+                    <value>1200</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>500</cmd>
+                    <value>500</value>
+                </setter>
+                <setter>
+                    <cmd>1000</cmd>
+                    <value>1000</value>
+                </setter>
+                <setter>
+                    <cmd>2000</cmd>
+                    <value>2000</value>
+                </setter>
+                <setter>
+                    <cmd>5000</cmd>
+                    <value>5000</value>
+                </setter>
+                <setter>
+                    <cmd>10000</cmd>
+                    <value>10000</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Memory CE Storm Threshold</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Memory Configuration/Memory RAS Configuration/Memory CE Storm Threshold</location>
+            </name>
+            <getter>OemMemoryCeStorm</getter>
+            <setters>
+                <setter>
+                    <cmd>120</cmd>
+                    <value>120</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>60</cmd>
+                    <value>60</value>
+                </setter>
+                <setter>
+                    <cmd>240</cmd>
+                    <value>240</value>
+                </setter>
+                <setter>
+                    <cmd>1200</cmd>
+                    <value>1200</value>
+                </setter>
+            </setters>
+        </cfgItem-->
     </cfgItems>
 </server>

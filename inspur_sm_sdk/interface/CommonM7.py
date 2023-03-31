@@ -439,6 +439,7 @@ class CommonM7(CommonM6):
         attr_dict = {}
         # 读取映射文件
         mapper_result = self._get_xml_mapper(args, 'value', 'cmd')
+        args.list = False
         if mapper_result[0]:
             if 'list' in args and args.list:  # 打印信息
                 help_list = []

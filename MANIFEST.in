@@ -9,6 +9,9 @@ include inspur_sm_sdk/command/bios/NF5468A5.xml
 include inspur_sm_sdk/command/bios/NF5488A5.xml
 include inspur_sm_sdk/command/bios/SA5112M5.xml
 include inspur_sm_sdk/command/bios/SA5212M5.xml
+include inspur_sm_sdk/command/bios/A7.xml
+include inspur_sm_sdk/command/bios/M7.xml
+include inspur_sm_sdk/command/bios/M6-N.xml
 include inspur_sm_sdk/conf/NF5180M5.yml
 include inspur_sm_sdk/conf/NF5280M5.yml
 include inspur_sm_sdk/conf/NF5468A5.yml
