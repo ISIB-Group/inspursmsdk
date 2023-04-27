@@ -1282,13 +1282,20 @@ def setPsuConfigByIpmi(client, cmd):
     return sendRawByIpmi(client, cmd)
 
 
+def setBootOptions(client, bootType, timeLines):
+    cmd = 'chassis bootdev ' + bootType
+    if timeLines is not None and timeLines == 'persistent':
+        cmd = cmd + ' options=' + timeLines
+    return sendRawByIpmi(client, cmd)
+
+
 def sendRawByIpmi(client, raw):
     res = {}
     result = __getCmd_type(client, raw, 'readline')
     if result['code'] != 0:
         return result
     cmd_str = result['data']
-    if cmd_str != '\n':
+    if 'Set Boot Device to' not in cmd_str:
         res['code'] = -1
         res['data'] = 'Failure: ' + cmd_str
         return res
@@ -1475,7 +1482,7 @@ def __getCmd_type(client, cmd_get, rt):
     import platform
     sysstr = platform.system()
     if sysstr == 'Windows':
-        cmdPrefix = "D:\\Users\\wbs\\coding\\inspursmsdk-1.4.0\\inspur_sm_sdk\\tools\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
+        cmdPrefix = "D:\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
     elif sysstr == 'Linux':
         cmdPrefix = "ipmitool -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>/dev/null"
     cmd_str = ''

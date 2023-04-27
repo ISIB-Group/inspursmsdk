@@ -11141,33 +11141,41 @@ class CommonM6(Base):
     # BIOS Boot Options
     def setsysboot(self, client, args):
         result = ResultBean()
-        timedict = {"Once": "next boot", "Continuous": "all future boots"}
-        devdict = {"none": "no override", "PXE": "pxe", "HDD": "hard disk", "BIOSSETUP": "BIOS Setup"}
+        timedict = {"Once": "once", "Continuous": "persistent"}
+        devdict = {"none": "none", "PXE": "pxe", "HDD": "disk", "BIOSSETUP": "bios", "CD": "cdrom"}
         if args.device not in devdict.keys():
             result.State("Failure")
             result.Message(["The boot Device option {} is not supported on the M6 model.".format(args.device)])
             return result
         # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(
-                ["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-        data = {"dev": devdict.get(args.device), "enable": 1, "style": timedict.get(args.effective)}
-        set_res = RestFunc.setBootOption(client, data)
-
-        if set_res.get('code') == 0:
+        # headers = RestFunc.login_M6(client)
+        # if headers == {}:
+        #     login_res = ResultBean()
+        #     login_res.State("Failure")
+        #     login_res.Message(
+        #         ["login error, please check username/password/host/port"])
+        #     return login_res
+        # client.setHearder(headers)
+        # data = {"dev": devdict.get(args.device), "enable": 1, "style": timedict.get(args.effective)}
+        # set_res = RestFunc.setBootOption(client, data)
+        #
+        # if set_res.get('code') == 0:
+        #     result.State("Success")
+        #     result.Message(["set bios boot option success."])
+        # else:
+        #     result.State("Failure")
+        #     result.Message(
+        #         ["set bios boot option failed. " + set_res.get('data')])
+        #
+        # RestFunc.logout(client)
+        timetype = timedict.get(args.effective, 'once')
+        res = IpmiFunc.setBootOptions(client, devdict.get(args.device), timetype)
+        if res.get('code') == 0:
             result.State("Success")
             result.Message(["set bios boot option success."])
         else:
             result.State("Failure")
-            result.Message(
-                ["set bios boot option failed. " + set_res.get('data')])
-
-        RestFunc.logout(client)
+            result.Message(["set bios boot option failed. " + res.get('data')])
         return result
 
     def setnetworkadaptivecfg(self, client, args):
