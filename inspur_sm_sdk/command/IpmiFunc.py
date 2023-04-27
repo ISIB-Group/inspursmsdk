@@ -1283,10 +1283,21 @@ def setPsuConfigByIpmi(client, cmd):
 
 
 def setBootOptions(client, bootType, timeLines):
+    res = {}
     cmd = 'chassis bootdev ' + bootType
     if timeLines is not None and timeLines == 'persistent':
         cmd = cmd + ' options=' + timeLines
-    return sendRawByIpmi(client, cmd)
+    result = __getCmd_type(client, cmd, 'readline')
+    if result['code'] != 0:
+        return result
+    cmd_str = result['data']
+    if 'Set Boot Device to' not in cmd_str:
+        res['code'] = -1
+        res['data'] = 'Failure: ' + cmd_str
+        return res
+    res['code'] = 0
+    res['data'] = 'Success'
+    return res
 
 
 def sendRawByIpmi(client, raw):
@@ -1295,7 +1306,7 @@ def sendRawByIpmi(client, raw):
     if result['code'] != 0:
         return result
     cmd_str = result['data']
-    if 'Set Boot Device to' not in cmd_str:
+    if cmd_str != '\n':
         res['code'] = -1
         res['data'] = 'Failure: ' + cmd_str
         return res
