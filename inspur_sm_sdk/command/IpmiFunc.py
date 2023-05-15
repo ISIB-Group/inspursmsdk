@@ -305,7 +305,7 @@ def getSensorByNameByIpmi(client, findname):
     if findname != None:
         if sysstr == 'Windows':
             cmd_get = cmd_get + ' | find "' + findname + '" '
-        elif sysstr == 'Linux':
+        elif sysstr == 'Linux' or sysstr == 'Darwin':
             cmd_get = cmd_get + ' | grep "' + findname + '" '
     result = getLinesRawByIpmi(client, cmd_get)
     if result['code'] != 0:
@@ -1494,7 +1494,7 @@ def __getCmd_type(client, cmd_get, rt):
     sysstr = platform.system()
     if sysstr == 'Windows':
         cmdPrefix = "D:\\ipmitool\\ipmitool.exe -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>nul"
-    elif sysstr == 'Linux':
+    elif sysstr == 'Linux' or sysstr == 'Darwin':
         cmdPrefix = "ipmitool -U " + client.username + " -P " + client.passcode + " -H " + client.host + " -I " + client.lantype + " " + cmd_get + " 2>/dev/null"
     cmd_str = ''
     str_list = []

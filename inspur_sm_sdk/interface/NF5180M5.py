@@ -315,7 +315,7 @@ class NF5180M5(CommonM5):
                     except BaseException:
                         # 需要解码
                         import platform
-                        if platform.system() == 'Linux':
+                        if platform.system() == 'Linux' or platform.system() == 'Darwin':
                             cmd = '/tools//blackbox_decrypt/blackbox_decrypt '
                         else:
                             cmd = "\\tools\\blackbox_decrypt\\blackbox_decrypt.exe "
