@@ -1893,8 +1893,8 @@ def hotSparePDiskByRest(client, ctrlId, deviceId, action, encl, revertible, logi
         "dedicate": 2
     }
     data = {
-        "ctrlId": ctrlId, 
-        "deviceId": deviceId, 
+        "ctrlId": ctrlId,
+        "deviceId": deviceId,
         "configure_type": action_dict.get(action)
     }
     data['affinity'] = yes_no_dict.get(encl) if action != "remove" else 0
@@ -4738,7 +4738,7 @@ def uploadBMCImageFile(client, updatefile):
         JSON['code'] = 1
         JSON['data'] = 'input is not a file.'
         return JSON
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         file_name = updatefile.split('/')[-1]
     else:
         file_name = updatefile.split('\\')[-1]
@@ -5031,7 +5031,7 @@ def uploadBiosImageFile(client, updatefile):
         JSON['code'] = 1
         JSON['data'] = 'can not find file.'
         return JSON
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         file_name = updatefile.split('/')[-1]
     else:
         file_name = updatefile.split('\\')[-1]
@@ -5151,7 +5151,7 @@ def uploadBMCfgByRest(client, filepath):
     header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundaryF4ZROI7nayCrLnwy"
     header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
 
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         file_name = filepath.split('/')[-1]
     else:
         file_name = filepath.split('\\')[-1]
@@ -6336,7 +6336,7 @@ def uploadCPLDFileByRest(client, updatefile):
         JSON["code"] = 1
         JSON["data"] = 'CPLD Image file ' + updatefile + ' is not a file.'
         return JSON
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         file_name = updatefile.split('/')[-1]
     else:
         file_name = updatefile.split('\\')[-1]

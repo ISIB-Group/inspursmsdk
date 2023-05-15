@@ -50,7 +50,7 @@ class HostTypeClient():
         if sysstr == 'Windows':
             cmd = "..\\tools\\ipmitool\\ipmitool.exe -I lanplus -H " + args.host + \
                 " -U " + args.username + " -P " + args.password + " raw 0x3c 0x42 2>nul"
-        elif sysstr == 'Linux':
+        elif sysstr == 'Linux' or sysstr == 'Darwin':
             cmd = "ipmitool -I lanplus -H " + args.host + " -U " + args.username + \
                 " -P " + args.password + " raw 0x3c 0x42" + " 2>/dev/null"
         result = self.execCmd(cmd).strip()
@@ -69,7 +69,7 @@ class HostTypeClient():
             if sysstr == 'Windows':
                 cmdb = "..\\tools\\ipmitool\\ipmitool.exe -I lanplus -H " + args.host + " -U " + \
                     args.username + " -P " + args.password + " mc info|findstr /c:\"Firmware Revision\" 2>nul"
-            elif sysstr == 'Linux':
+            elif sysstr == 'Linux' or sysstr == 'Darwin':
                 cmdb = "ipmitool -I lanplus -H " + args.host + " -U " + args.username + \
                     " -P " + args.password + " mc info |grep 'Firmware Revision'" + " 2>/dev/null"
             resultb = self.execCmd(cmdb).strip()
@@ -87,7 +87,7 @@ class HostTypeClient():
         if sysstr == 'Windows':
             cmd = "..\\tools\\ipmitool\\ipmitool.exe -I lanplus -H " + args.host + \
                 " -U " + args.username + " -P " + args.password + " user list" + " 2>nul"
-        elif sysstr == 'Linux':
+        elif sysstr == 'Linux' or sysstr == 'Darwin':
             cmd = "ipmitool -I lanplus -H " + args.host + " -U " + args.username + \
                 " -P " + args.password + " user list" + " 2>/dev/null"
         result = self.execCmd(cmd).strip()

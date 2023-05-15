@@ -16,7 +16,7 @@ def dns(client, args):
     responds = RestFunc.getDNSByRestM5(client)
     if responds['code'] == 0 and responds['data'] is not None:
         result = responds['data']
-        if platform.system() == 'Linux':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             f = open(args.backuppath + '/DNS.conf', 'wb')
         else:
             f = open(args.backuppath + '\\DNS.conf', 'wb')
@@ -31,7 +31,7 @@ def network(client, args):
     responds = RestFunc.getNetworkByRest(client)
     if responds['code'] == 0 and responds['data'] is not None:
         result = responds['data']
-        if platform.system() == 'Linux':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             f = open(args.backuppath + '/network.conf', 'w')
         else:
             f = open(args.backuppath + '\\network.conf', 'w')
@@ -60,7 +60,7 @@ def ntp(client, args):
     responds = RestFunc.getDatetimeByRest(client)
     if responds['code'] == 0 and responds['data'] is not None:
         result = responds['data']
-        if platform.system() == 'Linux':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             f = open(args.backuppath + '/NTP.conf', 'w')
         else:
             f = open(args.backuppath + '\\NTP.conf', 'w')
@@ -75,7 +75,7 @@ def smtp(client, args):
     responds = RestFunc.getSMTPM5ByRest(client)
     if responds['code'] == 0 and responds['data'] is not None:
         result = responds['data']
-        if platform.system() == 'Linux':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             f = open(args.backuppath + '/SMTP.conf', 'w')
         else:
             f = open(args.backuppath + '\\SMTP.conf', 'w')
@@ -90,7 +90,7 @@ def snmptrap(client, args):
     responds = RestFunc.getSnmpInfoByRest(client)
     if responds['code'] == 0 and responds['data'] is not None:
         result = responds['data']
-        if platform.system() == 'Linux':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             f = open(args.backuppath + '/SNMPtrap.conf', 'w')
         else:
             f = open(args.backuppath + '\\SNMPtrap.conf', 'w')
@@ -188,7 +188,7 @@ def bios(client, args):
 
 def backup(client, args):
     backtime = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         path = args.bak_file + "backup/" + args.host + "-" + backtime + "/"
     else:
         path = args.bak_file + "backup\\" + args.host + "-" + backtime + "\\"

@@ -321,7 +321,7 @@ def restore_AD(client, args, path):
 
 def restore(client, args):
     result = ResultBean
-    if platform.system() == 'Linux':
+    if platform.system() == 'Linux' or platform.system() == 'Darwin':
         file_separator = "/"
     else:
         file_separator = "\\"
