@@ -922,8 +922,10 @@ def getM5BiosVersionByIpmi(client):
     num_list = result['data']
     cmd_str = ' '.join(num_list).replace(' ', '').replace('\n', '')
     res['code'] = 0
+    res['data'] = {}
     res['data']['Version'] = __hex2ascii(cmd_str)
     return res
+
 
 def getPowerStatusByIpmi(client):
     res = {}
@@ -935,6 +937,7 @@ def getPowerStatusByIpmi(client):
     cmd_str = cmd_str.replace('\n', '')
     cmd_str = str(cmd_str).split(' ')[-1]
     res['code'] = 0
+    res['data'] = {}
     res['data']['status'] = cmd_str
     return res
 
@@ -1231,6 +1234,17 @@ def getMcInfoByIpmi(client):
     JSON['code'] = 0
     JSON['data'] = data
     return JSON
+
+
+def getFirmwareVersoinByMcinfo(client):
+    result = getMcInfoByIpmi(client)
+    if result['code'] != 0:
+        return ''
+    data = result['data']
+    bmcVersion_0 = data['firmware_revision']
+    bmcVersion_1 = eval(data['aux_firmware_rev_info'].split(";")[0])
+    bmcVersion = str(bmcVersion_0) + str(int(str(bmcVersion_1), 16)).zfill(2)
+    return bmcVersion
 
 
 # 获取M6机型web界面的登录加密方式，01加密，00不加密

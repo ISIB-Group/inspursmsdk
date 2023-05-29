@@ -439,7 +439,7 @@ class CommonM7(CommonM6):
         attr_dict = {}
         # 读取映射文件
         mapper_result = self._get_xml_mapper(args, 'value', 'cmd')
-        args.list = False
+        # args.list = False
         if mapper_result[0]:
             if 'list' in args and args.list:  # 打印信息
                 help_list = []
@@ -597,7 +597,8 @@ class CommonM7(CommonM6):
             RedfishFunc.logout(client, login_id, login_header)
             return res
 
-        set_result = RedfishFunc.setBiosV1SDByRedfish(client, user_bios, get_result.get('headers'), login_header)
+        user_bios_f = self.formatBiosPatchBody(user_bios)
+        set_result = RedfishFunc.setBiosV1SDByRedfish(client, user_bios_f, get_result.get('headers'), login_header)
         if set_result.get('code') == 0:
             res.Message([''])
             res.State("Success")
@@ -606,6 +607,9 @@ class CommonM7(CommonM6):
             res.State('Failure')
         RedfishFunc.logout(client, login_id, login_header)
         return res
+
+    def formatBiosPatchBody(self, user_bios):
+        return user_bios
 
     def _get_xml_file(self):
         xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
@@ -776,7 +780,7 @@ class CommonM7(CommonM6):
                         continue
             if errorlist != []:
                 errorinfo = ",".join(errorlist)
-                errordict[bios_all_info.get(bioskey).get("description")]=errorinfo
+                errordict[bios_all_info.get(bioskey).get("description")] = errorinfo
         if errordict == {}:
             return True, None
         else:
@@ -995,7 +999,8 @@ class CommonM7(CommonM6):
                     break
             else:
                 # 调用接口设置
-                set_server_result = RedfishFunc.setBiosV1SDByRedfish(client, set_bios, server_result.get('headers'),
+                user_bios_f = self.formatBiosPatchBody(set_bios)
+                set_server_result = RedfishFunc.setBiosV1SDByRedfish(client, user_bios_f, server_result.get('headers'),
                                                                      login_header)
                 if set_server_result.get('code') == 0:
                     bios_result.State("Success")
@@ -2218,6 +2223,8 @@ class CommonM7(CommonM6):
             result = self.updatebios(client, args)
         elif args.type == "CPLD" or args.type == "DISKBPCPLD" or args.type == "CPLD_PFR":
             result = self.updatecpld1(client, args)
+        elif args.type == "PSUFW":
+            result = self.updatepsu1(client, args)
         else:
             result.State("Not Support")
             result.Message(["Update firmware only support bmc, bios and cpld"])
@@ -3085,7 +3092,7 @@ class CommonM7(CommonM6):
                 ctr_info = IpmiFunc.powerControlByIpmi(client, "on")
                 if ctr_info:
                     if ctr_info.get('code') == 0 and ctr_info.get('data') is not None and ctr_info.get('data').get(
-                            'result') is not None:
+                            'status') is not None:
                         result.State("Success")
                         result.Message(["Set power on success"])
                         self.wirte_log(log_path, "Restart", "Set power on success", result.Message)
@@ -3474,6 +3481,332 @@ class CommonM7(CommonM6):
                         self.wirte_log(log_path, "Activate", "Data Verify Failed", result.Message)
 
                 # 判断apply是否结束
+                if result.State == "Failure" or result.State == "Success":
+                    continue
+
+    def updatepsu(self, client, args):
+        args.type = None
+        args.auto_flag = None
+        result = self.fwupdate(client, args)
+        return result
+
+    def updatepsu1(self, client, args):
+        result = ResultBean()
+        log_path = args.log_path
+        session_path = args.session_path
+        upgrade_count = 0
+        while True:
+            # 判断session是否存在，存在则logout&del
+            if os.path.exists(session_path):
+                with open(session_path, 'r') as oldsession:
+                    headers = oldsession.read()
+                    headers_json = json.loads(str(headers).replace("'", '"'))
+                    client.setHearder(headers_json)
+                    # logout
+                    RestFunc.logout(client)  # 删除session
+                if os.path.exists(session_path):
+                    os.remove(session_path)
+            # 删除
+            if result.State == "Success":
+                return result
+            elif result.State == "Abort":
+                result.State = "Failure"
+                return result
+            else:
+                if upgrade_count > retry_count:
+                    return result
+                else:
+                    if upgrade_count >= 1:
+                        # 重新升级 初始化result
+                        self.wirte_log(log_path, "Upload File", "Upgrade Retry " + str(upgrade_count) + " Times", "")
+                        result = ResultBean()
+                    upgrade_count = upgrade_count + 1
+            # login
+            headers = {}
+            logcount = 0
+            while True:
+                # 等6分钟
+                if logcount > 18:
+                    break
+                else:
+                    logcount = logcount + 1
+                    time.sleep(20)
+                # login
+                headers = RestFunc.login_M6(client)
+                if headers != {}:
+                    # 记录session
+                    with open(session_path, 'w') as new_session:
+                        new_session.write(str(headers))
+                    client.setHearder(headers)
+                    break
+                else:
+                    # print(ftime() + "Create session failed")
+                    self.wirte_log(log_path, "Upload File", "Connect Failed", "Connect number:" + str(logcount))
+            # 10次无法登陆 不再重试
+            if headers == {}:
+                result.State("Failure")
+                result.Message(["Cannot log in to BMC."])
+                return result
+            # get old version
+            fw_res = RestFunc.getFwVersion(client)
+            fw_old = {}
+            if fw_res == {}:
+                self.wirte_log(log_path, "Upload File", "Connect Failed", "Cannot get current firmware version.")
+            elif fw_res.get('code') == 0 and fw_res.get('data') is not None:
+                fwdata = fw_res.get('data')
+                for fw in fwdata:
+                    if fw.get('dev_version') == '':
+                        version = "-"
+                    else:
+                        index_version = fw.get('dev_version', "").find('(')
+                        if index_version == -1:
+                            version = fw.get('dev_version')
+                        else:
+                            version = fw.get('dev_version')[:index_version].strip()
+                    if "PSU" in fw.get("dev_name", ""):
+                        fw_old["PSUFW"] = version
+                        break
+                if args.type not in fw_old:
+                    version_info = "Cannot get current firmware version, " + str(fwdata)
+                    self.wirte_log(log_path, "Upload File", "Connect Failed", version_info)
+            else:
+                version_info = "Cannot get current firmware version, " + str(fw_res.get('data'))
+                self.wirte_log(log_path, "Upload File", "Connect Failed", version_info)
+
+            # PSU 升级自动重启，先关机
+            #
+            flag = False
+            if args.mode == "Auto" and self.getServerStatus(client) != "off":
+                flag = True
+                choices = {'on': 1, 'off': 0, 'cycle': 2, 'reset': 3, 'shutdown': 5}
+                Power = RestFunc.setM6PowerByRest(client, choices["off"])
+                if Power.get('code') == 0 and Power.get('data') is not None:
+                    off_count = 0
+                    while True:
+                        if self.getServerStatus(client) == "off" or off_count > 5:
+                            break
+                        time.sleep(10)
+                        off_count += 1
+                    if self.getServerStatus(client) != "off":
+                        result.State('Failure')
+                        result.Message(['set power off complete, but get power status error.'])
+                        self.wirte_log(log_path, "Auto Reset Server", "Get Power Status Error", result.Message)
+                        continue
+                    else:
+                        self.wirte_log(log_path, "Set Power Off", "Successfully", "")
+                else:
+                    result.State('Failure')
+                    result.Message(['set power off failed.'])
+                    self.wirte_log(log_path, "Auto Reset Server", "Set Power Off Failed", result.Message)
+                    continue
+
+            # set syn mode
+            RestFunc.securityCheckByRest(client)
+            self.wirte_log(log_path, "Upload File", "Start", "")
+
+            # upload
+            res_upload = RestFunc.uploadfirmwareByRest1(client, args.url)
+            if res_upload == {}:
+                result.State("Failure")
+                result.Message(["cannot upload firmware update file"])
+                self.wirte_log(log_path, "Upload File", "Connect Failed", "Exceptions occurred while calling interface")
+                continue
+            elif res_upload.get('code') == 0:
+                self.wirte_log(log_path, "Upload File", "Success", "")
+            else:
+                result.State("Failure")
+                result.Message(["upload firmware error, " + str(res_upload.get('data'))])
+                if res_upload.get('data', 0) == 1 or res_upload.get('data', 0) == 2:
+                    self.wirte_log(log_path, "Upload File", "File Not Exist", str(res_upload.get('data')))
+                elif res_upload.get('data', 0) == 404:
+                    self.wirte_log(log_path, "Upload File", "Invalid URI", str(res_upload.get('data')))
+                else:
+                    self.wirte_log(log_path, "Upload File", "Connect Failed", str(res_upload.get('data')))
+                continue
+
+            # verify
+            time.sleep(20)
+            self.wirte_log(log_path, "File Verify", "Start", "")
+            res_verify = RestFunc.getverifyresultByRest(client)
+            if res_verify == {}:
+                result.State("Failure")
+                result.Message(["cannot verify firmware update file"])
+                self.wirte_log(log_path, "File Verify", "Connect Failed",
+                               "Exceptions occurred while calling interface")
+                continue
+            elif res_verify.get('code') == 0:
+                self.wirte_log(log_path, "File Verify", "Success", "")
+            else:
+                result.State("Failure")
+                result.Message(["cannot verify firmware update file, " + str(res_verify.get('data'))])
+                self.wirte_log(log_path, "File Verify", "Data Verify Failed", str(res_verify.get('data')))
+                continue
+
+            # apply
+            task_dict = {"BMC": 0, "BIOS": 1, "PSUFW": 5, "CPLD": 2, "FRONTDISKBPCPLD": 3, "REARDISKBPCPLD": 4,
+                         "CPLD_PFR": 10}
+            if self.getServerStatus(client) != "off":
+                time.sleep(10)
+                res_progress = RestFunc.getTaskInfoByRest(client)
+                if res_progress == {}:
+                    result.State("Failure")
+                    result.Message(["No apply task found in task list. Call interface "
+                                    "api/maintenance/background/task_info returns: " + str(res_progress)])
+                    self.wirte_log(log_path, "Apply", "Image and Target Component Mismatch", result.Message)
+                    continue
+                elif res_progress.get('code') == 0 and res_progress.get('data') is not None:
+                    tasks = res_progress.get('data')
+                    task = None
+                    for t in tasks:
+                        if t["id"] == task_dict.get(args.type, -1):
+                            task = t
+                            break
+                    # 无任务则退出
+                    if task is None:
+                        result.State("Failure")
+                        result.Message(["No apply task found in task list." + str(res_progress)])
+                        self.wirte_log(log_path, "Apply", "Image and Target Component Mismatch", result.Message)
+                        continue
+                    if task["status"] == "FAILED":
+                        result.State("Failure")
+                        result.Message(["Apply task failed." + str(res_progress)])
+                        self.wirte_log(log_path, "Apply", "Data Verify Failed", result.Message)
+                        continue
+
+                    result.State('Success')
+                    result.Message(["Apply(FLASH) pending, host is power on now, image save in BMC FLASH and will "
+                                    "apply later, trigger: poweroff, dcpowercycle, systemreboot. (TaskId=" +
+                                    str(task_dict.get(args.type, 0)) + ")"])
+                    self.wirte_log(log_path, "Apply", "Finish", result.Message)
+                    continue
+                else:
+                    result.State("Failure")
+                    result.Message(["No apply task found in task list." + str(res_progress)])
+                    self.wirte_log(log_path, "Apply", "Image and Target Component Mismatch", result.Message)
+                    continue
+            else:
+                self.wirte_log(log_path, "Apply", "Start", "")
+                # max error number
+                error_count = 0
+                # max progress number
+                count = 0
+                # 100num  若进度10次都是100 则主动reset
+                count_100 = 0
+                # 循环查看apply进度
+                error_info = ""
+                while True:
+                    if count > 60:
+                        break
+                    if error_count > 10:
+                        break
+                    if count_100 > 5:
+                        break
+                    count = count + 1
+                    time.sleep(20)
+                    res_progress = RestFunc.getTaskInfoByRest(client)
+                    if res_progress == {}:
+                        error_count = error_count + 1
+                        error_info = 'Failed to call BMC interface api/maintenance/background/task_info ,response is none'
+                    elif res_progress.get('code') == 0 and res_progress.get('data') is not None:
+                        tasks = res_progress.get('data')
+                        task = None
+                        for t in tasks:
+                            if t["id"] == task_dict.get(args.type, -1):
+                                task = t
+                                break
+                        # 无任务则退出
+                        if task is None:
+                            result.State("Failure")
+                            result.Message(["No apply task found in task list."])
+                            self.wirte_log(log_path, "Apply", "Image and Target Component Mismatch", result.Message)
+                            break
+                        error_info = str(task)
+                        if task["status"] == "COMPLETE":
+                            break
+                        elif task["status"] == "FAILED":
+                            self.wirte_log(log_path, "Apply", "Finish", "Apply(FLASH) failed.")
+                            result.State("Failure")
+                            result.Message(["Apply(FLASH) failed."])
+                            break
+                        elif task["status"] == "CANCELED":
+                            self.wirte_log(log_path, "Apply", "Finish", "Apply(FLASH) canceled.")
+                            result.State("Failure")
+                            result.Message(["Apply(FLASH) canceled."])
+                            break
+                        else:
+                            self.wirte_log(log_path, "Apply", "In Progress",
+                                           "progress:" + str(task["progress"]) + "%")
+                            if str(task["progress"]) == 100:
+                                count_100 = count_100 + 1
+                    else:
+                        error_count = error_count + 1
+                        error_info = str(res_progress.get('data'))
+
+                # 判断apply是否结束
+                if result.State == "Failure":
+                    continue
+
+                # 获取apply进度结束
+                self.wirte_log(log_path, "Apply", "Success", "")
+
+                fw_res_new = RestFunc.getFwVersion(client)
+                fw_new = {}
+                if fw_res_new == {}:
+                    result.State("Failure")
+                    result.Message(
+                        ["Failed to call BMC interface api/version_summary, response is none"])
+                    self.wirte_log(log_path, "Activate", "Data Verify Failed", result.Message)
+                elif fw_res_new.get('code') == 0 and fw_res_new.get('data') is not None:
+                    fwdata = fw_res_new.get('data')
+                    for fw in fwdata:
+                        if fw.get('dev_version') == '':
+                            version = "-"
+                        else:
+                            index_version = fw.get('dev_version', "").find('(')
+                            if index_version == -1:
+                                version = fw.get('dev_version')
+                            else:
+                                version = fw.get('dev_version')[:index_version].strip()
+                        if "PSU" in fw.get("dev_name", ""):
+                            fw_new["PSUFW"] = version
+                            break
+
+                    if args.type in fw_new:
+                        if args.type in fw_old:
+                            versioncheck = str(args.type) + " update successfully, Version: image change from " + fw_old[args.type] + " to " + fw_new[args.type]
+                        else:
+                            versioncheck = str(args.type) + " update successfully, new version: " + fw_new[args.type]
+                        result.State("Success")
+                        result.Message([versioncheck])
+                        self.wirte_log(log_path, "Activate", "Success", versioncheck)
+                    else:
+                        versioncheck = " Cannot get " + str(args.type) + " version: " + str(fwdata)
+                        result.State("Failure")
+                        result.Message([versioncheck])
+                        self.wirte_log(log_path, "Upload File", "Connect Failed", versioncheck)
+                else:
+                    result.State("Failure")
+                    result.Message(["get new fw information error, " + str(fw_res.get('data'))])
+                    self.wirte_log(log_path, "Activate", "Data Verify Failed", result.Message)
+
+                if flag:
+                    result = ResultBean()
+                    ctr_info = IpmiFunc.powerControlByIpmi(client, "on")
+                    if ctr_info:
+                        if ctr_info.get('code') == 0 and ctr_info.get('data') is not None and ctr_info.get('data').get('result') is not None:
+                            result.State("Success")
+                            result.Message(['Update PSU complete, system auto power on success'])
+                            self.wirte_log(log_path, "Restart", "Set power on success", result.Message)
+                        else:
+                            result.State("Failure")
+                            result.Message(['Update PSU complete. But system auto reset failed, please power on manually ...'])
+                            self.wirte_log(log_path, "Restart", "Set power on failed", result.Message)
+                    else:
+                        result.State("Failure")
+                        result.Message(['set power failed.please check server manually'])
+                        self.wirte_log(log_path, "Restart", "Set power on failed", result.Message)
+
+                # 判断reboot是否结束
                 if result.State == "Failure" or result.State == "Success":
                     continue
 
@@ -5203,18 +5536,6 @@ class CommonM7(CommonM6):
         result.State("Not Support")
         result.Message(['The M7 model does not support this feature.'])
         return result
-
-    # def getpowerrestore(self, client, args):
-    #     result = ResultBean()
-    #     result.State("Not Support")
-    #     result.Message(['The M7 model does not support this feature.'])
-    #     return result
-    #
-    # def setpowerrestore(self, client, args):
-    #     result = ResultBean()
-    #     result.State("Not Support")
-    #     result.Message(['The M7 model does not support this feature.'])
-    #     return result
 
     def setpsupeak(self, client, args):
         result = ResultBean()

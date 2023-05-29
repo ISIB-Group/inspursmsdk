@@ -326,7 +326,7 @@ class NS5160M6(CommonM6):
                     import time
                     time.sleep(20)
                 # login
-                headers = RestFunc.loginNoEncrypt(client)
+                headers = RestFunc.login_M6(client)
                 if headers != {}:
                     # 记录session
                     with open(session_path, 'w') as new_session:
@@ -681,7 +681,7 @@ class NS5160M6(CommonM6):
                     wirte_log(log_path, "Activate", "BMC Reboot Failed", result.Message)
                     break
                 try:
-                    headers = RestFunc.loginNoEncrypt(client)
+                    headers = RestFunc.login_M6(client)
                     if headers != {}:
                         with open(session_path, 'w') as new_session:
                             new_session.write(str(headers))

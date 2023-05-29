@@ -65,7 +65,7 @@ class Base(IBase):
             FRUlist = []
             product = fru
             frubean = collections.OrderedDict()
-            if product['Product Name']:
+            if product.get('Product Name', None):
                 frubean["FRUName"] = product['Product Name']
             else:
                 frubean["FRUName"] = None
@@ -120,7 +120,7 @@ class Base(IBase):
             else:
                 frubean["ProductPartNumber"] = None
 
-            if product['Product Version']:
+            if product.get('Product Version', None):
                 frubean["ProductVersion"] = product['Product Version']
             else:
                 frubean["ProductVersion"] = None
@@ -1429,6 +1429,16 @@ class Base(IBase):
         return(list(filter(lambda m: not m.startswith("__") and not m.endswith("__") and callable(getattr(self, client, args, m)), dir(self, client, args))))
 
     def setbmclogcfg(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        return result
+
+    def remoteFWUpdate(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        return result
+
+    def updatepsu(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         return result

@@ -518,3 +518,24 @@ def getBIOSAttrJsonByRedfish(client, login_header, url):
             JSON['data'] = 'request failed, BMC interface ' + str(url) + ' response status code is ' + \
                            str(response.status_code) + ', text is ' + str(response.text)
     return JSON
+
+
+def remoteFWUpdate(client, data):
+    JSON = {}
+    response = client.request("POST", "redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate", json=data,
+                              auth=HTTPBasicAuth(client.username, client.passcode))
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'response is none'
+    elif response.status_code == 204 or response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = ""
+    else:
+        try:
+            res = response.json()
+            JSON['code'] = 2
+            JSON['data'] = 'request failed, response content: ' + str(res["error"]["message"]) + ' the status code is ' + str(response.status_code) + "."
+        except:
+            JSON['code'] = 1
+            JSON['data'] = 'request failed, response status code is ' + str(response.status_code)
+    return JSON

@@ -8946,8 +8946,13 @@ class CommonM5(Base):
         result.Message(['The M5 model does not support this feature.'])
         return result
 
-
     def setsmtpdest(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M5 model does not support this feature.'])
+        return result
+
+    def remoteFWUpdate(self, client, args):
         result = ResultBean()
         result.State("Not Support")
         result.Message(['The M5 model does not support this feature.'])
