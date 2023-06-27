@@ -6092,14 +6092,38 @@ class CommonM6(Base):
                     cpu_singe.EnabledSetting(True)
                     cpu_singe.ProcessorType('CPU')
                     cpu_singe.ProcessorArchitecture('x86')
-                    cpu_singe.InstructionSet('x86-64')
-                    cpu_singe.MaxSpeedMHz(cpu.get('proc_speed', None))
+                    instructionSet = 'x86-64'
+                    if 'InstructionSet' in cpu:
+                        #M6 新版本
+                        instructionSet = cpu.get('InstructionSet')
+                    elif 'instruct_set' in cpu:
+                        #M7
+                        instructionSet = cpu.get('instruct_set')
+                    cpu_singe.InstructionSet(instructionSet)
+                    cpu_singe.ProSpeedMHz(cpu.get('proc_speed', None))
+
+                    maxspeed = None
+                    if 'MaxSpeedMHz' in cpu:
+                        #M6 新版本
+                        maxspeed = cpu.get('MaxSpeedMHz')
+                    elif 'max_speed' in cpu:
+                        #M7
+                        maxspeed = cpu.get('max_speed')
+                    cpu_singe.MaxSpeedMHz(maxspeed)
                     cpu_singe.TotalCores(cpu.get('proc_used_core_count', None))
                     cpu_singe.TotalThreads(cpu.get('proc_thread_count', None))
                     cpu_singe.Socket(cpu.get('proc_id', 0))
                     cpu_singe.PROCID(cpu.get('PROC_ID', None))
                     cpu_singe.PPIN(cpu.get('ppin', None))
                     cpu_singe.TDP(cpu.get('proc_tdp'))
+                    mc = None
+                    if 'micro_code' in cpu:
+                        #M6 新版本
+                        mc = cpu.get('micro_code')
+                    elif 'micro_code_ver' in cpu:
+                        #M7
+                        mc = cpu.get('micro_code_ver')
+                    cpu_singe.MicroCode(mc)
                     cpu_singe.State('Enabled')
                     cpu_singe.Health(cpu.get('status', None))
                 else:
@@ -6149,11 +6173,10 @@ class CommonM6(Base):
             result.Message(['get memory info failed'])
         elif res.get('code') == 0 and res.get('data') is not None:
             overalhealth = RestFunc.getHealthSummaryByRest(client)
-            if overalhealth.get('code') == 0 and overalhealth.get(
-                    'data') is not None and 'memory' in overalhealth.get('data'):
-                if overalhealth.get('code') == 0 and overalhealth.get(
-                        'data') is not None and 'memory' in overalhealth.get(
-                        'data'):
+            if overalhealth.get('code') == 0 and overalhealth.get('data') is not None and \
+                    'memory' in overalhealth.get('data'):
+                if overalhealth.get('code') == 0 and overalhealth.get('data') is not None and \
+                        'memory' in overalhealth.get('data'):
                     if overalhealth.get('data').get('memory') == 'na':
                         memory_Info.OverallHealth('Absent')
                     elif overalhealth.get('data').get('memory').lower() == 'info':
@@ -6221,6 +6244,12 @@ class CommonM6(Base):
                             memory.get('mem_mod_part_num').strip())
                     else:
                         memory_singe.PartNumber(None)
+                    if 'mem_base_module' in memory:
+                        # M7
+                        memory_singe.BaseModule(memory.get('mem_base_module', None))
+                    elif 'mem_mod_BaseModuleType' in memory:
+                        # M6新版本
+                        memory_singe.BaseModule(memory.get('mem_mod_BaseModuleType', None))
                     memory_singe.Technology(
                         memory.get('mem_mod_technology', None))
                     memory_singe.MinVoltageMillivolt(
@@ -6239,14 +6268,11 @@ class CommonM6(Base):
                     else:
                         memory_singe.Health(None)
                 else:
-                    if memory.get(
-                        'mem_mod_slot',
-                            None) is None and 'mem_mod_cpu_num' in memory and 'mem_riser_num' in memory and 'mem_mod_socket_num' in memory:
-                        name = 'DIMM' + '{0}{1}{2}'.format(
-                            memory.get(
-                                'mem_mod_cpu_num', 0), memory.get(
-                                'mem_riser_num', 0), memory.get(
-                                'mem_mod_socket_num', 0))
+                    if memory.get('mem_mod_slot', None) is None and 'mem_mod_cpu_num' in memory and \
+                            'mem_riser_num' in memory and 'mem_mod_socket_num' in memory:
+                        name = 'DIMM' + '{0}{1}{2}'.format(memory.get('mem_mod_cpu_num', 0),
+                                                           memory.get('mem_riser_num', 0),
+                                                           memory.get('mem_mod_socket_num', 0))
                     else:
                         name = memory.get('mem_mod_slot', None)
                     memory_singe.CommonName(name)
@@ -8815,6 +8841,7 @@ class CommonM6(Base):
                 res['4thNTP'] = data.get('fourth_ntp', None)
                 res['5thNTP'] = data.get('fifth_ntp', None)
                 res['6thNTP'] = data.get('sixth_ntp', None)
+                res['NTPSYNCycle'] = data.get('sync_cycle_ntp', None)
             else:
                 if data['ntp_dhcp4_date'] == 'enable':
                     res['DateAutoSyn'] = 'dhcp4'
@@ -8884,8 +8911,8 @@ class CommonM6(Base):
             default_NTP_server4 = data.get('fourth_ntp', "")
             default_NTP_server5 = data.get('fifth_ntp', "")
             default_NTP_server6 = data.get('sixth_ntp', "")
-            default_NTP_dhcp4 = data['ntp_dhcp4_date']
-            default_NTP_dhcp6 = data['ntp_dhcp6_date']
+            default_NTP_dhcp4 = data['ntp_dhcp4_date', ""]
+            default_NTP_dhcp6 = data['ntp_dhcp6_date', ""]
         else:
             timeinfo.State("Failure")
             timeinfo.Message(["get bmc time error"])

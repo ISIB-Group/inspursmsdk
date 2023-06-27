@@ -263,7 +263,7 @@
                 <belongto>Processor</belongto>
                 <location>Socket Configuration-IIO Configuration-Intel VT for Directed I/O (VT-d)</location>
             </name>
-            <parent>SocketIioConfig</parent>
+            <parent>SocketMpLinkConfig</parent>
             <getter>VTdSupport</getter>
             <conditions>
                 <condition>

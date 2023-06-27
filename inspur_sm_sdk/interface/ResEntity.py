@@ -1773,6 +1773,12 @@ class NICController():
     def Location(self, value):
         self.dict['Location'] = value
 
+    def PN(self):
+        return self.dict['PN']
+
+    def PN(self, value):
+        self.dict['PN'] = value
+
 
 class NicPort():
     def __init__(self):
