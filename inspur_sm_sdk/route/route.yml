@@ -150,3 +150,6 @@ TS860-M7-A0-R0-00:
 TS860M7:
     common: CommonM7
     1.3505: CommonM7_13505
+NF8480M7:
+    common: CommonM7
+    1.3505: CommonM7_13505
