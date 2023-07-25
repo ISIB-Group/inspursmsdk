@@ -11872,7 +11872,8 @@ def createVirtualDrive(client, args):
     ctrl_id_list = []
     ctrl_type_dict = {
         "LSI": [],
-        "PMC": []
+        "PMC": [],
+        "MV": []
     }
     res = RestFunc.getRaidCtrlInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
@@ -11882,6 +11883,8 @@ def createVirtualDrive(client, args):
                 ctrl_type_dict['PMC'].append(ctrl["Name"])
             elif str(ctrl.get("RaidType")).upper() == "LSI":
                 ctrl_type_dict['LSI'].append(ctrl["Name"])
+            elif str(ctrl.get("RaidType")).upper() == "MV":
+                ctrl_type_dict['MV'].append(ctrl["Name"])
             if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
@@ -11921,8 +11924,10 @@ def createVirtualDrive(client, args):
             raidDict['Controller Name'] = ctrl_id_name_dict.get(ctrlid)
             if str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('LSI'):
                 raidDict['Controller Type'] = "LSI"
-            else:
+            elif str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('PMC'):
                 raidDict['Controller Type'] = "PMC"
+            elif str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('MV'):
+                raidDict['Controller Type'] = "MV"
             pdiskList = []
             for pd in pds:
                 if pd.get("ControllerName") == ctrl_id_name_dict.get(ctrlid):
@@ -11974,6 +11979,8 @@ def createVirtualDrive(client, args):
         result = addLogicalDisk(client, args, pds, ctrl_id_name_dict)
     elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
         result = addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict)
+    elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('MV'):
+        result = addMVLogicalDisk(client, args)
     else:
         result.State('Failure')
         result.Message(["No raid controller!"])
@@ -12103,7 +12110,7 @@ def addLogicalDisk(client, args, pds, ctrl_id_name_dict):
         "ioPolicy": args.io,
         "initState": args.init,
         "spanDepth": args.spanDepth,
-                "raidname": args.vname
+        "raidname": args.vname
     }
     for i in range(len(pd_dev_list)):
         data["pdDeviceIndex" + str(i)] = pd_dev_list[i]
@@ -12194,12 +12201,47 @@ def addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict):
     return result
 
 
+def addMVLogicalDisk(client, args):
+    result = ResultBean()
+    if args.size is None:
+        result.State('Failure')
+        result.Message(['some parameters are missing'])
+        return result
+
+    if args.vname is None:
+        args.vname = "logicName1"
+
+    stripsize_dict_mv = {0: 0, 1: 1}
+    args.size = stripsize_dict_mv.get(args.size, 0)
+    data = {
+        "ctrlId": args.ctrlId,
+        "numPD": 2,
+        "pd_deviceIndex0": 0,
+        "pd_deviceIndex1": 1,
+        "raidLevel": "1",
+        "stripSize": args.size,
+        "VDName": args.vname
+    }
+    res = RestFunc.createMVVirtualDrive(client, data)
+    if res == {}:
+        result.State("Failure")
+        result.Message(["create virtual drive failed"])
+    elif res.get('code') == 0 and res.get('data') is not None:
+        result.State('Success')
+        result.Message(['create virtual drive successful.'])
+    else:
+        result.State("Failure")
+        result.Message(['create virtual drive failed, ' + str(res.get('data'))])
+    return result
+
+
 def setVirtualDrive(client, args):
     result = ResultBean()
     ctrl_id_name_dict = {}
     ctrl_type_dict = {
         "LSI": [],
-        "PMC": []
+        "PMC": [],
+        "MV": []
     }
     ctrl_id_list = []
     res = RestFunc.getRaidCtrlInfo(client)
@@ -12208,8 +12250,10 @@ def setVirtualDrive(client, args):
         for ctrl in ctrls:
             if str(ctrl.get("RaidType")).upper() == "PMC":
                 ctrl_type_dict['PMC'].append(ctrl["Name"])
-            else:
+            elif str(ctrl.get("RaidType")).upper() == "LSI":
                 ctrl_type_dict['LSI'].append(ctrl["Name"])
+            elif str(ctrl.get("RaidType")).upper() == "MV":
+                ctrl_type_dict['MV'].append(ctrl["Name"])
             if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
@@ -12299,6 +12343,12 @@ def setVirtualDrive(client, args):
             result.State('Failure')
             result.Message(["Please input duration parameter while setting LOC of logical drive under PMC raid controller."])
             return result
+    elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('MV'):
+        ctrl_type = "MV"
+        if args.option != "DEL":
+            result.State('Failure')
+            result.Message(["Logical drive under MV raid controller only support DEL."])
+            return result
     else:
         ctrl_type = "LSI"
 
@@ -12337,6 +12387,8 @@ def setVirtualDrive(client, args):
     elif args.delete is not None:
         if args.ctrl_type == "LSI":
             res = RestFunc.deleteLogicalDisk(client, args.ctrlId, args.ldiskId)
+        elif args.ctrl_type == "MV":
+            res = RestFunc.deleteMVLogicalDisk(client, args.ctrlId, args.ldiskId)
         else:
             res = RestFunc.deleteLogicalDiskPMC(client, args.ctrlId, args.ldiskId)
     if res == {}:

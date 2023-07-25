@@ -6995,141 +6995,6 @@ def setAllPolicy(client, data):
     return JSON
 
 
-# storage
-def getRaidCtrlInfo(client):
-    JSON = {}
-    URL = "api/raid/getraidCtrlInfo"
-    response = client.request("GET", URL, client.getHearder())
-    if response is None:
-        JSON['code'] = 1
-        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
-    elif response.status_code == 200:
-        result = response.json()
-        JSON['code'] = 0
-        JSON['data'] = result
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("[GET]" + URL, response)
-    return JSON
-
-
-def getPhysicalDiskInfo(client):
-    JSON = {}
-    URL = "api/raid/getphysicalDiskInfo"
-    response = client.request("GET", URL, client.getHearder())
-    if response is None:
-        JSON['code'] = 1
-        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
-    elif response.status_code == 200:
-        result = response.json()
-        JSON['code'] = 0
-        JSON['data'] = result
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("[GET]" + URL, response)
-    return JSON
-
-
-def getLogicalDiskInfo(client):
-    JSON = {}
-    URL = "api/raid/getlogicalDiskInfo"
-    response = client.request("GET", URL, client.getHearder())
-    if response is None:
-        JSON['code'] = 1
-        JSON['data'] = 'Failed to call BMC interface [GET]' + URL + ', response is none'
-    elif response.status_code == 200:
-        result = response.json()
-        JSON['code'] = 0
-        JSON['data'] = result
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("[GET]" + URL, response)
-    return JSON
-
-
-# EraseStop
-# EraseSimple
-# EraseNormal
-# EraseThrough
-def erasePhysicalDisk(client, ctrlId, diskid, option):
-    data = {
-        'ctrlId': ctrlId,
-        'deviceId': diskid,
-        'data': option
-    }
-    JSON = {}
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/erasePD", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/erasePD, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = "erase pysical disk success."
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/erasePD", r)
-    return JSON
-
-
-def setPhysicalDisk(client, ctrlId, diskid, status):
-    data = {
-        'ctrlId': ctrlId,
-        'deviceId': diskid,
-        'data': status
-    }
-    JSON = {}
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/setPDState", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/setPDState, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = "set pysical disk success."
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/setPDState", r)
-    return JSON
-
-
-def locateLogicalDisk(client, ctrlId, diskid, ledstate):
-    '''
-    locate disk
-    :param client:
-    :param ctrlId:
-    :param diskid:
-    :param ledstate:
-    :return:
-    '''
-    data = {
-        'ctrlId': ctrlId,
-        'deviceId': diskid,
-        'data': ledstate
-    }
-    JSON = {}
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/locateLD", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/locateLD, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = ledstate
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/locateLD", r)
-    return JSON
-
 def locateLogicalDiskPMC(client, ctrlId, diskid, ledstate, duration):
     location_dict = {
         "StartLocate": 0,
@@ -7191,63 +7056,6 @@ def locateLogicalDiskPMC_41401(client, ctrlId, diskid, ledstate, duration):
         JSON['data'] = formatError("api/raid/Locate_start_stop_LogicalDisk", r)
     return JSON
 
-# "StopInit"
-# "FastInit"
-# "SlowFullInit"
-def initLogicalDisk(client, ctrlId, diskid, ledstate):
-    '''
-    locate disk
-    :param client:
-    :param ctrlId:
-    :param diskid:
-    :param ledstate:
-    :return:
-    '''
-    data = {
-        'ctrlId': ctrlId,
-        'deviceId': diskid,
-        'data': ledstate
-    }
-    JSON = {}
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/initLD", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/initLD, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = ledstate
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/initLD", r)
-    return JSON
-
-
-def deleteLogicalDisk(client, ctrlId, diskid):
-    data = {
-        'ctrlId': ctrlId,
-        'deviceId': diskid
-    }
-    JSON = {}
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/deleteLD", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/deleteLD, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = ""
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/deleteLD", r)
-    return JSON
-
 
 def deleteLogicalDiskPMC(client, ctrlId, diskid):
     data = {
@@ -7295,65 +7103,43 @@ def deleteLogicalDiskPMC_41401(client, ctrlId, diskid):
     return JSON
 
 
-def setRaidCtrlProperties(client, ctrlId, jbod, smartEr):
+def createMVVirtualDrive(client, data):
+    JSON = {}
+    header = client.getHearder()
+    r = client.request("POST", "api/raid/setMVVDAdd", data=None, json=data, headers=header)
+    if r is None:
+        JSON["code"] = 1
+        JSON[
+            "data"] = 'Failed to call BMC interface api/raid/setMVVDAdd, response is none'
+    elif r.status_code == 200:
+        JSON["code"] = 0
+        JSON["data"] = ""
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/raid/setMVVDAdd", r)
+    return JSON
+
+
+def deleteMVLogicalDisk(client, ctrlId, diskid):
     data = {
         'ctrlId': ctrlId,
-        'JBOD': jbod,
-        'smartEr': smartEr
+        'deviceId': diskid
     }
     JSON = {}
     header = client.getHearder()
     # header["X-Requested-With"] = "XMLHttpRequest"
     # header["Content-Type"] = "application/json;charset=UTF-8"
     # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/setRaidCtrlProperties", data=None, json=data, headers=header)
+    r = client.request("POST", "api/raid/setMVVDDel", data=None, json=data, headers=header)
     if r is None:
         JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/setRaidCtrlProperties, response is none'
+        JSON["data"] = 'Failed to call BMC interface api/raid/deleteLD, response is none'
     elif r.status_code == 200:
         JSON["code"] = 0
         JSON["data"] = ""
     else:
         JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/setRaidCtrlProperties", r)
-    return JSON
-
-
-def addLogicalDisk(client, data):
-    JSON = {}
-    # print(data)
-    header = client.getHearder()
-    # header["X-Requested-With"] = "XMLHttpRequest"
-    # header["Content-Type"] = "application/json;charset=UTF-8"
-    # header["Cookie"] = "" + header["Cookie"] + ";refresh_disable=1"
-    r = client.request("POST", "api/raid/addLogicalDisk", data=None, json=data, headers=header)
-    if r is None:
-        JSON["code"] = 1
-        JSON["data"] = 'Failed to call BMC interface api/raid/addLogicalDisk, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = ""
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/raid/addLogicalDisk", r)
-    return JSON
-
-
-def createVirtualDrive(client, data):
-    JSON = {}
-    header = client.getHearder()
-    r = client.request("PUT", "api/settings/raid_management/create_virtual_drive", data=None, json=data,
-                       headers=header, timeout=600)
-    if r is None:
-        JSON["code"] = 1
-        JSON[
-            "data"] = 'Failed to call BMC interface api/settings/raid_management/create_virtual_drive, response is none'
-    elif r.status_code == 200:
-        JSON["code"] = 0
-        JSON["data"] = ""
-    else:
-        JSON['code'] = 1
-        JSON['data'] = formatError("api/settings/raid_management/create_virtual_drive", r)
+        JSON['data'] = formatError("api/raid/deleteLD", r)
     return JSON
 
 
@@ -7399,6 +7185,7 @@ def getNCSI4jd(client):
         JSON['code'] = 1
         JSON['data'] = formatError("api/settings/ncsi-interfaces-normal", response)
     return JSON
+
 
 # {"NIC_Name":"OCP","Swtich_Mode":"AutoFailover","Port_Status":0}
 # {"NIC_Name": "OCP", "Swtich_Mode": "AutoFailover", "Port_Status": 0 }

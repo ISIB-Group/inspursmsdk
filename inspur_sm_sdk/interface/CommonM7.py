@@ -9,7 +9,7 @@ import collections
 
 from inspur_sm_sdk.util import RegularCheckUtil, RequestClient, fileUtil, configUtil
 from inspur_sm_sdk.command import RestFunc, IpmiFunc, RedfishFunc
-from inspur_sm_sdk.interface.CommonM6 import CommonM6, addPMCLogicalDisk
+from inspur_sm_sdk.interface.CommonM6 import CommonM6, addPMCLogicalDisk, addMVLogicalDisk
 from inspur_sm_sdk.interface.ResEntity import (
     ResultBean,
     SnmpBean,
@@ -5861,7 +5861,8 @@ def createVirtualDrive(client, args):
     ctrl_id_list = []
     ctrl_type_dict = {
         "LSI": [],
-        "PMC": []
+        "PMC": [],
+        "MV": []
     }
     res = RestFunc.getRaidCtrlInfo(client)
     if res.get('code') == 0 and res.get('data') is not None:
@@ -5871,6 +5872,8 @@ def createVirtualDrive(client, args):
                 ctrl_type_dict['PMC'].append(ctrl["Name"])
             elif str(ctrl.get("RaidType")).upper() == "LSI":
                 ctrl_type_dict['LSI'].append(ctrl["Name"])
+            elif str(ctrl.get("RaidType")).upper() == "MV":
+                ctrl_type_dict['MV'].append(ctrl["Name"])
             if "Index" in ctrl.keys():
                 ctrl_id_name_dict[ctrl["Index"]] = ctrl["Name"]
                 ctrl_id_list.append(str(ctrl["Index"]))
@@ -5910,8 +5913,10 @@ def createVirtualDrive(client, args):
             raidDict['Controller Name'] = ctrl_id_name_dict.get(ctrlid)
             if str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('LSI'):
                 raidDict['Controller Type'] = "LSI"
-            else:
+            elif str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('PMC'):
                 raidDict['Controller Type'] = "PMC"
+            elif str(ctrl_id_name_dict.get(ctrlid)) in ctrl_type_dict.get('MV'):
+                raidDict['Controller Type'] = "MV"
             pdiskList = []
             for pd in pds:
                 if pd.get("ControllerName") == ctrl_id_name_dict.get(ctrlid):
@@ -5963,6 +5968,8 @@ def createVirtualDrive(client, args):
         result = addLogicalDisk(client, args, pds, ctrl_id_name_dict)
     elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('PMC'):
         result = addPMCLogicalDisk(client, args, pds, ctrl_id_name_dict)
+    elif str(ctrl_id_name_dict.get(args.ctrlId)) in ctrl_type_dict.get('MV'):
+        result = addMVLogicalDisk(client, args)
     else:
         result.State('Failure')
         result.Message(["No raid controller!"])
