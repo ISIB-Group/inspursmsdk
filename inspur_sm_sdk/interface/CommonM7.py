@@ -5922,7 +5922,7 @@ def createVirtualDrive(client, args):
                 if pd.get("ControllerName") == ctrl_id_name_dict.get(ctrlid):
                     LSI_flag = True
                     pdiskDict = collections.OrderedDict()
-                    pdiskDict['Slot Number'] = pd.get("SlotNum")
+                    pdiskDict['Slot Number'] = pd.get("SlotNum", pd.get("slotNum"))
                     pdiskDict['Drive Name'] = pd.get("Name")
                     if "InterfaceType" in pd:
                         pdiskDict['Interface'] = pd.get("InterfaceType")
@@ -5931,17 +5931,17 @@ def createVirtualDrive(client, args):
                     else:
                         pdiskDict['Interface'] = None
                     if "MediaType" in pd:
-                        pdiskDict['Media Type'] = pd.get("MediaType")
+                        pdiskDict['Media Type'] = pd.get("MediaType",)
                     elif "type" in pd:
                         pdiskDict['Media Type'] = pd.get("type")
                     else:
-                        pdiskDict['Media Type'] = None
+                        pdiskDict['Media Type'] = pd.get("mediaType")
                     if "NONCoercedSize" in pd:
                         pdiskDict['Capacity'] = pd.get("NONCoercedSize")
                     elif "size" in pd:
                         pdiskDict['Capacity'] = pd.get("size")
                     else:
-                        pdiskDict['Capacity'] = None
+                        pdiskDict['Capacity'] = pd.get("cap")
                     if "FWState" in pd:
                         pdiskDict['Firmware State'] = pd.get("FWState")
                     else:
