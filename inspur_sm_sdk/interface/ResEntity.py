@@ -5100,3 +5100,102 @@ class Gpu():
     def GPUTemp(self, value):
         self.dict['GPUTemp'] = value
 
+
+class HBABean():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def Id(self):
+        return self.dict['Id']
+
+    def Id(self, value):
+        self.dict['Id'] = value
+
+    def Name(self):
+        return self.dict['Name']
+
+    def Name(self, value):
+        self.dict['Name'] = value
+
+    def Pn(self):
+        return self.dict['Pn']
+
+    def Pn(self, value):
+        self.dict['Pn'] = value
+
+    def Manufacturer(self):
+        return self.dict['Manufacturer']
+
+    def Manufacturer(self, value):
+        self.dict['Manufacturer'] = value
+
+    def PortCount(self):
+        return self.dict['PortCount']
+
+    def PortCount(self, value):
+        self.dict['PortCount'] = value
+
+    def Present(self):
+        return self.dict['Present']
+
+    def Present(self, value):
+        self.dict['Present'] = value
+
+    def HbaTemp(self):
+        return self.dict['HbaTemp']
+
+    def HbaTemp(self, value):
+        self.dict['HbaTemp'] = value
+
+    def Vendor(self):
+        return self.dict['Vendor']
+
+    def Vendor(self, value):
+        self.dict['Vendor'] = value
+
+    def SN(self):
+        return self.dict['SN']
+
+    def SN(self, value):
+        self.dict['SN'] = value
+
+    def HBAPost(self):
+        return self.dict['Posts']
+
+    def HBAPost(self, value):
+        self.dict['Posts'] = value
+
+
+class HBAPost():
+    def __init__(self):
+        self.dict = collections.OrderedDict()
+
+    def Id(self):
+        return self.dict['Id']
+
+    def Id(self, value):
+        self.dict['Id'] = value
+
+    def PortWWPN(self):
+        return self.dict['PortWWPN']
+
+    def PortWWPN(self, value):
+        self.dict['PortWWPN'] = value
+
+    def PortWWNN(self):
+        return self.dict['PortWWNN']
+
+    def PortWWNN(self, value):
+        self.dict['PortWWNN'] = value
+
+    def PortLinkState(self):
+        return self.dict['PortLinkState']
+
+    def PortLinkState(self, value):
+        self.dict['PortLinkState'] = value
+
+    def PortLinkSpeed(self):
+        return self.dict['PortLinkSpeed']
+
+    def PortLinkSpeed(self, value):
+        self.dict['PortLinkSpeed'] = value

@@ -8958,6 +8958,12 @@ class CommonM5(Base):
         result.Message(['The M5 model does not support this feature.'])
         return result
 
+    def gethba(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message(['The M5 model does not support this feature.'])
+        return result
+
 
 def getWeek(binr):
     bin_dict = {1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thur', 5: 'Fri', 6: 'Sat', 7: 'Sun'}

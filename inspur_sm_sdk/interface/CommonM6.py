@@ -11798,6 +11798,55 @@ class CommonM6(Base):
         result.Message(['The M6 model does not support this feature.'])
         return result
 
+    def gethba(self, client, args):
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        result = ResultBean()
+
+        hba_info = RestFunc.getHBAInfoByRest(client)
+        if hba_info == {}:
+            result.State('Failure')
+            result.Message(['get hba info failed'])
+        elif hba_info.get('code') == 0 and hba_info.get('data') is not None:
+            hba_data = hba_info.get('data')
+            hba_dict = {0: 'No', 1: 'Yes'}
+            hba_list = []
+            for hba in hba_data:
+                hba_result = HBABean()
+                hba_result.Id(hba.get('id', 0))
+                hba_result.Name(hba.get('Name', None))
+                hba_result.Manufacturer(hba.get('Manufacturer', None))
+                hba_result.HbaTemp(hba.get('Vendor', None))
+                hba_result.SN(hba.get('sn', 0))
+                hba_result.Present(hba_dict.get(hba.get('Present', 0)))
+                hba_result.PortCount(hba.get('PortCount', 0))
+                ports = hba.get('ports', [])
+                postList = []
+                for port in ports:
+                    hba_post = HBAPost()
+                    hba_post.Id(port.get('id', 0))
+                    hba_post.PortWWPN(port.get('PortWWPN', None))
+                    hba_post.PortWWNN(port.get('PortWWNN', None))
+                    hba_post.PortLinkState(port.get('PortLinkState', None))
+                    hba_post.PortLinkSpeed(port.get('PortLinkSpeed', 0))
+                    postList.append(hba_post.dict)
+                hba_result.HBAPost(postList)
+                hba_list.append(hba_result.dict)
+            result.State("Success")
+            result.Message(hba_list)
+        else:
+            result.State("Failure")
+            result.Message(["get hba info error, error code " + str(
+                hba_info.get('code')) + ", error info: " + str(hba_info.get('data'))])
+
+        RestFunc.logout(client)
+        return result
 
 
 # 检查日志进度，进度到100 后下载文件

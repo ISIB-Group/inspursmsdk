@@ -7774,6 +7774,21 @@ def setRemotesession(client, remote_session_info):
     return JSON
 
 
+def getHBAInfoByRest(client):
+    JSON = {}
+    response = client.request("GET", "api/status/hba_info", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/status/hba_info, response is none'
+    elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/status/hba_info", response)
+    return JSON
+
 class NF5280M5_SensorType():
     def __init__(self):
         self.getSensorTypeKey = getSensorTypeKey

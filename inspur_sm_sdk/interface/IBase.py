@@ -565,3 +565,9 @@ class IBase():
 
         :return:
         """
+
+    def gethba(self, client, args):
+        """
+
+        :return:
+        """

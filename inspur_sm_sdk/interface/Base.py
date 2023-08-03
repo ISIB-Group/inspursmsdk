@@ -1431,17 +1431,27 @@ class Base(IBase):
     def setbmclogcfg(self, client, args):
         result = ResultBean()
         result.State("Not Support")
+        result.Message([])
         return result
 
     def remoteFWUpdate(self, client, args):
         result = ResultBean()
         result.State("Not Support")
+        result.Message([])
         return result
 
     def updatepsu(self, client, args):
         result = ResultBean()
         result.State("Not Support")
+        result.Message([])
         return result
+
+    def gethba(self, client, args):
+        result = ResultBean()
+        result.State("Not Support")
+        result.Message([])
+        return result
+
 # Ascii转十六进制
 
 
