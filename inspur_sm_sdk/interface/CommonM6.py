@@ -8911,8 +8911,8 @@ class CommonM6(Base):
             default_NTP_server4 = data.get('fourth_ntp', "")
             default_NTP_server5 = data.get('fifth_ntp', "")
             default_NTP_server6 = data.get('sixth_ntp', "")
-            default_NTP_dhcp4 = data['ntp_dhcp4_date', ""]
-            default_NTP_dhcp6 = data['ntp_dhcp6_date', ""]
+            default_NTP_dhcp4 = data.get('ntp_dhcp4_date', "")
+            default_NTP_dhcp6 = data.get('ntp_dhcp6_date', "")
         else:
             timeinfo.State("Failure")
             timeinfo.Message(["get bmc time error"])
@@ -12740,9 +12740,9 @@ def addADGroup(client, args):
         'role_group_domain': args.domain,
         'role_group_kvm_privilege': kvm_vm.get(args.kvm.lower()),
         'role_group_name': args.name,
-        'role_group_privilege': "none",
+        'role_group_privilege': args.pri,
         'role_group_vmedia_privilege': kvm_vm.get(args.vm.lower()),
-        'role_group_withoem_privilege': args.pri
+        'role_group_withoem_privilege': "none"
     }
     # print(adgroup)
     set_res = RestFunc.setADgroupM6(client, adgroup)
@@ -12806,8 +12806,8 @@ def setADGroup(client, args):
         return result
 
     if args.pri is not None:
-        adgroup['role_group_withoem_privilege'] = args.pri
-    if adgroup['role_group_withoem_privilege'] == "":
+        adgroup['role_group_privilege'] = args.pri
+    if adgroup['role_group_privilege'] == "":
         result.State("Failure")
         result.Message(['Group privilege is needed.'])
         return result

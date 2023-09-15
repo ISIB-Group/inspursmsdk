@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '2.1.2'
+__version__ = '2.1.3'
 
 
 ERR_dict = {
@@ -109,24 +109,24 @@ def main(params):
         resultJson = targetMed(client, args)
     except Exception as e:
         # 保留日志
-        # import traceback
-        # utool_path = os.path.dirname(os.path.abspath(__file__))
-        # # print(utool_path)
-        # log_path = os.path.join(utool_path, "log")
-        # if not os.path.exists(log_path):
-        #     os.makedirs(log_path)
-        # # TIME
-        # localtime = time.localtime()
-        # f_localdate = time.strftime("%Y-%m-%d", localtime)
-        # f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
-        #
-        # log_file = os.path.join(log_path, f_localdate)
-        # args.items()
-        # res_info = "[" + args.subcommand + "]" + traceback.format_exc()
-        # with open(log_file, 'a+') as logfile:
-        #     utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
-        #     logfile.write(utoollog)
-        #     logfile.write("\n")
+        import traceback
+        utool_path = os.path.dirname(os.path.abspath(__file__))
+        # print(utool_path)
+        log_path = os.path.join(utool_path, "log")
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+        # TIME
+        localtime = time.localtime()
+        f_localdate = time.strftime("%Y-%m-%d", localtime)
+        f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
+
+        log_file = os.path.join(log_path, f_localdate)
+        args.items()
+        res_info = "[" + args.subcommand + "]" + traceback.format_exc()
+        with open(log_file, 'a+') as logfile:
+            utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
+            logfile.write(utoollog)
+            logfile.write("\n")
 
         res['State'] = "Failure"
         res['Message'] = ["Error occurs, request failed..."]

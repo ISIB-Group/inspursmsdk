@@ -156,3 +156,12 @@ NF8480M7:
 NF5170M7:
     common: CommonM7
     1.3505: CommonM7_13505
+NF5466M7:
+    common: CommonM7
+    1.3505: CommonM7_13505
+NF5466-M7-A0-R0-00:
+    common: CommonM7
+    1.3505: CommonM7_13505
+NF5466-M7-C0-R0-00:
+    common: CommonM7
+    1.3505: CommonM7_13505
