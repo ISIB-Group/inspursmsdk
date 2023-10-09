@@ -9,17 +9,17 @@ from inspur_sm_sdk.interface.ResEntity import ResultBean
 
 class CommonA6(CommonM5):
 
-    def getsnmp(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The A6 model does not support this feature.'])
-        return result
-
-    def setsnmp(self, client, args):
-        result = ResultBean()
-        result.State("Not Support")
-        result.Message(['The A6 model does not support this feature.'])
-        return result
+    # def getsnmp(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The A6 model does not support this feature.'])
+    #     return result
+    #
+    # def setsnmp(self, client, args):
+    #     result = ResultBean()
+    #     result.State("Not Support")
+    #     result.Message(['The A6 model does not support this feature.'])
+    #     return result
 
     def clearsystemlog(self, client, args):
         result = ResultBean()
