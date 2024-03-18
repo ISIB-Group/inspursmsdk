@@ -7,5 +7,5 @@ Circumstance instruction:
 inspursmsdk relies on the Ipmitool tool.
 
 Main steps:
-install inspursmsdk
+pip install inspursmsdk
 yum istall ipmitool
