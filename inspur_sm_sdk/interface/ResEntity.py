@@ -1731,6 +1731,12 @@ class NICController():
     def Id(self, value):
         self.dict['Id'] = value
 
+    def PortType(self):
+        return self.dict['PortType']
+
+    def PortType(self, value):
+        self.dict['PortType'] = value
+
     def Manufacturer(self):
         return self.dict['Manufacturer']
 
@@ -2116,6 +2122,30 @@ class Pcie():
 
     def VendorID(self, value):
         self.dict['VendorID'] = value
+
+    def DeviceName(self):
+        return self.dict['DeviceName']
+
+    def DeviceName(self, value):
+        self.dict['DeviceName'] = value
+
+    def VendorName(self):
+        return self.dict['VendorName']
+
+    def VendorName(self, value):
+        self.dict['VendorName'] = value
+
+    def SubDeviceID(self):
+        return self.dict['SubDeviceID']
+
+    def SubDeviceID(self, value):
+        self.dict['SubDeviceID'] = value
+
+    def SubVendorID(self):
+        return self.dict['SubVendorID']
+
+    def SubVendorID(self, value):
+        self.dict['SubVendorID'] = value
 
     def RatedLinkSpeed(self):
         return self.dict['RatedLinkSpeed']

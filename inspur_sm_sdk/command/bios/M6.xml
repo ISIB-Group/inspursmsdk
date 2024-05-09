@@ -1598,7 +1598,6 @@
                 <setter>
                     <cmd>$in</cmd>
                     <value>$in:0~38</value>
-                    <validation>com.inspur.ism.server.service.bios.BiosItemValueValidate.validateWaitTime</validation>
                 </setter>
             </setters>
         </cfgItem>

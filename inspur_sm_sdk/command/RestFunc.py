@@ -24,6 +24,9 @@ import requests
 sys.path.append(os.path.dirname(sys.path[0]))
 
 retry_count = 3
+# M7 加密方式，0 不加密，1 RSA加密，2 Blowfish 加密
+# global encrypt_type_flag
+encrypt_type_flag = 0
 
 
 def formatError(url, response):
@@ -1054,10 +1057,14 @@ def getMediaRedirectionGeneralSettingsByRest(client):
     return JSON
 
 
-def setMediaRedirection(client, mediaSettings):
-    # print(mediaSettings)
-    flag = IpmiFunc.judge_encrypt(client)
-    if flag == 1:
+def setMediaRedirection(client, mediaSettings, ff="M6"):
+    if ff == "H2":
+        return setMediaRedirectionH2(client, mediaSettings)
+    if encrypt_type_flag == 1:
+        mediaSettings['cd_remote_password'] = encrypt_rsa(mediaSettings['cd_remote_password'], client.type)
+        mediaSettings['hd_remote_password'] = encrypt_rsa(mediaSettings['hd_remote_password'], client.type)
+        mediaSettings['encrypt_flag'] = 1
+    elif encrypt_type_flag == 2:
         mediaSettings['cd_remote_password'] = Encrypt(mediaSettings['cd_remote_password'])
         mediaSettings['hd_remote_password'] = Encrypt(mediaSettings['hd_remote_password'])
         mediaSettings['encrypt_flag'] = 1
@@ -1067,6 +1074,31 @@ def setMediaRedirection(client, mediaSettings):
         JSON['code'] = 1
         JSON['data'] = 'Failed to call BMC interface api/settings/media/general, response is none'
     elif response.status_code == 200:
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/media/general", response)
+    return JSON
+
+
+def setMediaRedirectionH2(client, mediaSettings):
+    if encrypt_type_flag == 1:
+        mediaSettings['cd_remote_password'] = encrypt_rsa(mediaSettings['cd_remote_password'], 'H2')
+        mediaSettings['hd_remote_password'] = encrypt_rsa(mediaSettings['hd_remote_password'], 'H2')
+        mediaSettings['encrypt_flag'] = 1
+    elif encrypt_type_flag == 2:
+        mediaSettings['cd_remote_password'] = Encrypt(mediaSettings['cd_remote_password'])
+        mediaSettings['hd_remote_password'] = Encrypt(mediaSettings['hd_remote_password'])
+        mediaSettings['encrypt_flag'] = 1
+    # print(mediaSettings)
+    response = client.request("PUT", "api/settings/media/general", client.getHearder(), data=None, json=mediaSettings)
+    JSON = {}
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/media/general, response is none'
+    elif response.status_code in range(200, 300):
         result = response.json()
         JSON['code'] = 0
         JSON['data'] = result
@@ -1291,7 +1323,7 @@ def addUserByRestM5(client, id, data):
     return JSON
 
 
-def addUserByRestM6(client, args):
+def addUserByRestM6(client, args, ff="M6"):
     JSON = {}
     if args.uname is None or args.uname == "":
         JSON['code'] = 1
@@ -1300,8 +1332,18 @@ def addUserByRestM6(client, args):
 
     # uname = Encrypt(args.uname, "add")
     # upass = Encrypt(args.upass, "add")
-    uname = args.uname
-    upass = args.upass
+    if encrypt_type_flag == 1:
+        uname = encrypt_rsa(args.uname, client.type)
+        upass = encrypt_rsa(args.upass, client.type)
+        session_confirm = encrypt_rsa(args.passcode, client.type)
+    elif encrypt_type_flag == 2:
+        uname = Encrypt(args.uname, "addadd")
+        upass = Encrypt(args.upass, "addadd")
+        session_confirm = ""
+    else:
+        uname = args.uname
+        upass = args.upass
+        session_confirm = ""
 
     data = {"OEMProprietary_level_Privilege": 1,
             "UserOperation": 0,
@@ -1321,7 +1363,7 @@ def addUserByRestM6(client, args):
             "password_size": "bytes_16",
             "prev_snmp": 0,
             "privilege": "",
-            "session_confirm": "",
+            "session_confirm": session_confirm,
             "snmp": 0,
             "snmp_access": 0,
             "snmp_authentication_protocol": None,
@@ -1373,12 +1415,22 @@ def setUserByRest(client, args):
     return JSON
 
 
-def setUserByRestM6(client, args):
+def setUserByRestM6(client, args, ff="M6"):
     JSON = {}
     if args.uname is None or args.uname == "":
         JSON['code'] = 1
         JSON['data'] = 'uname cannot be none'
         return JSON
+    if encrypt_type_flag == 2:
+        args.json['confirm_password'] = Encrypt(args.json['confirm_password'], "addadd")
+        args.json['password'] = Encrypt(args.json['password'], "addadd")
+        args.json['session_confirm'] = Encrypt(args.json['session_confirm'], "addadd")
+        args.json['name'] = Encrypt(args.json['name'], "addadd")
+    elif encrypt_type_flag == 1:
+        args.json['confirm_password'] = encrypt_rsa(args.json['confirm_password'], client.type)
+        args.json['password'] = encrypt_rsa(args.json['password'], client.type)
+        args.json['session_confirm'] = encrypt_rsa(args.json['session_confirm'], client.type)
+        args.json['name'] = encrypt_rsa(args.json['name'], client.type)
     response = client.request("PUT", "api/settings/users/" + str(args.userid), client.getHearder(), data=None,
                               json=args.json)
     if response is None:
@@ -2755,6 +2807,7 @@ def loginNoEncrypt(client):
 
 
 def login_M6(client):
+    global encrypt_type_flag
     try:
         headers = {}
         flag = IpmiFunc.judge_encrypt(client)
@@ -2768,11 +2821,27 @@ def login_M6(client):
                     "login_tag": randomtag.json().get('random')
                 }
                 response = client.request("POST", "api/session", data=data)
-                if response is not None and response.status_code == 200:
+                if response is not None and response.status_code in range(200, 300):
+                    encrypt_type_flag = 2
                     headers = {
                         "X-CSRFToken": response.json()["CSRFToken"],
                         "Cookie": response.headers["set-cookie"]
                     }
+                else:
+                    # M6 好像也没有RSA加密方式
+                    data = {
+                        "username": encrypt_rsa(client.username, client.type),
+                        "password": encrypt_rsa(client.passcode, client.type),
+                        "encrypt_flag": 1,
+                        "login_tag": randomtag.json().get('random')
+                    }
+                    response = client.request("POST", "api/session", data=data)
+                    if response is not None and response.status_code in range(200, 300):
+                        encrypt_type_flag = 1
+                        headers = {
+                            "X-CSRFToken": response.json()["CSRFToken"],
+                            "Cookie": response.headers["set-cookie"]
+                        }
         else:
             data = {
                 "username": client.username,
@@ -2780,6 +2849,7 @@ def login_M6(client):
             }
             response = client.request("POST", "api/session", data=data)
             if response is not None and response.status_code == 200:
+                encrypt_type_flag = 0
                 headers = {
                     "X-CSRFToken": response.json()["CSRFToken"],
                     "Cookie": response.headers["set-cookie"]
@@ -2787,6 +2857,44 @@ def login_M6(client):
     except:
         headers = {}
     return headers
+
+
+def encrypt_rsa(sourceStr, ff="M7"):
+    try:
+        if sourceStr is None or sourceStr == "":
+            return sourceStr
+        from Crypto.Cipher import PKCS1_v1_5
+        from Crypto.PublicKey import RSA
+        if ff == "M6":
+            encrypt_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv03c1doV6WQiuElhNqb\n" \
+                      "WatOf/va4K7fYjKpFjgpZ+yP0GVJEUtVDBr0Ohb9RWajX1K2OvWiwc1bWpG3Nd3vdOep8edzDp7d6Z\n" \
+                      "74Pno0JG7DwJqP9zNCwJjAiPy9Yqd+TK/++JwdTQkW2CrhIF58vFIKEfMGrSCLN108rfIvBBi3Jf/3b\n" \
+                      "FM1Y+LAd+9Zza2hIbq/yKQRpVHifoa2s64c//JvC+ZW4KzXbcWXAT73IAKyZCCEyrj7r5HSn5C1rQg2\n" \
+                      "HOWJvrew8q2d5KWN+YkvDIFLMVMyVWOAJf7h0yPo5vZeGi1vM90fngh5podmMXpSGs4Pr3c9PgyQnEk9\n" \
+                      "xJgQi3QIDAQAB==\n-----END PUBLIC KEY-----"
+        # M7 & H2
+        else:
+            encrypt_key = "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAvAIoJ+F0MiuinN903RNX\n"\
+                    "z4umR3b0OackykNmXP+d5qRmxfRS6ymjGwmS1hxBVkGNAulpoeqNDQ1oeilc6IOI\n"\
+                    "6QgsRDzSas4/cXY7/ndz1TK2ocBhh9bxwHfBa0STFyK8004lQ2FKjJj9zrUMC67w\n"\
+                    "U3qvU5np2pddqaIunEEExeU88ZVsNS7jBYDlN/XDdT6sqs0qAicley9ogfeRSh95\n"\
+                    "9KxCG3QnyMSNDk+Gf8Yp4z6hfc8ON1FYsQfFh3yVScvHp0UKbuhs+Mt7TjoyALel\n"\
+                    "cGY18eFt0evYT+n7arRRvdjsDfQz8mJTXYxBy5eTgIVt7s8hufuqtnVH3chkp5o1\n"\
+                    "32LiTTutoliyLsyr+uRitnYPH97vE+edESimql1112ozzs8Axjsh4ugX8YhU2jdA\n"\
+                    "BZSNz6AqfmnALbHRaaxoWinyuKRGA1LPMFSwW3pkbJ8RFqm7PJIza/IKmarqb1S1\n"\
+                    "2d9EqyWjIKD+KAnrsSRttfhgujf5qPCye3m0XhAIDC96JkRsv3x/erD8PQp69fdP\n"\
+                    "QdzTLnHTFSpzDE8KFyj3+YL99ejzxg3TW7/JAeJRX/XXAygRf/1GGOIxv1odXfOn\n"\
+                    "HOlA5ssqfj1Ch6zxEMuf/my6bz5M309pRQheNoEHBMDJlCRQPNeLN5ILw3n9c2cT\n"\
+                    "RUUIfwZlDzalqfR8zWNh0VUCAwEAAQ==\n-----END PUBLIC KEY-----"
+        if sourceStr is None:
+            return None
+        pub_key = RSA.importKey(encrypt_key)
+        pub_cipher = PKCS1_v1_5.new(pub_key)
+        cryptedStr = base64.b64encode(pub_cipher.encrypt(sourceStr.encode()))
+        cryptedStr = str(cryptedStr, encoding='utf-8')
+        return cryptedStr
+    except Exception as e:
+        return sourceStr
 
 
 def logout(client):
@@ -2805,22 +2913,7 @@ def strAsciiHex(wordstr):
     return "-".join(list_str)
 
 
-def Encrypt(code):
-    l = len(code)
-    if l % 8 != 0:
-        code = code + '\0' * (8 - (l % 8))
-    code = code.encode('utf-8')
-    if sys.version_info < (3, 0):
-        cl = Blowfish.new('secret', Blowfish.MODE_ECB)
-    else:
-        cl = Blowfish.new('secret'.encode('utf-8'), Blowfish.MODE_ECB)
-    encode = cl.encrypt(code)
-    cryptedStr = base64.b64encode(encode)
-    cryptedStr = cryptedStr.decode('utf-8')
-    return cryptedStr
-
-
-def Encrypt1(key, code):
+def Encrypt(code, key="secret"):
     l = len(code)
     if l % 8 != 0:
         code = code + '\0' * (8 - (l % 8))
@@ -2831,8 +2924,7 @@ def Encrypt1(key, code):
         cl = Blowfish.new(key.encode('utf-8'), Blowfish.MODE_ECB)
     encode = cl.encrypt(code)
     cryptedStr = base64.b64encode(encode)
-    cryptedStr = cryptedStr.decode('utf-8')
-    return cryptedStr
+    return str(cryptedStr, encoding='utf-8')
 
 
 def getSnmpM5ByRest(client):
@@ -2887,7 +2979,17 @@ def getSnmpInfoByRest(client):
     return JSON
 
 
-def setTrapComByRest(client, trapinfo):
+def setTrapComByRest(client, trapinfo, ff="M6"):
+    if encrypt_type_flag == 1:
+        trapinfo['SnmpTrapCfg']['Community'] = encrypt_rsa(trapinfo['SnmpTrapCfg']['Community'], client.type)
+        trapinfo['SnmpTrapCfg']['AUTHProtocol'] = encrypt_rsa(trapinfo['SnmpTrapCfg']['AUTHProtocol'], client.type)
+        trapinfo['SnmpTrapCfg']['AUTHPwd'] = encrypt_rsa(trapinfo['SnmpTrapCfg']['AUTHPwd'], client.type)
+        trapinfo['SnmpTrapCfg']['PRIVPwd'] = encrypt_rsa(trapinfo['SnmpTrapCfg']['PRIVPwd'], client.type)
+    elif encrypt_type_flag == 2:
+        trapinfo['SnmpTrapCfg']['Community'] = Encrypt(trapinfo['SnmpTrapCfg']['Community'])
+        trapinfo['SnmpTrapCfg']['AUTHProtocol'] = Encrypt(trapinfo['SnmpTrapCfg']['AUTHProtocol'])
+        trapinfo['SnmpTrapCfg']['AUTHPwd'] = Encrypt(trapinfo['SnmpTrapCfg']['AUTHPwd'])
+        trapinfo['SnmpTrapCfg']['PRIVPwd'] = Encrypt(trapinfo['SnmpTrapCfg']['PRIVPwd'])
     JSON = {}
     response = client.request("PUT", "api/settings/snmp", client.getHearder(), json=trapinfo)
     if response is None:
@@ -3414,7 +3516,6 @@ def getAlertLogT6(client):
     elif response.status_code == 200:
         JSON['code'] = 0
         result = response.json()
-        # { "logtime": "2000-01-01T08:00:54+08:00", "timestamp": 946684854, "type": "BMC", "severity": "Warning", "status": "Assert", "errorCode": "1801A101", "desc": "Time_SYNC_Fail Transition to Non-Critical from OK sync ME failed", "adviser": "Step1:Check whether NTP server is normal.\nStep2:Please contact Inspur FAE.", "id": 3 },
         loglist = []
         for item in result:
             # txbean = EventLogTXBean()
@@ -3781,9 +3882,33 @@ def resetBMCM6(client, type):
     return JSON
 
 
+def resetBMCM7(client, type):
+    JSON = {}
+    if type.upper() != "BMC" and type.upper() != "KVM":
+        JSON['code'] = 1
+        JSON['data'] = 'reset BMC or KVM only.'
+    data = {
+        "reset": type.upper(),
+        "currentuserpassword": encrypt_rsa(client.passcode)
+    }
+    response = client.request("POST", "api/diagnose/bmc-reset", client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/diagnose/bmc-reset ,response is none'
+    elif response.status_code in range(200, 300):
+        try:
+            JSON["code"] = 0
+            JSON["data"] = "reset " + type + " success"
+        except:
+            JSON['code'] = 1
+            JSON['data'] = formatError("api/diagnose/bmc-reset", response)
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/diagnose/bmc-reset", response)
+    return JSON
+
+
 # 开机自检代码
-
-
 def getBiosPostCode(client):
     JSON = {}
     response = client.request("GET", "api/diagnose/bios-post-code", client.getHearder())
@@ -3969,8 +4094,10 @@ def getLDAPM6(client):
     return JSON
 
 
-def setLDAPM6(client, ldap, data_file):
+def setLDAPM6(client, ldap, data_file, ff="M6"):
     JSON = {}
+    if encrypt_type_flag == 1:
+        ldap['password'] = encrypt_rsa(ldap['password'], client.type)
     response = client.request("PUT", "api/settings/ldap-settings", client.getHearder(), json=ldap, data=data_file)
     if response is None:
         JSON['code'] = 1
@@ -4119,8 +4246,10 @@ def getADM6(client):
     return JSON
 
 
-def setADM6(client, ldap):
+def setADM6(client, ldap, ff="M6"):
     JSON = {}
+    if encrypt_type_flag == 1:
+        ldap["secret_password"] = encrypt_rsa(ldap["secret_password"], client.type)
     response = client.request("PUT", "api/settings/active-directory-settings", client.getHearder(), json=ldap)
     if response is None:
         JSON['code'] = 1
@@ -4622,10 +4751,20 @@ def uploadfirmwareByRest(client, filepath):
                 'WebKitFormBoundarykbIa9fEjntByHHtE', '\r\n', content, file_name)
             header["Content-Type"] = "multipart/form-data;boundary=----WebKitFormBoundarykbIa9fEjntByHHtE"
     else:
-        m = encoder.MultipartEncoder(
-            fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
-            boundary='----WebKitFormBoundarykbIa9fEjntByHHtE'
-        )
+        if encrypt_type_flag == 1:
+            m = encoder.MultipartEncoder(
+                fields={
+                    'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream'),
+                    'currentuserpassword': encrypt_rsa(client.passcode, platform)
+
+                },
+                boundary='----WebKitFormBoundarydTPdpAwLgxeeqJki'
+            )
+        else:
+            m = encoder.MultipartEncoder(
+                fields={'fwimage': (file_name, open(filepath, 'rb').read(), 'application/octet-stream')},
+                boundary='----WebKitFormBoundarydTPdpAwLgxeeqJki'
+            )
         header["Content-Type"] = m.content_type
 
     upload = client.request("POST", "api/maintenance/hpm/firmware", data=m, headers=header, timeout=500)
@@ -5328,6 +5467,22 @@ def deleteSessionBMCByRest(client, id):
     return JSON
 
 
+def deleteSessionBMCByRestA7(client, id, data):
+    JSON = {}
+    response = client.request("DELETE", "api/settings/service-sessions/" + str(id), client.getHearder(), json=data)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/settings/service-sessions/, response is none'
+    elif response.status_code in range(200, 300):
+        JSON['code'] = 0
+        result = response.json()
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/settings/service-sessions/" + str(id), response)
+    return JSON
+
+
 def getHddBMCByRest(client):
     JSON = {}
     header = client.getHearder()
@@ -5459,8 +5614,13 @@ def getSMTPByRest(client):
     return JSON
 
 
-def setSMTPByRest(client, smtpinfo):
+def setSMTPByRest(client, smtpinfo, ff="M6"):
     JSON = {}
+    # flag = judge_encrypt(client)
+    if encrypt_type_flag == 1:
+        smtpinfo["SmtpCfg"]["PassWord"] = encrypt_rsa(smtpinfo["SmtpCfg"]["PassWord"], client.type)
+    elif encrypt_type_flag == 2:
+        smtpinfo["SmtpCfg"]["PassWord"] = Encrypt(smtpinfo["SmtpCfg"]["PassWord"], "addadd")
     response = client.request("PUT", "api/settings/smtpcfg", client.getHearder(), json=smtpinfo)
     if response is None:
         JSON['code'] = 1
@@ -5491,8 +5651,16 @@ def getSNMPByRest(client):
     return JSON
 
 
-def setSNMPByRest(client, smtpinfo):
+def setSNMPByRest(client, smtpinfo, ff="M6"):
     JSON = {}
+    if encrypt_type_flag == 1:
+        smtpinfo['SnmpCfg']['AUTHProtocol'] = encrypt_rsa(smtpinfo['SnmpCfg']['AUTHProtocol'], client.type)
+        smtpinfo['SnmpCfg']['AUTHPwd'] = encrypt_rsa(smtpinfo['SnmpCfg']['AUTHPwd'], client.type)
+        smtpinfo['SnmpCfg']['PRIVPwd'] = encrypt_rsa(smtpinfo['SnmpCfg']['PRIVPwd'], client.type)
+        smtpinfo['SnmpCfg']['ReadOnlyCommunity'] = encrypt_rsa(smtpinfo['SnmpCfg']['ReadOnlyCommunity'], client.type)
+        smtpinfo['SnmpCfg']['ReadWriteCommunity'] = encrypt_rsa(smtpinfo['SnmpCfg']['ReadWriteCommunity'], client.type)
+        smtpinfo['SnmpCfg']['ConfirmReadOnlyCommunity'] = encrypt_rsa(smtpinfo['SnmpCfg']['ConfirmReadOnlyCommunity'], client.type)
+        smtpinfo['SnmpCfg']['ConfirmReadWriteCommunity'] = encrypt_rsa(smtpinfo['SnmpCfg']['ConfirmReadWriteCommunity'], client.type)
     response = client.request("PUT", "api/settings/snmpconf", client.getHearder(), json=smtpinfo)
     if response is None:
         JSON['code'] = 1
@@ -7657,7 +7825,7 @@ def getMacFirewallByRest(client):
 def securityCheckByRest(client):
     JSON = {}
     data = {
-        "currentuserpassword": Encrypt1(client.passcode, "addadd")
+        "currentuserpassword": Encrypt(client.passcode, "addadd")
     }
     response = client.request("PUT", "api/maintenance/hpm/security_check", client.getHearder(), json=data)
     if response is None:
@@ -7813,6 +7981,22 @@ def testAlertPolicy(client, settings):
     else:
         JSON['code'] = 1
         JSON['data'] = formatError("api/settings/snmp", response)
+    return JSON
+
+
+def getgpu(client):
+    JSON = {}
+    response = client.request("GET", "api/gpu/gpu_info", client.getHearder(), None, None, None, None)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/gpu/gpu_info, response is none'
+    elif response.status_code in range(200, 300):
+        result = response.json()
+        JSON['code'] = 0
+        JSON['data'] = result
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/gpu/gpu_info", response)
     return JSON
 
 

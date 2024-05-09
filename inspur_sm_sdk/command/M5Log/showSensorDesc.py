@@ -81,7 +81,7 @@ class ShowSensorDesc():
                 if m_Max_allowed_SensorSpecific_offset[item['sensor_type']] >= offset:
                     eventdesc = sensor_specific_event[item['sensor_type']][offset]
                 else:
-                    eventdesc = eventLogStrings.STR_EVENT_LOG_INVALID_OFFSET;
+                    eventdesc = eventLogStrings.STR_EVENT_LOG_INVALID_OFFSET
             elif (type >= 0x01) and (type <= 0x0C):
                 offset = getbits(item['event_data1'], 3, 0)
                 if m_Max_allowed_offset[type] >= offset:

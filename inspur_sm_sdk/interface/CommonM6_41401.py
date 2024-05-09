@@ -90,7 +90,7 @@ def setPhysicalDrive(client, args):
     for pd in ctrl_list_dict:
         ctrl_list_dict.get(pd).sort()
 
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:
@@ -262,7 +262,7 @@ def setVirtualDrive(client, args):
     for pd in ctrl_ld_list_dict:
         ctrl_ld_list_dict.get(pd).sort()
 
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:

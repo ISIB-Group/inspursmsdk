@@ -166,7 +166,6 @@
                 <location>Socket Configuration-Advanced Power Management Configuration-Hardware PM State Control
                 </location>
             </name>
-            <parent>InspurSocketSetup</parent>
             <getter>ControlTurboPStatus</getter>
             <conditions>
                 <condition>
@@ -224,7 +223,6 @@
                 </location>
                 <!--CustomID为快手时选项隐藏-->
             </name>
-            <parent>InspurSocketSetup</parent>
             <getter>PowerProfile</getter>
             <setters>
                 <setter>

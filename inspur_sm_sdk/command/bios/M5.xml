@@ -948,7 +948,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xDA $in</cmd>
                     <value>0~3</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateM5LegacyVgaSocket</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -1277,7 +1276,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xF1 $in</cmd>
                     <value>0 ~ 32767</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -1342,7 +1340,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xF7 $in</cmd>
                     <value>0 ~ 24</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validatePatrolScrubInterval</validation>
                 </setter>
             </setters>
         </cfgItem>

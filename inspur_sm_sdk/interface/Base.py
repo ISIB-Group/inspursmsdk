@@ -70,67 +70,67 @@ class Base(IBase):
             else:
                 frubean["FRUName"] = None
 
-            if product['Chassis Type']:
+            if 'Chassis Type' in product:
                 frubean["ChassisType"] = product['Chassis Type']
             else:
                 frubean["ChassisType"] = None
 
-            if product['Chassis Part Number']:
+            if 'Chassis Part Number' in product:
                 frubean["ChassisPartNumber"] = product['Chassis Part Number']
             else:
                 frubean["ChassisPartNumber"] = None
 
-            if product['Chassis Serial']:
+            if 'Chassis Serial' in product:
                 frubean["ChassisSerial"] = product['Chassis Serial']
             else:
                 frubean["ChassisSerial"] = None
 
-            if product['Board Mfg']:
+            if 'Board Mfg' in product:
                 frubean["BoardMfg"] = product['Board Mfg']
             else:
                 frubean["BoardMfg"] = None
 
-            if product['Board Product']:
+            if 'Board Product' in product:
                 frubean["BoardProduct"] = product['Board Product']
             else:
                 frubean["BoardProduct"] = None
 
-            if product['Board Serial']:
+            if 'Board Serial' in product:
                 frubean["BoardSerial"] = product['Board Serial']
             else:
                 frubean["BoardSerial"] = None
 
-            if product['Board Part Number']:
+            if 'Board Part Number' in product:
                 frubean["BoardPartNumber"] = product['Board Part Number']
             else:
                 frubean["BoardPartNumber"] = None
 
-            if product['Product Manufacturer']:
+            if 'Product Manufacturer' in product:
                 frubean["ProductManufacturer"] = product['Product Manufacturer']
             else:
                 frubean["ProductManufacturer"] = None
 
-            if product['Product Name']:
+            if 'Product Name' in product:
                 frubean["ProductName"] = product['Product Name']
             else:
                 frubean["ProductName"] = None
 
-            if product['Product Part Number']:
+            if 'Product Part Number' in product:
                 frubean["ProductPartNumber"] = product['Product Part Number']
             else:
                 frubean["ProductPartNumber"] = None
 
-            if product.get('Product Version', None):
+            if 'Product Version' in product:
                 frubean["ProductVersion"] = product['Product Version']
             else:
                 frubean["ProductVersion"] = None
 
-            if product['Product Serial']:
+            if 'Product Serial' in product:
                 frubean["ProductSerial"] = product['Product Serial']
             else:
                 frubean["ProductSerial"] = None
 
-            if product['Product Asset Tag']:
+            if 'Product Asset Tag' in product:
                 frubean["ProductAssetTag"] = product['Product Asset Tag']
             else:
                 frubean["ProductAssetTag"] = None

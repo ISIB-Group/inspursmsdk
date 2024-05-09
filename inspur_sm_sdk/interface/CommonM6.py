@@ -65,7 +65,9 @@ from inspur_sm_sdk.interface.ResEntity import (
     Sensor,
     FruBean,
     PowerConsumptionBean,
-    SuspendBean)
+    SuspendBean,
+    HBABean,
+    HBAPost)
 retry_count = 0
 
 
@@ -913,44 +915,60 @@ class CommonM6(Base):
         else:
             return False, errordict
 
-    def setbios(self, client, args):
-        def update_infoList(infoList):
-            flag = False
-            attr_result = RedfishFunc.getBIOSAttrByRedfish(client, login_header)
-            if "code" in attr_result and attr_result.get('code') == 0 and attr_result.get('data') != "":
-                json_url = attr_result.get('data')
-                json_result = RedfishFunc.getBIOSAttrJsonByRedfish(client, login_header, json_url)
-                if "code" in json_result and json_result.get('code') == 0 and json_result.get('data') != {}:
-                    flag = True
-                    json_data = json_result.get('data')
-                    if "UefiBootOrder1" in json_data.keys():
-                        item_value = json_data.get("UefiBootOrder1")
-                        for item_1 in infoList:
-                            if item_1.get('getter') == "UefiBootOrder1" or \
-                                    item_1.get('getter') == "UefiBootOrder2" or \
-                                    item_1.get('getter') == "UefiBootOrder3" or \
-                                    item_1.get('getter') == "UefiBootOrder4":
-                                setter_list = []
-                                for item_2 in item_value:
-                                    setter_list.append(
-                                        {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
-                                item_1['setter'] = setter_list
-                    elif "LegacyBootOrder1" in json_data.keys():
-                        item_value = json_data.get("LegacyBootOrder1")
-                        for item_1 in infoList:
-                            if item_1.get('getter') == "LegacyBootOrder1" or \
-                                    item_1.get('getter') == "LegacyBootOrder2" or \
-                                    item_1.get('getter') == "LegacyBootOrder3" or \
-                                    item_1.get('getter') == "LegacyBootOrder4":
-                                setter_list = []
-                                for item_2 in item_value:
-                                    setter_list.append(
-                                        {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
-                                item_1['setter'] = setter_list
-            return flag, infoList
+    def getXmlFileName(self, res):
+        xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
+        if "IioVmdOnStackPch" in res.keys():
+            xmlfilepath = xml_path + "M6-N.xml"
+        else:
+            xmlfilepath = xml_path + "M6.xml"
+        return xmlfilepath
 
+    def update_xmlinfo(self, client, login_header, xmlhelp):
         Bios_result = ResultBean()
-        # args.list = False
+        attr_result = RedfishFunc.getBIOSAttrByRedfish(client, login_header)
+        if attr_result.get('code') == 0:
+            json_url = attr_result.get('data')
+            json_result = RedfishFunc.getBIOSAttrJsonByRedfish(client, login_header, json_url)
+            if json_result.get('code') == 0:
+                json_data = json_result.get('data')
+                if "UefiBootOrder1" in json_data.keys():
+                    item_value = json_data.get("UefiBootOrder1")
+                    for item_1 in xmlhelp:
+                        if item_1.get('getter') == "UefiBootOrder1" or \
+                                item_1.get('getter') == "UefiBootOrder2" or \
+                                item_1.get('getter') == "UefiBootOrder3" or \
+                                item_1.get('getter') == "UefiBootOrder4":
+                            setter_list = []
+                            for item_2 in item_value:
+                                setter_list.append(
+                                    {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
+                            item_1['setter'] = setter_list
+                elif "LegacyBootOrder1" in json_data.keys():
+                    item_value = json_data.get("LegacyBootOrder1")
+                    for item_1 in xmlhelp:
+                        if item_1.get('getter') == "LegacyBootOrder1" or \
+                                item_1.get('getter') == "LegacyBootOrder2" or \
+                                item_1.get('getter') == "LegacyBootOrder3" or \
+                                item_1.get('getter') == "LegacyBootOrder4":
+                            setter_list = []
+                            for item_2 in item_value:
+                                setter_list.append(
+                                    {"cmd": item_2.get("ValueName"), "value": item_2.get("ValueName")})
+                            item_1['setter'] = setter_list
+                Bios_result.State('Success')
+                Bios_result.Message([xmlhelp])
+            else:
+                Bios_result.State('Failure')
+                Bios_result.Message([str(json_result.get('data'))])
+        else:
+            Bios_result.State('Failure')
+            Bios_result.Message([str(attr_result.get('data'))])
+
+        return Bios_result
+
+    def setbios(self, client, args):
+        Bios_result = ResultBean()
+        # 不输入-L
         if 'list' not in args or ('list' in args and args.list is False):
             if args.attribute is None and args.value is None and args.fileurl is None:
                 Bios_result.Message(['please input a command at least.'])
@@ -988,26 +1006,21 @@ class CommonM6(Base):
         boot_option = ['UEFIBootOption1', 'UEFIBootOption2', 'UEFIBootOption3', 'UEFIBootOption4', 'LegacyBootOption1',
                        'LegacyBootOption2', 'LegacyBootOption3', 'LegacyBootOption4']
         if result.get('code') == 0 and result.get('data') is not None:
-            xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
-            if "IioVmdOnStackPch" in result.get('data').keys():
-                xmlfilepath = xml_path + "M6-N.xml"
-                xmlfilename = "M6-N.xml"
-            else:
-                xmlfilepath = xml_path + "M6.xml"
-                xmlfilename = "M6.xml"
+            xmlfilepath = self.getXmlFileName(result.get('data'))
             if os.path.exists(xmlfilepath) is False:
-                Bios_result.Message([str(xmlfilename) + ' file not exist.'])
+                Bios_result.Message([os.path.basename(xmlfilepath) + ' file not exist.'])
                 Bios_result.State('Failure')
                 RedfishFunc.logout(client, login_id, login_header)
                 return Bios_result
             biosconfutil = configUtil.configUtil()  # 实例化类对象
             blongtoSet, descriptionList, infoList = biosconfutil.getSetOption(xmlfilepath)  # 读取xml文件，返回信息
-            flag, infoList = update_infoList(infoList)
-            if not flag:
+            updateresult = self.update_xmlinfo(client, login_header, infoList)
+            if updateresult.State != "Success":
                 Bios_result.Message(["get BIOS attribute failed."])
                 Bios_result.State('Failure')
                 RedfishFunc.logout(client, login_id, login_header)
-                return Bios_result
+                return updateresult
+            infoList = updateresult.Message[0]
             if 'list' in args and args.list:
                 help_list = []
                 for info in infoList:
@@ -1031,14 +1044,14 @@ class CommonM6(Base):
                         value = "Enabled"
                     if str(value).lower() == "disable":
                         value = "Disabled"
-                    if judgeAttInList(key.replace(" ", ""), descriptionList) is False:
+                    if self.judgeAttInListM5(key.replace(" ", ""), descriptionList) is False:
                         Bios_result.State('Failure')
                         Bios_result.Message(["Please check your attribute spell of '{0}' by -L parameter!".format(key)])
                         # logout
                         RedfishFunc.logout(client, login_id, login_header)
                         return Bios_result
                     # 执行单个设置 先读取文件，判断-a -v是否在列表中
-                    if judgeAttInList(des_key[key.replace(" ", "")], result.get('data').keys()) is False:
+                    if self.judgeAttInListM5(des_key[key.replace(" ", "")], result.get('data').keys()) is False:
                         Bios_result.State('Failure')
                         Bios_result.Message(["'{0}' is not in set options.".format(key)])
                         # logout
@@ -1049,30 +1062,44 @@ class CommonM6(Base):
                             if str(item).startswith(value):
                                 value = item
                                 break
-                    if value not in des_value[key.replace(" ", "")]:
-                        Bios_result.State('Failure')
-                        Bios_result.Message(["{0} does not support setting to {1}!".format(key, value)])
-                        # logout
-                        RedfishFunc.logout(client, login_id, login_header)
-                        return Bios_result
-                    # if str(value).isdigit():
-                    #     data['Attributes'][des_key[key.replace(" ", "")]] = int(value)
-                    # else:
-                    #     data['Attributes'][des_key[key.replace(" ", "")]] = value
-                    data['Attributes'][des_key[key.replace(" ", "")]] = value
+
+                    values = des_value.get(key.replace(" ", ""), [])
+                    if len(values) == 1:
+                        valuestr = values[0]
+                        if "~" in valuestr:
+                            min = valuestr.split("~")[0]
+                            max = valuestr.split("~")[1]
+                        elif "-" in valuestr:
+                            min = valuestr.split("-")[0]
+                            max = valuestr.split("-")[1]
+                        if int(value) < int(min) or int(value) > int(max):
+                            Bios_result.State('Failure')
+                            Bios_result.Message(["The scope of {0} is {1}!".format(key, valuestr)])
+                            # logout
+                            RedfishFunc.logout(client, login_id, login_header)
+                            return Bios_result
+
+                    else:
+                        if str(value) not in des_value[key.replace(" ", "")]:
+                            Bios_result.State('Failure')
+                            Bios_result.Message(["{0} does not support setting to {1}!".format(key, value)])
+                            # logout
+                            RedfishFunc.logout(client, login_id, login_header)
+                            return Bios_result
+                        data['Attributes'][des_key[key.replace(" ", "")]] = str(value)
             elif args.attribute is not None and args.value is not None and args.fileurl is None:
                 if str(args.value).lower() == "enable":
                     args.value = "Enabled"
                 if str(args.value).lower() == "disable":
                     args.value = "Disabled"
-                if judgeAttInList(args.attribute.replace(" ", ""), descriptionList) is False:
+                if self.judgeAttInListM5(args.attribute.replace(" ", ""), descriptionList) is False:
                     Bios_result.State('Failure')
                     Bios_result.Message(
                         ["Please check your attribute spell of '{0}' by -L parameter!".format(args.attribute)])
                     # logout
                     RedfishFunc.logout(client, login_id, login_header)
                     return Bios_result
-                if judgeAttInList(des_key[args.attribute.replace(" ", "")], result.get('data').keys()) is False:
+                if self.judgeAttInListM5(des_key[args.attribute.replace(" ", "")], result.get('data').keys()) is False:
                     Bios_result.State('Failure')
                     Bios_result.Message(["'{0}' is not in set options.".format(args.attribute)])
                     # logout
@@ -1083,17 +1110,38 @@ class CommonM6(Base):
                         if str(item).startswith(args.value):
                             args.value = item
                             break
-                if args.value not in des_value[args.attribute.replace(" ", "")]:
-                    Bios_result.State('Failure')
-                    Bios_result.Message(["{0} does not support setting to {1}!".format(args.attribute, args.value)])
-                    # logout
-                    RedfishFunc.logout(client, login_id, login_header)
-                    return Bios_result
-                data['Attributes'][des_key[args.attribute.replace(" ", "")]] = args.value
+
+                values = des_value.get(args.attribute.replace(" ", ""), [])
+                if len(values) == 1:
+                    valuestr = values[0]
+                    if "~" in valuestr:
+                        min = valuestr.split("~")[0]
+                        max = valuestr.split("~")[1]
+                    elif "-" in valuestr:
+                        min = valuestr.split("-")[0]
+                        max = valuestr.split("-")[1]
+                    if int(args.value) < int(min) or int(args.value) > int(max):
+                        Bios_result.State('Failure')
+                        Bios_result.Message(["The scope of {0} is {1}!".format(args.attribute, valuestr)])
+                        # logout
+                        RedfishFunc.logout(client, login_id, login_header)
+                        return Bios_result
+
+                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = int(args.value)
+                else:
+                    if str(args.value) not in values:
+                        Bios_result.State('Failure')
+                        Bios_result.Message(["{0} does not support setting to {1}!".format(args.attribute, args.value)])
+                        # logout
+                        RedfishFunc.logout(client, login_id, login_header)
+                        return Bios_result
+                    data['Attributes'][des_key[args.attribute.replace(" ", "")]] = str(args.value)
+
             # 获取future
             future_result = RedfishFunc.getBiosFuture(client, login_header)
             # 检查前置项
-            conditionflag, conditionmessage = self.judgeCondition(data['Attributes'], future_result.get('data'), result.get('data'), infoList)
+            conditionflag, conditionmessage = self.judgeCondition(data['Attributes'], future_result.get('data'),
+                                                                  result.get('data'), infoList)
             if not conditionflag:
                 Bios_result.State('Failure')
                 Bios_result.Message([conditionmessage])
@@ -5929,7 +5977,7 @@ class CommonM6(Base):
         else:
             result.State("Failure")
             result.Message(
-                ["get power status error, error code " + str(info.get('code'))])
+                ["get sessions info error, error code " + str(info.get('code'))])
 
         RestFunc.logout(client)
         return result
@@ -6068,12 +6116,18 @@ class CommonM6(Base):
                     cpu_singe.Location('mainboard')
                     if 'proc_name' in cpu:
                         cpu_singe.Model(cpu.get('proc_name'))
+                    else:
+                        cpu_singe.Model(cpu.get(None))
+                    if "Manufacturer" in cpu:
+                        cpu_singe.Manufacturer(cpu.get('Manufacturer', None))
+                    elif 'proc_name' in cpu:
                         if 'Intel' in cpu.get('proc_name'):
-                            cpu_singe.Manufacturer('Intel')
+                            cpu_singe.Manufacturer('Intel(R) Corporation')
+                        elif 'AMD' in cpu.get('proc_name'):
+                            cpu_singe.Manufacturer('AMD')
                         else:
                             cpu_singe.Manufacturer(None)
                     else:
-                        cpu_singe.Model(cpu.get(None))
                         cpu_singe.Manufacturer(None)
 
                     cpu_singe.L1CacheKiB(cpu.get('proc_l1cache_size', None))
@@ -6225,9 +6279,7 @@ class CommonM6(Base):
                     memory_singe.Location('mainboard')
                     memory_singe.Manufacturer(
                         memory.get('mem_mod_vendor', None))
-                    memory_singe.CapacityMiB(
-                        memory.get('mem_mod_size') *
-                        1024 if 'mem_mod_size' in memory else None)
+                    memory_singe.CapacityGiB(memory.get('mem_mod_size') if 'mem_mod_size' in memory else None)
                     memory_singe.OperatingSpeedMhz(
                         memory.get('mem_mod_frequency', None))
                     memory_singe.CurrentSpeedMhz(memory.get('mem_mod_current_frequency', None))
@@ -6435,7 +6487,7 @@ class CommonM6(Base):
         elif hard_info.get('code') == 0 and hard_info.get('data') is not None:
             hard_data = hard_info.get('data')
             hard_dict = {0: 'No', 1: 'Yes'}
-            FrontRear_dict = {1: 'Front', 0: 'Rear'}
+            FrontRear_dict = {1: 'Front', 0: 'Rear', 2: 'Onboard', 3: 'Inner'}
             hardList = []
             idx = 0
             while idx < len(hard_data):
@@ -6553,8 +6605,14 @@ class CommonM6(Base):
                     hdd_dict['Firmware'] = str(item['firmware']).strip()
                 if "location" in item:
                     hdd_dict['Location'] = str(item['location']).strip()
+                    # 比M6多位置字段
+                if "locationstring" in item:
+                    hdd_dict['Location'] = str(item['locationstring']).strip()
                 if "manufacture" in item:
                     hdd_dict['Manufacture'] = str(item['manufacture']).strip()
+                if "capablespeed" in item:
+                    # 比M6多最大速率字段
+                    hdd_dict['CapableSpeed'] = str(item['capablespeed']).strip()
                 hdd_list.append(hdd_dict)
             result.State("Success")
             result.Message(hdd_list)
@@ -6587,7 +6645,10 @@ class CommonM6(Base):
             while idx < len(back_data):
                 back_result = BackplaneBean()
                 back_info = back_data[idx]
-                back_result.Id(back_info.get('backplane_index', None))
+                if "backplane_index" in back_info:
+                    back_result.Id(back_info.get('backplane_index', None))
+                else:
+                    back_result.Id(back_info.get('id', None))
                 back_result.Present(back_dict.get(back_info.get('present', 0)))
                 back_result.CPLDVersion(back_info.get('cpld_version', None))
                 back_result.PortCount(back_info.get('port_count', 0))
@@ -6607,6 +6668,11 @@ class CommonM6(Base):
         return result
 
     def getpcie(self, client, args):
+        def gethex(id):
+            if id:
+                return hex(id)
+            else:
+                return None
         headers = RestFunc.login_M6(client)
         if headers == {}:
             login_res = ResultBean()
@@ -6632,7 +6698,7 @@ class CommonM6(Base):
                 pcie = Pcie()
                 pcie.Id(data[i].get('id', i))
                 pcie.CommonName(data[i].get('DeviceLocator'))
-                pcie.Location('mainboard')
+                pcie.Location(data[i].get('DeviceLocator'))
                 if data[i].get('present', None) == 1:
                     pcie.Type(ListPCIEDevType[data[i].get('dev_type')] if data[i].get(
                         'dev_type') is not None else None)
@@ -6645,6 +6711,13 @@ class CommonM6(Base):
                     pcie.State('Enabled')
                     pcie.DeviceID(data[i].get('device_name', None))
                     pcie.VendorID(data[i].get('vendor_name', None))
+                    pcie.State('Present')
+                    pcie.DeviceName(data[i].get('device_name', None))
+                    pcie.DeviceID(gethex(data[i].get('device_id', None)))
+                    pcie.SubDeviceID(gethex(data[i].get('sub_device_id', None)))
+                    pcie.VendorName(data[i].get('vendor_name', None))
+                    pcie.VendorID(gethex(data[i].get('vendor_id', None)))
+                    pcie.SubVendorID(gethex(data[i].get('sub_vendor_id', None)))
                     pcie.RatedLinkSpeed("GEN" +
                                         str(data[i].get('max_link_speed', 0)))
                     pcie.RatedLinkWidth("X" +
@@ -6713,11 +6786,11 @@ class CommonM6(Base):
             data = res.get('data')['sys_adapters']
             for ada in data:
                 PCIEinfo = NICBean()
-                PCIEinfo.CommonName(ada['location'])
+                PCIEinfo.CommonName(ada.get('location', 'NA'))
                 PCIEinfo.Location("mainboard")
                 adapterinfo = NICController()
                 adapterinfo.Id(ada['id'])
-                adapterinfo.Location(ada['location'])
+                adapterinfo.Location(ada.get('location', 'NA'))
                 if ada['vendor'] == "":
                     adapterinfo.Manufacturer(None)
                     PCIEinfo.Manufacturer(None)
@@ -9780,7 +9853,6 @@ class CommonM6(Base):
                             ["SMTP server password(-PW) cannot contain ' '(space)."])
                         RestFunc.logout(client)
                         return smtpinfo
-                    # PassWord = RestFunc.Encrypt1('add', PassWord)
                 else:
                     if SMTPAUTH == 1:
                         smtpinfo.State("Failure")
@@ -11407,7 +11479,7 @@ class CommonM6(Base):
                     res.Message(["set psu config success."])
                 else:
                     res.State("Failure")
-                    res.Message(["set psu config failed."])
+                    res.Message([str(set_res.get('data'))])
             else:
                 res.State("Failure")
                 res.Message(["get psu count failed."])
@@ -11677,7 +11749,7 @@ class CommonM6(Base):
             if login_header == {} or "login error" in login_id or login_id == '':
                 res.State("Failure")
                 res.Message(['login session service failed.'])
-                return
+                return res
 
             local_time = ftime()
             file_name_init = str(args.host) + "_bios_" + str(local_time) + ".conf"
@@ -11962,7 +12034,7 @@ def createVirtualDrive(client, args):
         result.State("Failure")
         result.Message(['get physical disk information failed!' + res.get('data')])
         return result
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         for pd in ctrl_list_dict:
             ctrl_list_dict.get(pd).sort()
         LSI_flag = False
@@ -12338,7 +12410,7 @@ def setVirtualDrive(client, args):
     for pd in ctrl_ld_list_dict:
         ctrl_ld_list_dict.get(pd).sort()
 
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:
@@ -12501,7 +12573,7 @@ def setPhysicalDrive(client, args):
     for pd in ctrl_list_dict:
         ctrl_list_dict.get(pd).sort()
 
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         LSI_flag = False
         raidList = []
         for ctrlid in ctrl_id_name_dict:
@@ -13332,7 +13404,7 @@ def setUser(client, args):
             user_old["changepassword"] = 0
             user_old["confirm_password"] = ""
             user_old["password"] = ""
-            user_old["session_confirm"] = ""
+            user_old["session_confirm"] = client.passcode
 
             user_old["password_size"] = "bytes_16"
             user_old["email_format"] = "ami_format"
@@ -13636,7 +13708,7 @@ def setUser1(client, args):
             user_old["changepassword"] = 0
             user_old["confirm_password"] = ""
             user_old["password"] = ""
-            user_old["session_confirm"] = ""
+            user_old["session_confirm"] = client.passcode
             user_old["password_size"] = "bytes_16"
             user_old["email_format"] = "ami_format"
             if args.email is not None:
@@ -13996,7 +14068,7 @@ if __name__ == "__main__":
     # args.port2(7578)
     # args.sslenable(None)
     args.image(
-        'protocol://[root:inspur@2018@]100.2.28.203[:22]/data/nfs/server/CentOS-7-x86_64-Everything-1511')
+        'protocol://[root:test@2018@]100.2.28.203[:22]/data/nfs/server/CentOS-7-x86_64-Everything-1511')
     args.operatortype('Mount')
     # args.image(None)
     # res= com5.getproduct(client,args)

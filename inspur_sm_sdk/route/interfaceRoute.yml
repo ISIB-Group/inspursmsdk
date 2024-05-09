@@ -1,0 +1,33 @@
+CommonM5:
+  platform: M5
+NF5180M5:
+  platform: M5
+  common: NF5180M5
+NF5280M5:
+  platform: M5
+  common: NF5280M5
+  V4.034000: NF5280M5_435
+  V4.036000: NF5280M5_436
+CommonM6:
+  platform: M6
+  common: CommonM6
+  V4.020001: CommonM6_41401
+  V4.020010: CommonM6_4140a
+CommonM7:
+  platform: M7
+  common: CommonM7
+  V1.053005: CommonM7_13505
+CommonA6:
+  platform: M5
+  common: CommonA6
+CommonA5:
+  platform: M5
+  common: CommonA5
+CommonA7:
+  platform: M7
+  common: CommonA7
+  V1.019008: CommonA7_11308
+I24M6:
+  platform: M6
+  common: I24M6
+

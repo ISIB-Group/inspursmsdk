@@ -1168,7 +1168,7 @@ def getFirmwareVersoinByIpmi(client):
     if len(cmd_str) < 24:
         return ''
     version = cmd_str[4:10]
-    bmcversion = str(int(version[0:2],16))+'.'+str(int(version[2:4],16))
+    bmcversion = str(int(version[0:2],16))+'.'+str(int(version[2:4],16))+'.'+str(int(version[4:6],16))
     return bmcversion
 
 
@@ -1242,8 +1242,10 @@ def getFirmwareVersoinByMcinfo(client):
         return ''
     data = result['data']
     bmcVersion_0 = data['firmware_revision']
-    bmcVersion_1 = eval(data['aux_firmware_rev_info'].split(";")[0])
-    bmcVersion = str(bmcVersion_0) + str(int(str(bmcVersion_1), 16)).zfill(2)
+    bmcVersion_1 = data['aux_firmware_rev_info'].split(";")[0]
+    bmcVersion_00 = int(bmcVersion_0.split(".")[0], 16)
+    bmcVersion_01 = int(bmcVersion_0.split(".")[1], 16)
+    bmcVersion = str(bmcVersion_00) + "." + str(bmcVersion_01).zfill(3) + str(bmcVersion_1).zfill(3)
     return bmcVersion
 
 

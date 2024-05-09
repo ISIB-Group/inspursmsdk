@@ -22,7 +22,7 @@ current_time = time.strftime(
     '%Y-%m-%d   %H:%M:%S',
     time.localtime(
         time.time()))
-__version__ = '2.1.6'
+__version__ = '2.2.0'
 
 
 ERR_dict = {
@@ -36,6 +36,7 @@ ERR_dict = {
     'ERR_CODE_AUTH_NAME_OR_PWD_ERROR': 'incorrect user name or password',
     'ERR_CODE_USER_NOT_EXIST': 'user not exist'
 }
+
 
 
 def main(params):
@@ -77,18 +78,15 @@ def main(params):
     if firmwareVersion is None:
         res['State'] = "Failure"
         res['Message'] = ["cannot get BMC version"]
-        return
-    args.hostPlatform = productName
+        return res
     configutil = configUtil.configUtil()
-    impl = configutil.getRouteOption(productName, firmwareVersion)
+    impl, platform = configutil.getRouteOption(productName, firmwareVersion)
+    args.productName = productName
+    args.platform = platform
     if 'Error' in impl:
         res['State'] = "Failure"
         res['Message'] = [impl]
         return res
-    # if 'M5' not in impl and 'M6' not in impl and 'A5' not in impl and 'A6' not in impl:
-    #     res['State'] = "Failure"
-    #     res['Message'] = ['Not Support']
-    #     return res
     module_impl = 'inspur_sm_sdk.interface.' + impl
     obj = import_module(module_impl)
     targetclass = getattr(obj, impl)
@@ -103,30 +101,31 @@ def main(params):
         args.host,
         args.username,
         args.passcode,
+        platform,
         args.port,
         'lanplus')
     try:
         resultJson = targetMed(client, args)
     except Exception as e:
         # 保留日志
-        # import traceback
-        # utool_path = os.path.dirname(os.path.abspath(__file__))
-        # # print(utool_path)
-        # log_path = os.path.join(utool_path, "log")
-        # if not os.path.exists(log_path):
-        #     os.makedirs(log_path)
-        # # TIME
-        # localtime = time.localtime()
-        # f_localdate = time.strftime("%Y-%m-%d", localtime)
-        # f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
-        #
-        # log_file = os.path.join(log_path, f_localdate)
-        # args.items()
-        # res_info = "[" + args.subcommand + "]" + traceback.format_exc()
-        # with open(log_file, 'a+') as logfile:
-        #     utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
-        #     logfile.write(utoollog)
-        #     logfile.write("\n")
+        import traceback
+        utool_path = os.path.dirname(os.path.abspath(__file__))
+        # print(utool_path)
+        log_path = os.path.join(utool_path, "log")
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+        # TIME
+        localtime = time.localtime()
+        f_localdate = time.strftime("%Y-%m-%d", localtime)
+        f_localtime = time.strftime("%Y-%m-%dT%H:%M:%S ", localtime)
+
+        log_file = os.path.join(log_path, f_localdate)
+        args.items()
+        res_info = "[" + args.subcommand + "]" + traceback.format_exc()
+        with open(log_file, 'a+') as logfile:
+            utoollog = "[ERROR]" + f_localtime + res_info + json.dumps(param, default=lambda o: o.__dict__, indent=4, ensure_ascii=True)
+            logfile.write(utoollog)
+            logfile.write("\n")
 
         res['State'] = "Failure"
         res['Message'] = ["Error occurs, request failed..."]

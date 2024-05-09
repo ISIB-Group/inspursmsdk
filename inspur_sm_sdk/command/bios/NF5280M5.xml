@@ -571,7 +571,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0x28 $in</cmd>
                     <value>0 ~ 5</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -585,7 +584,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0x29 $in</cmd>
                     <value>1 ~ 50</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -1861,9 +1859,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0x6A $in</cmd>
                     <value>0~0xFFFF</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -1877,9 +1872,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0x6B $in</cmd>
                     <value>0~0xFFFF</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -2445,9 +2437,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0x8C $in</cmd>
                     <value>0~0xFFFF</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -3072,9 +3061,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xB0 $in</cmd>
                     <value>0 ~ 0x3F</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -3088,9 +3074,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xB1 $in</cmd>
                     <value>0 ~ 0x7FFF</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -4141,7 +4124,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xF1 $in</cmd>
                     <value>0 ~ 32767</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -4206,7 +4188,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xF5 $in</cmd>
                     <value>0~255</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateLegacyVGAStack</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -4237,7 +4218,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x00 0xF7 $in</cmd>
                     <value>0 ~ 24</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validatePatrolScrubInterval</validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -6931,9 +6911,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x7D $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -6960,9 +6937,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x7F $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -6997,9 +6971,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x81 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7140,9 +7111,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x89 $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7169,9 +7137,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x8B $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7206,9 +7171,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x8D $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7349,9 +7311,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x95 $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7378,9 +7337,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x97 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7415,9 +7371,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0x99 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7558,9 +7511,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xA1 $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7587,9 +7537,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xA3 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7624,9 +7571,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xA5 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7767,9 +7711,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xAD $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7796,9 +7737,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xAF $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7833,9 +7771,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xB1 $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -7976,9 +7911,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xB9 $in</cmd>
                     <value>20 ~ 27</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -8005,9 +7937,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xBB $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -8042,9 +7971,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xBD $in</cmd>
                     <value>20 ~ 39</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -8966,9 +8892,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xF0 $in</cmd>
                     <value>0 ~ 32767</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -8982,9 +8905,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xF1 $in</cmd>
                     <value>0 ~ 56</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -9015,9 +8935,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xF3 $in</cmd>
                     <value>0 ~ 32767</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -9031,9 +8948,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x01 0xF4 $in</cmd>
                     <value>0 ~ 56</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -9376,9 +9290,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x02 0x06 $in</cmd>
                     <value>0~100</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>
@@ -9392,9 +9303,6 @@
                 <setter>
                     <cmd>raw 0x3c 0x48 0x02 0x0F $in</cmd>
                     <value>0~0xFFFF</value>
-                    <validation>
-                        com.inspur.isa.biosconfig.service.BiosItemValueValidate.validateCorrectableErrorThreshold
-                    </validation>
                 </setter>
             </setters>
         </cfgItem>

@@ -462,7 +462,7 @@ class CommonM7(CommonM6):
             nicRes.State("Failure")
             nicRes.Message(["cannot get information"])
         elif res.get('code') == 0 and res.get('data') is not None:
-            port_status_dict = {0: "Not Linked", 1: "Linked", 2: "NA", "Unknown": "NA", 255: "NA"}
+            # port_status_dict = {0: "Not Linked", 1: "Linked", 2: "NA", "Unknown": "NA", 255: "NA"}
             nicRes.State("Success")
             PCIElist = []
             data = res.get('data')['sys_adapters']
@@ -472,7 +472,8 @@ class CommonM7(CommonM6):
                 PCIEinfo.Location("mainboard")
                 adapterinfo = NICController()
                 adapterinfo.Id(ada['id'])
-                adapterinfo.Location(ada['location'])
+                adapterinfo.Location(ada.get('location', 'NA'))
+                adapterinfo.PortType(ada.get('port_type', 'NA'))
                 if ada['vendor'] == "":
                     adapterinfo.Manufacturer(None)
                     PCIEinfo.Manufacturer(None)
@@ -506,7 +507,8 @@ class CommonM7(CommonM6):
                     portBean = NicPort()
                     portBean.Id(port['id'])
                     portBean.MACAddress(port['mac_addr'])
-                    portBean.LinkStatus(port_status_dict.get(port['status'], port['status']))
+                    # portBean.LinkStatus(port_status_dict.get(port['status'], port['status']))
+                    portBean.LinkStatus(port.get('LinkStatus', "N/A"))
                     portBean.MediaType(None)
                     portlist.append(portBean.dict)
                 adapterinfo.Port(portlist)
@@ -537,7 +539,7 @@ class CommonM7(CommonM6):
         RestFunc.logout(client)
         return nicRes
 
-    def getgpu(self, client, args):
+    def getgpu1(self, client, args):
         res = ResultBean()
         state = "Failure"
         gpu_device_class_type = ["DisplayController", "ProcessingAccelerator"]
@@ -577,6 +579,28 @@ class CommonM7(CommonM6):
             message = "Cannot get chassis id."
         res.State(state)
         res.Message([message])
+        return res
+
+    def getgpu(self, client, args):
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+        res = ResultBean()
+
+        gpures = RestFunc.getgpu(client)
+        if gpures.get('code') == 0:
+            res.State('Success')
+            gpurawinfo = gpures.get('data')
+            res.Message([gpurawinfo])
+        else:
+            res.State('Failure')
+            res.Message(['get gpu information failed.' + str(gpures.get('date'))])
+        # logout
+        RestFunc.logout(client)
         return res
 
     def setpowerbudget(self, client, args):
@@ -857,6 +881,9 @@ class CommonM7(CommonM6):
             return res
 
     def getbios(self, client, args):
+        #获取bios版本 放在args里面
+        self._get_bios_version(client, args)
+
         bios_result = ResultBean()
         login_header, login_id = RedfishFunc.login(client)
         if not login_header or not login_id or 'login error' in login_id:
@@ -962,9 +989,15 @@ class CommonM7(CommonM6):
         elif isinstance(origin_value, dict):
             return {k: value_map.get(str(v), str(v)) for k, v in origin_value}
         else:
-            return value_map.get(str(origin_value), None)
+            if len(value_map) == 1:
+                return origin_value
+            else:
+                return value_map.get(str(origin_value), None)
 
     def setbios(self, client, args):
+        #获取bios版本 放在args里面
+        self._get_bios_version(client, args)
+
         res = ResultBean()
         attr_dict = {}
         # 读取映射文件
@@ -1018,7 +1051,7 @@ class CommonM7(CommonM6):
             attr_setter = item_dict['setter']
             attr_parent = item_dict['parent']
             #list的3种处理方式 {0:"x", 1:"y"} [x,y,...] x
-            if item_dict['type'] == 'list':
+            if item_dict.get('list') > 0:
                 if isinstance(value, dict):
                     for k, v in value.items():  # 根据目前支持的配置项，值统一处理为str
                         user_bios[attr + str(k)] = str(attr_setter[v])
@@ -1042,15 +1075,36 @@ class CommonM7(CommonM6):
                             user_bios[attr + str(i)] = str(attr_setter[valueinlist[i]])
 
             else:
-                if item_dict['match'] and value not in attr_setter:
-                    res.Message(['[{}] is invalid value for bios option [{}], and valid values are [{}].'
-                                .format(value, key, ', '.join(list(attr_setter.keys())))])
-                    res.State('Failure')
-                    return res
+                if len(attr_setter) == 1:
+                    #类型
+                    for valuerange in attr_setter.keys():
+                        if "-" in valuerange:
+                            min = int(valuerange.split("-")[0])
+                            max = int(valuerange.split("-")[1])
+                        elif "~" in valuerange:
+                            min = int(valuerange.split("~")[0])
+                            max = int(valuerange.split("~")[1])
+                        else:
+                            res.Message([
+                                            '[{}] is invalid range value for bios option [{}], range should be a~b or a-b.'
+                                        .format(valuerange, key)])
+                            res.State('Failure')
+                            return res
+                        if int(value) < min or int(value) > max:
+                            res.Message(
+                                ['[{}] is invalid value for bios option [{}], and valid values are [{}].'
+                                .format(value, key, valuerange)])
+                            res.State('Failure')
+                            return res
 
-                if item_dict['type'] == 'int':  # 根据目前支持的配置项，处理int、str两种类型
-                    user_bios[attr] = int(attr_setter.get(value, value))
+                        user_bios[attr] = int(value)
                 else:
+                    if item_dict['match'] and value not in attr_setter:
+                        res.Message(['[{}] is invalid value for bios option [{}], and valid values are [{}].'
+                                    .format(value, key, ', '.join(list(attr_setter.keys())))])
+                        res.State('Failure')
+                        return res
+
                     user_bios[attr] = str(attr_setter.get(value, value))
 
         # 调用接口设置
@@ -1141,8 +1195,44 @@ class CommonM7(CommonM6):
     def formatBiosPatchBody(self, user_bios):
         return user_bios
 
-    def _get_xml_file(self):
+    def _get_bios_version(self, client, args):
+        biosversion = None
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            args.biosversion = biosversion
+            return biosversion
+        client.setHearder(headers)
+        # get
+        res = RestFunc.getFwVersion(client)
+        if res.get('code') == 0 and res.get('data') is not None:
+            data = res.get('data')
+
+            for fwinfo in data:
+                name_raw = fwinfo.get('dev_name')
+                if name_raw != "BIOS":
+                    continue
+                else:
+                    index_version = fwinfo.get('dev_version').find('(')
+                    if index_version == -1:
+                        biosversion = None if fwinfo.get('dev_version') == '' else fwinfo.get('dev_version')
+                    else:
+                        biosversion = None if fwinfo.get('dev_version') == '' else fwinfo.get('dev_version')[:index_version].strip()
+                    break
+        args.biosversion = biosversion
+        RestFunc.logout(client)
+        return biosversion
+
+    def _get_xml_file(self, args):
         xml_path = os.path.join(IpmiFunc.command_path, "bios") + os.path.sep
+        if args.biosversion:
+            #M7 5.10.00 开始 bios里面替换为 XCradle
+            b1=args.biosversion.split(".")[0]
+            b2=args.biosversion.split(".")[1]
+            b3=args.biosversion.split(".")[2]
+            biosformat = float(b1 + "." + b2 + b3)
+            if biosformat >= 5.1000:
+                return xml_path + 'M7_5.10.00.xml'
         return xml_path + 'M7.xml'
 
     def _get_xml_mapper(self, args, key, value):
@@ -1150,7 +1240,7 @@ class CommonM7(CommonM6):
             {
                 'descriptionName': {
                     'description': 'descriptionName',
-                    'type': 'int/str/list/dict',
+                    'list': 64,
                     'match': True/False,
                     'parent': 'server_bios_parent_key',
                     'getter': 'server_bios_key',
@@ -1162,7 +1252,7 @@ class CommonM7(CommonM6):
         """
         try:
             #xml_filepath = sys.path[0] + '/mappers/bios/M7.xml'
-            xml_filepath = self._get_xml_file()
+            xml_filepath = self._get_xml_file(args)
             import xml.etree.ElementTree as ET
             tree = ET.parse(xml_filepath)
             server = tree.getroot()
@@ -1171,7 +1261,7 @@ class CommonM7(CommonM6):
                 for item in items:
                     map_dict[item.find('name').find('description').text.lower().replace(" ", "")] = {
                         'description': item.find('name').find('description').text,
-                        'type': 'str' if item.find('type') is None else item.find('type').text,
+                        'list': 0 if item.find('list') is None else int(item.find('list').text),
                         'match': True if item.find('match') is None else False if item.find(
                             'match').text == 'False' else True,
                         'parent': None if item.find('parent') is None else item.find('parent').text,
@@ -1207,7 +1297,7 @@ class CommonM7(CommonM6):
         """
         try:
             #xml_filepath = sys.path[0] + '/mappers/bios/M7.xml'
-            xml_filepath = self._get_xml_file()
+            xml_filepath = self._get_xml_file(args)
             import xml.etree.ElementTree as ET
             tree = ET.parse(xml_filepath)
             server = tree.getroot()
@@ -1261,9 +1351,22 @@ class CommonM7(CommonM6):
         bios_value_dict = {}
         errordict={}
         for bioskey, biosvalue in bios_set.items():
-            conditions = bios_all_info.get(bioskey).get("conditions")
+            conditions = bios_all_info.get(bioskey, {}).get("conditions", {})
             errorlist = []
             errorinfo = ""
+            #如果和当前值相等 不需要考虑condition
+            bioskeyparent = bios_all_info.get(bioskey, {}).get("parent")
+            if bioskeyparent:
+                if bioskeyparent == "FixedBootPriorities":
+                    #如果是启动项，可能获取方式有区别
+                    bioskeylistname = bioskey[0:-1]
+                    bioskeylistid = bioskey[-1]
+                    if bios_set.get(bioskey) == bios_cur.get(bioskeyparent, {}).get(bioskeylistname, [])[int(bioskeylistid)]:
+                        continue
+                else:
+                    if bios_cur.get(bioskeyparent, {}).get(bioskey) == bios_set.get(bioskey):
+                        continue
+
             for conditionkey,conditionvalue in conditions.items():
                 condition_bios_info = bios_all_info.get(conditionkey)
                 #condition 的 isrest 展示 key
@@ -1298,6 +1401,7 @@ class CommonM7(CommonM6):
                             errorlist.append(self.formatCondition(conditionkeyshow, conditionvalueshow, conditionvaluedict.get(conditonvalue_future), 2))
                             continue
                 #比较当前值
+                conditonvalue_current = None
                 if bios_cur.get(conditionkey):
                     conditonvalue_current = bios_cur.get(conditionkey)
                 elif bios_cur.get(conditionparent):
@@ -2488,9 +2592,11 @@ class CommonM7(CommonM6):
             sensor = IpmiFunc.getSensorByNameByIpmi(client, 'Fan_Power')
             if sensor and sensor.get('code') == 0:
                 temp = sensor.get('data')[0].get('value')
-                fan_Info.FanTotalPowerWatts(float(temp) if (temp is not None and temp != 'na') else None)
-            else:
-                fan_Info.FanTotalPowerWatts(None)
+                if temp is not None and temp != 'na':
+                    fan_Info.FanTotalPowerWatts(float(temp))
+            #     fan_Info.FanTotalPowerWatts(float(temp) if (temp is not None and temp != 'na') else None)
+            # else:
+            #     fan_Info.FanTotalPowerWatts(None)
             fan_Info.FanManualModeTimeoutSeconds(None)
             fan_Info.Fan(list)
             result.State('Success')
@@ -4658,543 +4764,6 @@ class CommonM7(CommonM6):
         RestFunc.logout(client)
         return result
 
-    #2023年1月29日 大概是PFR专用 暂时删除
-    '''
-    def getldapgroup(self, client, args):
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        res = RestFunc.getLDAPgroupM6(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            ldap_group = res.get('data')
-            ldap_group_list = []
-            for group in ldap_group:
-                ldap_res = collections.OrderedDict()
-                ldap_res['Id'] = group['id']
-                ldap_res['Name'] = group['role_group_name']
-                ldap_res['Domain'] = group['role_group_domain']
-                ldap_res['Privilege'] = group['role_group_withoem_privilege']
-                ldap_res['KVM Access'] = "Enabled" if group['role_group_kvm_privilege'] == 1 else "Disabled"
-                ldap_res['VMedia Access'] = "Enabled" if group['role_group_vmedia_privilege'] == 1 else "Disabled"
-                ldap_group_list.append(ldap_res)
-            result.State("Success")
-            result.Message([{"LDAPgroup": ldap_group_list}])
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def addldapgroup(self, client, args):
-        def checkGroupName(name):
-            # 角色组名称是一个64字母数字组成的字串。
-            # 允许特殊字符如连字符和下划线。
-            dn = '^[\da-zA-Z\-_]{1,64}$'
-            if re.search(dn, name, re.I):
-                return True
-            return False
-
-        def checkDoamin(s):
-            # 域名名称是一个64字母数字组成的字串。
-            # 开头字符必须是字母。
-            # 允许特殊字符如点(.)，逗号(,)，连字符(-)，下划线(_)，等于号(=)。
-            # 范例: cn=manager,ou=login, dc=domain,dc=com
-            dn = '^[a-zA-Z][a-zA-Z\-_\.\,\=]{4,64}$'
-            if re.search(dn, s, re.I):
-                return True
-            return False
-
-        result = ResultBean()
-
-        if args.name is not None:
-            if not checkGroupName(args.name):
-                result.State("Failure")
-                result.Message([
-                    'Group name is a string of less than 64 alpha-numeric characters, and hyphen and underscore are also allowed.'])
-                return result
-
-        if args.domain is not None:
-            if not checkDoamin(args.domain):
-                result.State("Failure")
-                result.Message([
-                    'Domain Name is a string of 4 to 64 alpha-numeric characters.It must start with an alphabetical character.Special Symbols like dot(.), comma(,), hyphen(-), underscore(_), equal-to(=) are allowed.Example: cn=manager,ou=login,dc=domain,dc=com'])
-                return result
-
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        name_exist_flag = False
-        add_flag = False
-        res = RestFunc.getLDAPgroupM6(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            for item in res.get('data'):
-                name = item.get('role_group_name', "unknown")
-                if name == args.name:
-                    name_exist_flag = True
-                    break
-                if name == "":
-                    add_flag = True
-                    args.id = item.get('id', 0)
-                    break
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if name_exist_flag:
-            result.State("Failure")
-            result.Message(['Group ' + args.name + ' is already exist.'])
-            RestFunc.logout(client)
-            return result
-
-        if not add_flag:
-            result.State("Failure")
-            result.Message(['LDAP role group is full.'])
-            RestFunc.logout(client)
-            return result
-
-        kvm_vm = {"enable": 1, "disable": 0}
-        # priv administrator user operator oem none
-        ldapgroup = {
-            'id': args.id,
-            'role_group_domain': args.domain,
-            'role_group_kvm_privilege': kvm_vm.get(args.kvm.lower()),
-            'role_group_name': args.name,
-            'role_group_withoem_privilege': args.pri,
-            'role_group_vmedia_privilege': kvm_vm.get(args.vm.lower()),
-            'role_group_privilege': "none"
-        }
-        # print(ldapgroup)
-        set_res = RestFunc.setLDAPgroupM6(client, ldapgroup)
-        if set_res.get('code') == 0 and set_res.get('data') is not None:
-            result.State("Success")
-            result.Message(["Add LDAP group success."])
-        else:
-            result.State("Failure")
-            result.Message([set_res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def setldapgroup(self, client, args):
-
-        def checkGroupName(name):
-            # 角色组名称是一个64字母数字组成的字串。
-            # 允许特殊字符如连字符和下划线。
-            dn = '^[\da-zA-Z\-_]{1,64}$'
-            if re.search(dn, name, re.I):
-                return True
-            return False
-
-        def checkDoamin(s):
-            # 域名名称是一个64字母数字组成的字串。
-            # 开头字符必须是字母。
-            # 允许特殊字符如点(.)，逗号(,)，连字符(-)，下划线(_)，等于号(=)。
-            # 范例: cn=manager,ou=login, dc=domain,dc=com
-            dn = '^[a-zA-Z][a-zA-Z\-_\.\,\=]{4,64}$'
-            if re.search(dn, s, re.I):
-                return True
-            return False
-
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        name_exist_flag = False
-        res = RestFunc.getLDAPgroupM6(client)
-        ldapgroup = None
-        if res.get('code') == 0 and res.get('data') is not None:
-            for item in res.get('data'):
-                id = str(item.get('id', 0))
-                if id == args.id:
-                    ldapgroup = item
-                else:
-                    name = item.get('role_group_name', "unknown")
-                    if name == args.name:
-                        name_exist_flag = True
-                        break
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if name_exist_flag:
-            result.State("Failure")
-            result.Message(['Group ' + args.name + ' is already exist.'])
-            RestFunc.logout(client)
-            return result
-
-        if ldapgroup is None:
-            result.State("Failure")
-            result.Message(['Group id is not exist.' + res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if args.name is not None:
-            if checkGroupName(args.name):
-                ldapgroup['role_group_name'] = args.name
-            else:
-                result.State("Failure")
-                result.Message([
-                    'Group name is a string of less than 64 alpha-numeric characters, and hyphen and underscore are also allowed.'])
-                RestFunc.logout(client)
-                return result
-        if ldapgroup['role_group_name'] == "":
-            result.State("Failure")
-            result.Message(['Group name is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        if args.domain is not None:
-            if checkDoamin(args.domain):
-                ldapgroup['role_group_domain'] = args.domain
-            else:
-                result.State("Failure")
-                result.Message([
-                    'Domain Name is a string of 4 to 64 alpha-numeric characters.It must start with an alphabetical character.Special Symbols like dot(.), comma(,), hyphen(-), underscore(_), equal-to(=) are allowed.Example: cn=manager,ou=login,dc=domain,dc=com'])
-                RestFunc.logout(client)
-                return result
-        if ldapgroup['role_group_domain'] == "":
-            result.State("Failure")
-            result.Message(['Group domain is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        if args.pri is not None:
-            ldapgroup['role_group_withoem_privilege'] = args.pri
-        if ldapgroup['role_group_withoem_privilege'] == "":
-            result.State("Failure")
-            result.Message(['Group privilege is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        kvm_vm = {"enable": 1, "disable": 0}
-        if args.kvm is not None:
-            ldapgroup['role_group_kvm_privilege'] = kvm_vm.get(args.kvm.lower())
-
-        if args.vm is not None:
-            ldapgroup['role_group_vmedia_privilege'] = kvm_vm.get(args.vm.lower())
-
-        # print(ldapgroup)
-        set_res = RestFunc.setLDAPgroupM6(client, ldapgroup)
-        if set_res.get('code') == 0 and set_res.get('data') is not None:
-            result.State("Success")
-            result.Message(["Set LDAP group success."])
-        else:
-            result.State("Failure")
-            result.Message([set_res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def getadgroup(self, client, args):
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        res = RestFunc.getADgroupM6(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            ldap_group = res.get('data')
-            ldap_group_list = []
-            for group in ldap_group:
-                ldap_res = collections.OrderedDict()
-                ldap_res['Id'] = group['id']
-                ldap_res['Name'] = group['role_group_name']
-                ldap_res['Domain'] = group['role_group_domain']
-                ldap_res['Privilege'] = group['role_group_withoem_privilege']
-                ldap_res['KVM Access'] = "Enabled" if group['role_group_kvm_privilege'] == 1 else "Disabled"
-                ldap_res['VMedia Access'] = "Enabled" if group['role_group_vmedia_privilege'] == 1 else "Disabled"
-                ldap_group_list.append(ldap_res)
-            result.State("Success")
-            result.Message([{"ADgroup": ldap_group_list}])
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def addadgroup(self, client, args):
-        def checkGroupName(name):
-            # 角色组名称是一个64字母数字组成的字串。
-            # 允许特殊字符如连字符和下划线。
-            dn = '^[\da-zA-Z\-_]{1,64}$'
-            if re.search(dn, name, re.I):
-                return True
-            return False
-
-        # def checkDoamin(s):
-        #     # 域名名称是一个64字母数字组成的字串。
-        #     # 开头字符必须是字母。
-        #     # 允许特殊字符如点(.)，逗号(,)，连字符(-)，下划线(_)，等于号(=)。
-        #     # 范例: cn=manager,ou=login, dc=domain,dc=com
-        #     dn = '^[a-zA-Z][a-zA-Z\-_\.\,\=]{4,64}$'
-        #     if re.search(dn, s, re.I):
-        #         return True
-        #     return False
-        def checkDoamin(s):
-            dn = '^([\da-zA-Z]+[\w\-]*\.)*([\da-zA-Z]+[\w\-]*)+\.([\da-zA-Z]+[\w\-]*)+$'
-            dnd = '^([\d]+\.)*[\d]+\.[\d]+$'
-            if re.search(dn, s, re.I) and not re.search(dnd, s, re.I):
-                return True
-            return False
-
-        result = ResultBean()
-        if args.name is not None:
-            if not checkGroupName(args.name):
-                result.State("Failure")
-                result.Message([
-                    'Group name is a string of less than 64 alpha-numeric characters, and hyphen and underscore are also allowed.'])
-                return result
-
-        if args.domain is not None:
-            if not checkDoamin(args.domain):
-                result.State("Failure")
-                result.Message([
-                    'Domain Name is a string of less than 255 alpha-numeric characters. '
-                    'It must start with an alphabetical character. '
-                    'Special Symbols like dot(.), hyphen(-), underscore(_) are allowed.'])
-                return result
-
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-        result = ResultBean()
-
-        id_exist_flag = False
-        name_exist_flag = False
-        # add_flag = False
-        res = RestFunc.getADgroupM6(client)
-        if res.get('code') == 0 and res.get('data') is not None:
-            for item in res.get('data'):
-                name = item.get('role_group_name', "unknown")
-                if name == args.name:
-                    name_exist_flag = True
-                    break
-                id = item.get('id', "unknown")
-                if str(id) == args.id and name != "":
-                    id_exist_flag = True
-                    break
-                # if name == "":
-                #     add_flag = True
-                #     args.id = item.get('id', 0)
-                #     break
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if id_exist_flag:
-            result.State("Failure")
-            result.Message(['the ID has group info already, please use "setADgroup" to edit it.'])
-            RestFunc.logout(client)
-            return result
-
-        if name_exist_flag:
-            result.State("Failure")
-            result.Message(['Group ' + args.name + ' is already exist.'])
-            RestFunc.logout(client)
-            return result
-
-        # if not add_flag:
-        #     result.State("Failure")
-        #     result.Message(['AD role group is full.'])
-        #     RestFunc.logout(client)
-        #     return result
-
-        kvm_vm = {"enable": 1, "disable": 0}
-        # priv administrator user operator none
-        adgroup = {
-            'id': args.id,
-            'role_group_domain': args.domain,
-            'role_group_kvm_privilege': kvm_vm.get(args.kvm.lower()),
-            'role_group_name': args.name,
-            'role_group_withoem_privilege': args.pri,
-            'role_group_vmedia_privilege': kvm_vm.get(args.vm.lower()),
-            'role_group_privilege': "none"
-        }
-        # print(adgroup)
-        set_res = RestFunc.setADgroupM6(client, adgroup)
-        if set_res.get('code') == 0 and set_res.get('data') is not None:
-            result.State("Success")
-            result.Message(["Add AD group success."])
-        else:
-            result.State("Failure")
-            result.Message([set_res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    def setadgroup(self, client, args):
-
-        def checkGroupName(name):
-            # 角色组名称是一个64字母数字组成的字串。
-            # 允许特殊字符如连字符和下划线。
-            dn = '^[\da-zA-Z\-_]{1,64}$'
-            if re.search(dn, name, re.I):
-                return True
-            return False
-
-        # def checkDoamin(s):
-        #     # 域名名称是一个64字母数字组成的字串。
-        #     # 开头字符必须是字母。
-        #     # 允许特殊字符如点(.)，逗号(,)，连字符(-)，下划线(_)，等于号(=)。
-        #     # 范例: cn=manager,ou=login, dc=domain,dc=com
-        #     dn = '^[a-zA-Z][a-zA-Z\-_\.\,\=]{4,64}$'
-        #     if re.search(dn, s, re.I):
-        #         return True
-        #     return False
-        def checkDoamin(s):
-            dn = '^([\da-zA-Z]+[\w\-]*\.)*([\da-zA-Z]+[\w\-]*)+\.([\da-zA-Z]+[\w\-]*)+$'
-            dnd = '^([\d]+\.)*[\d]+\.[\d]+$'
-            if re.search(dn, s, re.I) and not re.search(dnd, s, re.I):
-                return True
-            return False
-
-        result = ResultBean()
-        # login
-        headers = RestFunc.login_M6(client)
-        if headers == {}:
-            login_res = ResultBean()
-            login_res.State("Failure")
-            login_res.Message(["login error, please check username/password/host/port"])
-            return login_res
-        client.setHearder(headers)
-
-        name_exist_flag = False
-        id_not_exit_flag = False
-        res = RestFunc.getADgroupM6(client)
-        adgroup = None
-        if res.get('code') == 0 and res.get('data') is not None:
-            for item in res.get('data'):
-                id = str(item.get('id', 0))
-                if id == args.id:
-                    name = item.get('role_group_name', "unknown")
-                    if name == "":
-                        id_not_exit_flag = True
-                        break
-                    adgroup = item
-                else:
-                    name = item.get('role_group_name', "unknown")
-                    if name == args.name:
-                        name_exist_flag = True
-                        break
-        else:
-            result.State("Failure")
-            result.Message([res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if id_not_exit_flag:
-            result.State("Failure")
-            result.Message(['the ID has no group info yet, please use "addADgroup" to add it'])
-            RestFunc.logout(client)
-            return result
-
-        if name_exist_flag:
-            result.State("Failure")
-            result.Message(['Group ' + args.name + ' is already exist.'])
-            RestFunc.logout(client)
-            return result
-
-        if adgroup is None:
-            result.State("Failure")
-            result.Message(['Group id is not exist.' + res.get('data')])
-            RestFunc.logout(client)
-            return result
-
-        if args.name is not None:
-            if checkGroupName(args.name):
-                adgroup['role_group_name'] = args.name
-            else:
-                result.State("Failure")
-                result.Message([
-                    'Group name is a string of less than 64 alpha-numeric characters, and hyphen and underscore are also allowed.'])
-                RestFunc.logout(client)
-                return result
-        if adgroup['role_group_name'] == "":
-            result.State("Failure")
-            result.Message(['Group name is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        if args.domain is not None:
-            if checkDoamin(args.domain):
-                adgroup['role_group_domain'] = args.domain
-            else:
-                result.State("Failure")
-                result.Message([
-                    'Domain Name is a string of 4 to 64 alpha-numeric characters.It must start with an alphabetical character.Special Symbols like dot(.), comma(,), hyphen(-), underscore(_), equal-to(=) are allowed.Example: cn=manager,ou=login,dc=domain,dc=com'])
-                RestFunc.logout(client)
-                return result
-        if adgroup['role_group_domain'] == "":
-            result.State("Failure")
-            result.Message(['Group domain is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        if args.pri is not None:
-            adgroup['role_group_withoem_privilege'] = args.pri
-        if adgroup['role_group_withoem_privilege'] == "":
-            result.State("Failure")
-            result.Message(['Group privilege is needed.'])
-            RestFunc.logout(client)
-            return result
-
-        kvm_vm = {"enable": 1, "disable": 0}
-        if args.kvm is not None:
-            adgroup['role_group_kvm_privilege'] = kvm_vm.get(args.kvm.lower())
-
-        if args.vm is not None:
-            adgroup['role_group_vmedia_privilege'] = kvm_vm.get(args.vm.lower())
-
-        # print(adgroup)
-        set_res = RestFunc.setADgroupM6(client, adgroup)
-        if set_res.get('code') == 0 and set_res.get('data') is not None:
-            result.State("Success")
-            result.Message(["Set AD group success."])
-        else:
-            result.State("Failure")
-            result.Message([set_res.get('data')])
-
-        RestFunc.logout(client)
-        return result
-
-    '''
     def getmediainstance(self, client, args):
         result = ResultBean()
         # login
@@ -5215,6 +4784,7 @@ class CommonM7(CommonM6):
             media_instance["KVMCDNum"] = gs.get("kvm_num_cd")
             media_instance["KVMHDNum"] = gs.get("kvm_num_hd")
             media_instance["SDMedia"] = "Enable" if gs.get("sd_media") == 1 else "Disable"
+            media_instance["SecureChannel"] = "Enable" if gs.get("secure_channel") == 1 else "Disable"
             media_instance["PowerSaveMode"] = "Enable" if gs.get("power_save_mode") == 1 else "Disable"
             result.State("Success")
             result.Message([{"Instance": media_instance}])
@@ -5302,6 +4872,29 @@ class CommonM7(CommonM6):
         RestFunc.logout(client)
         return result
 
+    def resetkvm(self, client, args):
+        result = ResultBean()
+        # login
+        headers = RestFunc.login_M6(client)
+        if headers == {}:
+            login_res = ResultBean()
+            login_res.State("Failure")
+            login_res.Message(
+                ["login error, please check username/password/host/port"])
+            return login_res
+        client.setHearder(headers)
+
+        res = RestFunc.resetBMCM7(client, 'kvm')
+        if res.get('code') == 0 and res.get('data') is not None:
+            result.State("Success")
+            result.Message([res.get('data')])
+        else:
+            result.State("Failure")
+            result.Message([res.get('data')])
+
+        RestFunc.logout(client)
+        return result
+
     def resetbmc(self, client, args):
         result = ResultBean()
 
@@ -5314,7 +4907,7 @@ class CommonM7(CommonM6):
         client.setHearder(headers)
 
         RestFunc.securityCheckByRest(client)
-        res = RestFunc.resetBMCM6(client, args.type)
+        res = RestFunc.resetBMCM7(client, 'bmc')
         if res.get('code') == 0 and res.get('data') is not None:
             result.State("Success")
             result.Message([res.get('data')])
@@ -5474,7 +5067,10 @@ class CommonM7(CommonM6):
                 psu_Info.OverallHealth(None)
             psu_allInfo = res.get('data')
             psu_Info.PsuPresentTotalPower(psu_allInfo.get('present_power_reading', None))
-            psu_Info.PsuRatedPower(psu_allInfo.get('rated_power', None))
+            # 2023年3月27日
+            rate_power = psu_allInfo.get('rated_power', 'N/A')
+            if rate_power != "N/A":
+                psu_Info.PsuRatedPower(psu_allInfo.get('rated_power', 'N/A'))
             psu_Info.PsuStatus(status_dict.get(psu_allInfo.get('power_supplies_redundant', 0)))
             temp = psu_allInfo.get('power_supplies', [])
             size = len(temp)
@@ -5509,11 +5105,15 @@ class CommonM7(CommonM6):
                     psu.PowerSupplyType(temp[i].get('input_type', 'Unknown'))
                     psu.LineInputVoltage(temp[i].get('ps_in_volt') if 'ps_in_volt' in temp[i] else None)
                     # psu.PowerCapacityWatts(temp[i].get('ps_out_power_max', None))
-                    # 2023年3月27日 
+                    # 2023年3月27日
                     psu.PowerCapacityWatts(temp[i].get('rated_power', None))
                     psu.FirmwareVersion(None if temp[i].get('fw_ver', None) == '' else temp[i].get('fw_ver', None))
                     psu.SerialNumber(temp[i].get('serial_num', None))
-                    psu.Temperature(temp[i].get('ambient_temperature', None))
+
+                    if "temperature" in temp[i]:
+                        psu.Temperature(temp[i].get('temperature', None))
+                    else:
+                        psu.Temperature(temp[i].get('psu_max_temperature', None))
                     if 'status' in temp[i]:
                         psu.Health(
                             'OK' if temp[i].get('status').upper() == 'OK' else temp[i].get('status').capitalize())
@@ -5902,7 +5502,7 @@ def createVirtualDrive(client, args):
         result.State("Failure")
         result.Message(['get physical disk information failed!' + res.get('data')])
         return result
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         for pd in ctrl_list_dict:
             ctrl_list_dict.get(pd).sort()
         LSI_flag = False

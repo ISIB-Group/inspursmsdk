@@ -30,13 +30,14 @@ class RequestClient():
         self.port = ''
         self.restport = 443
         self.lantype = ''
+        self.type = ''
 
         self.token = ''
         self.etag = ''
         self.headerhost = None
         self.auth = None
 
-    def setself(self, host, username, password, port=623, lantype="lanplus"):
+    def setself(self, host, username, password, type, port=623, lantype="lanplus"):
         """
         #=====================================================================
         #   @Method:  设置带内hos，port,username,password值
@@ -66,6 +67,7 @@ class RequestClient():
         self.resthost = resthost
         self.username = username
         self.passcode = password
+        self.type = type
         if port is None:
             self.port = 623
         else:

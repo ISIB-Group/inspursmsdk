@@ -6,7 +6,7 @@ Home-page: https://github.com/ISIB_Group/inspur_sm_sdk
 Author: Wangbaoshan
 Author-email: wangbaoshan@inspur.com
 License: Expat License
-Description: Inspur_sm_sdk is a support tool for ansible.inspur.sm
+Description: Inspur_sm_sdk is a support tool for ansible.inspur.ispim
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python

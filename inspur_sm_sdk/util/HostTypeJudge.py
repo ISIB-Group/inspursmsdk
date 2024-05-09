@@ -38,7 +38,7 @@ class HostTypeClient():
             client = RequestClient.RequestClient()
             client.setself(host, username, passcode, port, "lanplus")
             productName = IpmiFunc.getProductNameByIpmi(client)
-            firmwareVersion = IpmiFunc.getFirmwareVersoinByIpmi(client)
+            firmwareVersion = IpmiFunc.getFirmwareVersoinByMcinfo(client)
             return productName, firmwareVersion
 
     # 从命令行参数利用IPMI fru命令验证远程主机的机型

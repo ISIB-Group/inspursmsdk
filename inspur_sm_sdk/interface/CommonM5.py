@@ -11754,7 +11754,7 @@ def getpdInfo(client, cid_index):
 
 
 def createVirtualDrive(client, args):
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         result = showpdInfo(client, args)
         return result
     result = ResultBean()
@@ -12106,7 +12106,7 @@ def setVirtualDrive(client, args):
     elif raidtype == '00' or raidtype == '02' or raidtype == '03':
         result = setLogicalDrive_LSI(args, client)
     elif raidtype == 'ff':
-        if args.Info is not None:
+        if 'Info' in args and args.Info is not None:
             raidDict = {}
             LSIresult = showLogicalInfo_LSI(client, args)
             if LSIresult.State == 'Success':
@@ -12137,7 +12137,7 @@ def setVirtualDrive(client, args):
 
 
 def setLogicalDrive_LSI(args, client):
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         result = showLogicalInfo_LSI(client, args)
         return result
     else:
@@ -12401,7 +12401,7 @@ def setPhysicalDrive(client, args):
     elif raidtype == '00' or raidtype == '02' or raidtype == '03':
         result = setPhysicalDrive_LSI(args, client)
     elif raidtype == 'ff':
-        if args.Info is not None:
+        if 'Info' in args and args.Info is not None:
             raidDict = {}
             LSIresult = showPhysicalInfo_LSI(args, client)
             if LSIresult.State == 'Success':
@@ -12429,7 +12429,7 @@ def setPhysicalDrive(client, args):
 
 def setPhysicalDrive_LSI(args, client):
     result = ResultBean()
-    if args.Info is not None:
+    if 'Info' in args and args.Info is not None:
         result = showPhysicalInfo_LSI(client, args)
         return result
     else:
@@ -17406,7 +17406,7 @@ def getGPU(client, args):
 
 def printGPUInfo(responds, args, gpuinfo):
     result = ResultBean()
-    args.hostType = args.hostPlatform
+    args.hostType = args.productName
     if responds is None:
         result.State('Failure')
         result.Message('GPU information request failed!')

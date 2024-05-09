@@ -381,7 +381,6 @@
                 <setter>
                     <cmd>raw 0x3e 0x20 0x27 0x00 $in</cmd>
                     <value>0~24</value>
-                    <validation>com.inspur.isa.biosconfig.service.BiosItemValueValidate.validatePatrolScrubInterval</validation>
                 </setter>
             </setters>
         </cfgItem>
