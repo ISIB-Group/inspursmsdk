@@ -5700,7 +5700,7 @@ class CommonM5(Base):
         else:
             result.State("Failure")
             result.Message(["get lan information error"])
-        if status == 3:
+        if status == 2:
             result.State("Success")
             result.Message(infoList)
         # logout
