@@ -8500,12 +8500,12 @@ class CommonM5(Base):
             return login_res
         client.setHearder(headers)
         if args.setting == 'all':
-            override = 1
-        elif args.setting == 'none':
             override = 0
+        elif args.setting == 'none':
+            override = 1
         else:
             override = args.override
-        res = RestFunc.preserveBMCConfig(client, override)
+        res = RestFunc.preserveBMCConfigM5(client, override)
         if res.get('code') == 0 and res.get('data') is not None:
             pre_cfg = res.get('data')
             result.State("Success")
@@ -8534,7 +8534,7 @@ class CommonM5(Base):
         else:
             override = args.override
         # overide 1改写  0保留    list [fru,sdr]中的为保留的
-        res = RestFunc.restoreDefaults(client, override)
+        res = RestFunc.restoreDefaultsM5(client, override)
         if res.get('code') == 0 and res.get('data') is not None:
             pre_cfg = res.get('data')
             result.State("Success")
@@ -13289,8 +13289,8 @@ def setSNMP(client, args):
         'SNMP_VERSION_V3_READ_BIT': 4,
         'SNMP_VERSION_V3_WRITE_BIT': 64,
     }
-    authentication_dict = {0: "NONE", 1: "SHA", 2: "MD5"}
-    privacy_dict = {0: "NONE", 1: "DES", 2: "AES"}
+    authentication_dict = {"NONE": 0, "SHA": 1, "MD5": 2}
+    privacy_dict = {"NONE": 0, "DES": 1, "AES": 2}
     # get default snmp GET/SET config
     responds = RestFunc.getSnmpM5ByRest(client)
     if responds.get('code') == 0 and responds.get('data') is not None:
@@ -13352,12 +13352,12 @@ def setSNMP(client, args):
                     snmpv3writeenable = True
             if args.version is None:
                 args.version = versiondisp
-            if args.version != 4 and args.snmpstatus is not None:
+            if args.version != 4 and args.snmpStatus is not None:
                 result.State('Failure')
                 result.Message(
                     ['SNMP read/write status will be ignored with no SNMP trap version'])
                 return result
-            if args.snmpstatus is not None:
+            if args.snmpStatus is not None:
                 snmpv1writeenable = False
                 snmpv1readenable = False
                 snmpv2cwriteenable = False
@@ -13371,7 +13371,10 @@ def setSNMP(client, args):
                     'v2cset': 'snmpv2cwriteenable',
                     'v3get': 'snmpv3readenable',
                     'v3set': 'snmpv3writeenable'}
-                snmps = str(args.snmpstatus).split(',')
+                if type(args.snmpStatus) is str:
+                    snmps = str(args.snmpStatus).split(',')
+                elif type(args.snmpStatus) is list:
+                    snmps = args.snmpStatus
                 for snmp in snmps:
                     if snmp not in dict_status:
                         result.State('Failure')
@@ -13440,7 +13443,7 @@ def setSNMP(client, args):
                         ['authentication password will be ignored in v1/v2c trap.'])
                     return result
                 authPassword = ''
-                if args.privacy is not None:
+                if args.privProtocol is not None:
                     result.State('Failure')
                     result.Message(['privacy will be ignored in v1/v2c trap.'])
                     return result
@@ -13465,11 +13468,11 @@ def setSNMP(client, args):
                 if args.authProtocol is None:
                     authProtocol = default_auth_protocol
                 else:
-                    authProtocol = authentication_dict.get(args.authProtocol)
-                if args.privacy is None:
+                    authProtocol = authentication_dict.get(args.authProtocol, 0)
+                if args.privProtocol is None:
                     privacy = default_priv_protocol
                 else:
-                    privacy = privacy_dict.get(args.privacy)
+                    privacy = privacy_dict.get(args.privProtocol, 0)
                 authPassword = ''
                 if authProtocol == 1 or authProtocol == 2:
                     if args.authPassword is None:
@@ -13526,11 +13529,11 @@ def setSNMP(client, args):
                 if args.authProtocol is None:
                     authProtocol = default_auth_protocol
                 else:
-                    authProtocol = authentication_dict.get(args.authProtocol)
-                if args.privacy is None:
+                    authProtocol = authentication_dict.get(args.authProtocol, 0)
+                if args.privProtocol is None:
                     privacy = default_priv_protocol
                 else:
-                    privacy = privacy_dict.get(args.privacy)
+                    privacy = privacy_dict.get(args.privProtocol, 0)
                 authPassword = ''
                 if authProtocol == 1 or authProtocol == 2:
                     if args.authPassword is None:
@@ -13602,11 +13605,11 @@ def setSNMP(client, args):
             if args.authProtocol is None:
                 authProtocol = default_auth_protocol
             else:
-                authProtocol = authentication_dict.get(args.authProtocol)
+                authProtocol = authentication_dict.get(args.authProtocol, 0)
             if args.privProtocol is None:
                 privacy = default_priv_protocol
             else:
-                privacy = privacy_dict.get(args.privProtocol)
+                privacy = privacy_dict.get(args.privProtocol, 0)
             authPassword = ''
             if authProtocol == 1 or authProtocol == 2:
                 if args.authPassword is None:

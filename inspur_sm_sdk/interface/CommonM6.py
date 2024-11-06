@@ -4857,7 +4857,6 @@ class CommonM6(Base):
             override = 0
         else:
             override = args.override
-        # overide 1改写  0保留    list [fru,sdr]中的为保留的
         res = RestFunc.restoreDefaults(client, override)
         if res.get('code') == 0 and res.get('data') is not None:
             pre_cfg = res.get('data')

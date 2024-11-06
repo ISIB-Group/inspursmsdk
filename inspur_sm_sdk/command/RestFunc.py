@@ -4579,16 +4579,19 @@ def preserveBMCConfig(client, override):
     JSON = {}
     if override == 1:
         op = "preserve"
-        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
-                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
     elif override == 0:
         op = "override"
-        data = {"id": 1, "sdr": 0, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1, "kvm": 1,
-                "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1, "rsd": 1}
+        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1,
+                "kvm": 1, "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1,
+                "rsd": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "hostname": 1, "dcmi": 1}
     elif isinstance(override, list):
         op = "preserve"
-        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
-                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
         for key in override:
             data[key] = 1
     response = client.request("PUT", "api/maintenance/preserve", client.getHearder(), json=data, timeout=50)
@@ -4638,14 +4641,48 @@ def getRestoreDefaults(client):
 def restoreDefaults(client, override):
     JSON = {}
     if override == 1:
-        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
-                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
     elif override == 0:
-        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1, "kvm": 1,
-                "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1, "rsd": 1}
+        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1,
+                "kvm": 1, "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1,
+                "rsd": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "hostname": 1, "dcmi": 1}
     elif isinstance(override, list):
-        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
-                "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0, "rsd": 0}
+        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1,
+                "kvm": 1, "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1,
+                "rsd": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "hostname": 1, "dcmi": 1}
+        for key in override:
+            data[key] = 0
+    else:
+        data = override
+    response = client.request("PUT", "api/maintenance/restore_defaults", client.getHearder(), json=data, timeout=50)
+    if response is None:
+        JSON['code'] = 1
+        JSON['data'] = 'Failed to call BMC interface api/maintenance/restore_defaults, response is none'
+    elif response.status_code == 200:
+        JSON['code'] = 0
+        JSON['data'] = "restore config success"
+    else:
+        JSON['code'] = 1
+        JSON['data'] = formatError("api/maintenance/restore_defaults", response)
+    return JSON
+
+
+def restoreDefaultsM5(client, override):
+    JSON = {}
+    if override == 0:
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
+    elif override == 1:
+        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1,
+                "kvm": 1, "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1,
+                "rsd": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "hostname": 1, "dcmi": 1}
+    elif isinstance(override, list):
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
         for key in override:
             data[key] = 1
     else:
@@ -4924,19 +4961,27 @@ def verifyUpdateImageByRest(client):
 # 配置设置
 
 
-def preserveBMCConfigM5(client, overide):
+def preserveBMCConfigM5(client, override):
     JSON = {}
-    if overide == 1:
+    if override == 1:
         # override
         op = "override"
-        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0, "kvm": 0,
-                "authentication": 0, "syslog": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "dcmi": 0, "hostname": 0}
+        data = {"id": 0, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
+    elif isinstance(override, list):
+        op = "preserve"
+        data = {"id": 1, "sdr": 0, "fru": 0, "sel": 0, "ipmi": 0, "network": 0, "ntp": 0, "snmp": 0, "ssh": 0,
+                "kvm": 0, "authentication": 0, "syslog": 0, "web": 0, "extlog": 0, "redfish": 0, "automationEngine": 0,
+                "rsd": 0, "pef": 0, "sol": 0, "smtp": 0, "user": 0, "hostname": 0, "dcmi": 0}
+        for key in override:
+            data[key] = 1
     else:
         # preserve
         op = "preserve"
-        data = {"id": 0, "sdr": 0, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1, "kvm": 1,
-                "authentication": 1, "syslog": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "dcmi": 1, "hostname": 1}
-
+        data = {"id": 1, "sdr": 1, "fru": 1, "sel": 1, "ipmi": 1, "network": 1, "ntp": 1, "snmp": 1, "ssh": 1,
+                "kvm": 1, "authentication": 1, "syslog": 1, "web": 1, "extlog": 1, "redfish": 1, "automationEngine": 1,
+                "rsd": 1, "pef": 1, "sol": 1, "smtp": 1, "user": 1, "hostname": 1, "dcmi": 1}
     response = client.request("PUT", "api/maintenance/preserve", client.getHearder(), json=data, timeout=50)
     if response is None:
         JSON['code'] = 1
