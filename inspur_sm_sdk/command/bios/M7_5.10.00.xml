@@ -1,0 +1,3233 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<server>
+    <cfgItems>
+        <cfgItem>
+            <name>
+                <description>LLC Prefetch</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>LlcPrefetchEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>EnableLPGlobal</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorHyperThreadingDisable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>PROCESSOR_LP_ALL</cmd>
+                    <value>AllLPs</value>
+                </setter>
+                <setter>
+                    <cmd>PROCESSOR_LP_1</cmd>
+                    <value>SingleLP</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Enable Intel(R) TXT</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorLtsxEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>VMX</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+                <!--set when Ltsx is disable-->
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorVmxEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Hardware P-States</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Hardware PM State Control
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>ProcessorHWPMEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <!--cmd>DISABLE</cmd-->
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>NATIVE_MODE</cmd>
+                    <value>Native Mode</value>
+                </setter>
+                <setter>
+                    <cmd>HWPM_OOB</cmd>
+                    <value>Out of Band Mode</value>
+                </setter>
+                <setter>
+                    <cmd>HWPM_NATIVE_NO_LEGACY</cmd>
+                    <value>Native Mode with No Legacy Support</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+           <name>
+               <description>Monitor/Mwait Support</description>
+               <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU C State Control</location>
+           </name>
+           <parent>SocketPowerManagementConfig</parent>
+           <getter>MonitorMWait</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+           <setters>
+               <setter>
+                   <cmd>Disabled</cmd>
+                   <value>Disabled</value>
+               </setter>
+               <setter>
+                   <cmd>Enabled</cmd>
+                   <value>Enabled</value>
+               </setter>
+               <setter>
+                   <cmd>Auto</cmd>
+                   <value>Auto</value>
+               </setter>
+           </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SpeedStep (Pstates)</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>ProcessorEistEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Intel SST-PP</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>IssTdpLevel</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>LEVEL_0</cmd>
+                    <value>level 0</value>
+                </setter>
+                <setter>
+                    <cmd>LEVEL_3</cmd>
+                    <value>level 3</value>
+                </setter>
+                <setter>
+                    <cmd>LEVEL_4</cmd>
+                    <value>level 4</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Static Turbo Mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Hardware PM State Control
+                </location>
+            </name>
+            <parent>XCradleSocketSetup</parent>
+            <getter>ControlTurboPStatus</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Turbo Mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+                <!--SpeedStep (Pstates)为Enabled时显示-->
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>TurboMode</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+		<!--会被隐藏 但是可以修改-->
+                <!--condition>
+                    <key>ProcessorEistEnable</key>
+                    <value>Enabled</value>
+                </condition-->
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Power/Performance Profile</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Power and Perfromance Profile
+                    Configuration
+                </location>
+                <!--CustomID为快手时选项隐藏-->
+            </name>
+            <parent>XCradleSocketSetup</parent>
+            <getter>PowerProfile</getter>
+            <setters>
+                <setter>
+                    <cmd>HIGH_PERFORMANCE_COMPUTE</cmd>
+                    <value>High Performance Compute</value>
+                </setter>
+                <setter>
+                    <cmd>BALANCE_EFFICIENCY</cmd>
+                    <value>Balance/Energy Efficiency</value>
+                </setter>
+                <setter>
+                    <cmd>POWER_SAVING</cmd>
+                    <value>Power Saving</value>
+                </setter>
+                <setter>
+                    <cmd>LOW_LATENCY</cmd>
+                    <value>Low Latency</value>
+                </setter>
+                <setter>
+                    <cmd>OLTP</cmd>
+                    <value>OLTP</value>
+                </setter>
+                <setter>
+                    <cmd>VIRTUALIZATION_HPC</cmd>
+                    <value>Virtualization</value>
+                </setter>
+                <setter>
+                    <cmd>MAX_PERFORMANCE_FLEXIBLE</cmd>
+                    <value>High Performance Compute Flexible</value>
+                </setter>
+                <setter>
+                    <cmd>STATIC_BASE_FREQUENCY</cmd>
+                    <value>static base Frequency</value>
+                </setter>
+                <setter>
+                    <cmd>SINGLECORE_HPC</cmd>
+                    <value>single core high performance</value>
+                </setter>
+                <setter>
+                    <cmd>VIRTUALIZATION</cmd>
+                    <value>Virtualization based on Balance</value>
+                </setter>
+                <setter>
+                    <cmd>IO_SENSITIVE</cmd>
+                    <value>IO/sensitive</value>
+                </setter>
+                <setter>
+                    <cmd>COMPREHENSIVE</cmd>
+                    <value>Comprehensive performance</value>
+                </setter>
+                <setter>
+                    <cmd>MEMORY_LOW_LATENCY_BALANCE</cmd>
+                    <value>Memory low latency Base on balanced</value>
+                </setter>
+                <setter>
+                    <cmd>MEMORY_LOW_LATENCY_HPC</cmd>
+                    <value>Memory low latency Base on HPC</value>
+                </setter>
+                <setter>
+                    <cmd>SPEC_POWER</cmd>
+                    <value>SpecPower</value>
+                </setter>
+                <setter>
+                    <cmd>SPEC_POWER_P</cmd>
+                    <value>SpecPower-Performance_test</value>
+                </setter>
+                <setter>
+                    <cmd>SPEC_POWER_S</cmd>
+                    <value>SpecPower_Save_Test</value>
+                </setter>
+                <setter>
+                    <cmd>CUSTOM</cmd>
+                    <value>Custom</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>VT-d</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-IIO Configuration-Intel VT for Directed I/O (VT-d)</location>
+            </name>
+            <parent>SocketIioConfig</parent>
+            <getter>VTdSupport</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                	<!-- Extended APIC Disabled -->
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PCI-E ASPM Support (Global)</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-IIO Configuration</location>
+            </name>
+            <parent>SocketIioConfig</parent>
+            <getter>PcieGlobalAspm</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>STR_DISABLE</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>STR_PER_PORT</cmd>
+                    <value>Per-Port</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Extended APIC</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-IIO Configuration-Intel VT for Directed I/O (VT-d)</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorX2apic</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Numa</description>
+                <!--                （(当选项Power/Performance Profile为非Custom时、选项SW Guard Extensions (SGX)为Enabeld时、机器上插的CPU个数非2时变灰)）-->
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Common RefCode Configuration</location>
+            </name>
+            <parent>SocketCommonRcConfig</parent>
+            <getter>NumaEn</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Boot Option Filter</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>BootOptionFilter</getter>
+            <setters>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy only</value>
+                </setter>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI only</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Ipv4 PXE Support</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-Network Stack Configuration</location>
+                <!--Network Stack为Enabled时显示;Boot option filter为UEFI Only时可选-->
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>Ipv4Pxe</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Ipv6 PXE Support</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-Network Stack Configuration</location>
+                <!--Network Stack为Enabled时显示;Boot option filter为UEFI Only时可选-->
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>Ipv6Pxe</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Option ROM execution</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>OptionROMExecution</getter>
+            <setters>
+                <setter>
+                    <cmd>CSM_OPROM_POLICY_AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>CSM_OPROM_POLICY_MANUAL</cmd>
+                    <value>Manual</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Network</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+                <!--需要OptionROMexecution为manual-->
+            </name>
+            <parent>Setup</parent>
+            <getter>PxeOpRom</getter>
+            <conditions>
+                <condition>
+                    <key>OptionROMExecution</key>
+                    <value>CSM_OPROM_POLICY_MANUAL</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Storage</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+                <!--需要 OptionROMexecution 为manual-->
+            </name>
+            <parent>Setup</parent>
+            <getter>MassStorageOpRom</getter>
+            <conditions>
+                <condition>
+                    <key>OptionROMExecution</key>
+                    <value>CSM_OPROM_POLICY_MANUAL</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Video</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+                <!--需要OptionROMexecution为manual-->
+            </name>
+            <parent>Setup</parent>
+            <getter>VideoOpRom</getter>
+            <conditions>
+                <condition>
+                    <key>OptionROMExecution</key>
+                    <value>CSM_OPROM_POLICY_MANUAL</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Other PCI devices</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+                <!--需要OptionROMexecution为manual-->
+            </name>
+            <parent>Setup</parent>
+            <getter>OldOpRom</getter>
+            <conditions>
+                <condition>
+                    <key>OptionROMExecution</key>
+                    <value>CSM_OPROM_POLICY_MANUAL</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Uefi</cmd>
+                    <value>UEFI</value>
+                </setter>
+                <setter>
+                    <cmd>Legacy</cmd>
+                    <value>Legacy</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SR-IOV Support</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-PCI Subsystem Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>SriovSupport</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Security Device Support</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-Trusted Computing</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>TpmSupport</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Hardware Prefetcher</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>MlcStreamerPrefetcherEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>L2 RFO Prefetch Disable</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>L2RfoPrefetchDisable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Adjacent Cache Prefetcher</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>MlcSpatialPrefetcherEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>DCU Streamer Prefetcher</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>DCUStreamerPrefetcherEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>DCU IP Prefetcher</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>DCUIPPrefetcherEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Patrol Scrub</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>PatrolScrub</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>PATROL_EOP</cmd>
+                    <value>Enable at End of POST</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PL1 Time Window</description>
+                <!--                (当选项Turbo Mode为Disabled或选项SpeedStep (Pstates)为Disabled时隐藏)-->
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-SOCKET RAPL Config</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>PowerLimit1Time</getter>
+            <setters>
+                <setter>
+                    <cmd>0.001</cmd>
+                    <value>0.001</value>
+                </setter>
+                <setter>
+                    <cmd>0.0012</cmd>
+                    <value>0.0012</value>
+                </setter>
+                <setter>
+                    <cmd>0.0015</cmd>
+                    <value>0.0015</value>
+                </setter>
+                <setter>
+                    <cmd>0.0017</cmd>
+                    <value>0.0017</value>
+                </setter>
+                <setter>
+                    <cmd>0.002</cmd>
+                    <value>0.002</value>
+                </setter>
+                <setter>
+                    <cmd>0.0024</cmd>
+                    <value>0.0024</value>
+                </setter>
+                <setter>
+                    <cmd>0.003</cmd>
+                    <value>0.003</value>
+                </setter>
+                <setter>
+                    <cmd>0.0034</cmd>
+                    <value>0.0034</value>
+                </setter>
+                <setter>
+                    <cmd>0.004</cmd>
+                    <value>0.004</value>
+                </setter>
+                <setter>
+                    <cmd>0.005</cmd>
+                    <value>0.005</value>
+                </setter>
+                <setter>
+                    <cmd>0.006</cmd>
+                    <value>0.006</value>
+                </setter>
+                <setter>
+                    <cmd>0.007</cmd>
+                    <value>0.007</value>
+                </setter>
+                <setter>
+                    <cmd>0.008</cmd>
+                    <value>0.008</value>
+                </setter>
+                <setter>
+                    <cmd>0.01</cmd>
+                    <value>0.01</value>
+                </setter>
+                <setter>
+                    <cmd>0.012</cmd>
+                    <value>0.012</value>
+                </setter>
+                <setter>
+                    <cmd>0.014</cmd>
+                    <value>0.014</value>
+                </setter>
+                <setter>
+                    <cmd>0.016</cmd>
+                    <value>0.016</value>
+                </setter>
+                <setter>
+                    <cmd>0.02</cmd>
+                    <value>0.02</value>
+                </setter>
+                <setter>
+                    <cmd>0.023</cmd>
+                    <value>0.023</value>
+                </setter>
+                <setter>
+                    <cmd>0.027</cmd>
+                    <value>0.027</value>
+                </setter>
+                <setter>
+                    <cmd>0.031</cmd>
+                    <value>0.031</value>
+                </setter>
+                <setter>
+                    <cmd>0.039</cmd>
+                    <value>0.039</value>
+                </setter>
+                <setter>
+                    <cmd>0.047</cmd>
+                    <value>0.047</value>
+                </setter>
+                <setter>
+                    <cmd>0.055</cmd>
+                    <value>0.055</value>
+                </setter>
+                <setter>
+                    <cmd>0.063</cmd>
+                    <value>0.063</value>
+                </setter>
+                <setter>
+                    <cmd>0.078</cmd>
+                    <value>0.078</value>
+                </setter>
+                <setter>
+                    <cmd>0.094</cmd>
+                    <value>0.094</value>
+                </setter>
+                <setter>
+                    <cmd>0.109</cmd>
+                    <value>0.109</value>
+                </setter>
+                <setter>
+                    <cmd>0.125</cmd>
+                    <value>0.125</value>
+                </setter>
+                <setter>
+                    <cmd>0.156</cmd>
+                    <value>0.156</value>
+                </setter>
+                <setter>
+                    <cmd>0.188</cmd>
+                    <value>0.188</value>
+                </setter>
+                <setter>
+                    <cmd>0.219</cmd>
+                    <value>0.219</value>
+                </setter>
+                <setter>
+                    <cmd>0.25</cmd>
+                    <value>0.25</value>
+                </setter>
+                <setter>
+                    <cmd>0.313</cmd>
+                    <value>0.313</value>
+                </setter>
+                <setter>
+                    <cmd>0.375</cmd>
+                    <value>0.375</value>
+                </setter>
+                <setter>
+                    <cmd>0.438</cmd>
+                    <value>0.438</value>
+                </setter>
+                <setter>
+                    <cmd>0.5</cmd>
+                    <value>0.5</value>
+                </setter>
+                <setter>
+                    <cmd>0.625</cmd>
+                    <value>0.625</value>
+                </setter>
+                <setter>
+                    <cmd>0.75</cmd>
+                    <value>0.75</value>
+                </setter>
+                <setter>
+                    <cmd>0.875</cmd>
+                    <value>0.875</value>
+                </setter>
+                <setter>
+                    <cmd>1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>1.25</cmd>
+                    <value>1.25</value>
+                </setter>
+                <setter>
+                    <cmd>1.5</cmd>
+                    <value>1.5</value>
+                </setter>
+                <setter>
+                    <cmd>1.75</cmd>
+                    <value>1.75</value>
+                </setter>
+                <setter>
+                    <cmd>2</cmd>
+                    <value>2</value>
+                </setter>
+                <setter>
+                    <cmd>2.5</cmd>
+                    <value>2.5</value>
+                </setter>
+                <setter>
+                    <cmd>3</cmd>
+                    <value>3</value>
+                </setter>
+                <setter>
+                    <cmd>3.5</cmd>
+                    <value>3.5</value>
+                </setter>
+                <setter>
+                    <cmd>4</cmd>
+                    <value>4</value>
+                </setter>
+                <setter>
+                    <cmd>5</cmd>
+                    <value>5</value>
+                </setter>
+                <setter>
+                    <cmd>6</cmd>
+                    <value>6</value>
+                </setter>
+                <setter>
+                    <cmd>7</cmd>
+                    <value>7</value>
+                </setter>
+                <setter>
+                    <cmd>8</cmd>
+                    <value>8</value>
+                </setter>
+                <setter>
+                    <cmd>10</cmd>
+                    <value>10</value>
+                </setter>
+                <setter>
+                    <cmd>12</cmd>
+                    <value>12</value>
+                </setter>
+                <setter>
+                    <cmd>14</cmd>
+                    <value>14</value>
+                </setter>
+                <setter>
+                    <cmd>16</cmd>
+                    <value>16</value>
+                </setter>
+                <setter>
+                    <cmd>20</cmd>
+                    <value>20</value>
+                </setter>
+                <setter>
+                    <cmd>24</cmd>
+                    <value>24</value>
+                </setter>
+                <setter>
+                    <cmd>28</cmd>
+                    <value>28</value>
+                </setter>
+                <setter>
+                    <cmd>32</cmd>
+                    <value>32</value>
+                </setter>
+                <setter>
+                    <cmd>40</cmd>
+                    <value>40</value>
+                </setter>
+                <setter>
+                    <cmd>48</cmd>
+                    <value>48</value>
+                </setter>
+                <setter>
+                    <cmd>56</cmd>
+                    <value>56</value>
+                </setter>
+                <setter>
+                    <cmd>64</cmd>
+                    <value>64</value>
+                </setter>
+                <setter>
+                    <cmd>80</cmd>
+                    <value>80</value>
+                </setter>
+                <setter>
+                    <cmd>96</cmd>
+                    <value>96</value>
+                </setter>
+                <setter>
+                    <cmd>112</cmd>
+                    <value>112</value>
+                </setter>
+                <setter>
+                    <cmd>128</cmd>
+                    <value>128</value>
+                </setter>
+                <setter>
+                    <cmd>160</cmd>
+                    <value>160</value>
+                </setter>
+                <setter>
+                    <cmd>192</cmd>
+                    <value>192</value>
+                </setter>
+                <setter>
+                    <cmd>224</cmd>
+                    <value>224</value>
+                </setter>
+                <setter>
+                    <cmd>256</cmd>
+                    <value>256</value>
+                </setter>
+                <setter>
+                    <cmd>320</cmd>
+                    <value>320</value>
+                </setter>
+                <setter>
+                    <cmd>384</cmd>
+                    <value>384</value>
+                </setter>
+                <setter>
+                    <cmd>448</cmd>
+                    <value>448</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <!--当选项Power/Performance Profile为Custom时可选-->
+            <name>
+                <description>Enhanced Halt State (C1E)</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU C State Control</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>ProcessorC1eEnable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+        <!--当选项Power/Performance Profile为Custom时可选-->
+            <name>
+                <description>CPU C6 report</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU C State Control</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>C6Enable</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+        <!--当选项Power/Performance Profile为Custom时可选-->
+            <name>
+                <description>Package C State</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Package C State Control
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>PackageCState</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>C0SUPPORT</cmd>
+                    <value>C0/C1 state</value>
+                </setter>
+                <setter>
+                    <cmd>C2SUPPORT</cmd>
+                    <value>C2 state</value>
+                </setter>
+                <setter>
+                    <cmd>C6SUPPORT</cmd>
+                    <value>C6(non Retention) state</value>
+                </setter>
+                <setter>
+                    <cmd>C6_RETSUPPORT</cmd>
+                    <value>C6(Retention) state</value>
+                </setter>
+                <setter>
+                    <cmd>NOLIMIT</cmd>
+                    <value>No Limit</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Uncore Freq Scaling</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU_Advanced PM Tuning-Energy
+                    Perf BIAS
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>UncoreFreqScaling</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Min Frequency</cmd>
+                    <value>Min Frequency</value>
+                </setter>
+                <setter>
+                    <cmd>Max Frequency</cmd>
+                    <value>MAX Frequency</value>
+                </setter>
+                <setter>
+                    <cmd>Custom</cmd>
+                    <value>Custom</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Power Performance Tuning</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU_Advanced PM Tuning-Energy
+                    Perf BIAS
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>PwrPerfTuning</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>PWR_PERF_BIOS_EPB</cmd>
+                    <value>BIOS Controls EPB</value>
+                </setter>
+                <setter>
+                    <cmd>PWR_PERF_OS_EPB</cmd>
+                    <value>OS Controls EPB</value>
+                </setter>
+                <setter>
+                    <cmd>PWR_PERF_PCIE_EPB</cmd>
+                    <value>PECI Controls EPB</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>ENERGY_PERF_BIAS_CFG mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU_Advanced PM Tuning-Energy
+                    Perf BIAS
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>AltEngPerfBIAS</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+                <!--                可以修改-->
+                <!--                    <key>PwrPerfTuning</key>-->
+                <!--                    <value>PWR_PERF_BIOS_EPB</value>-->
+                <!--                </condition>-->
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>ENERGY_PERF_MODE_1</cmd>
+                    <value>Performance</value>
+                </setter>
+                <setter>
+                    <cmd>ENERGY_PERF_MODE_2</cmd>
+                    <value>Balanced Performance</value>
+                </setter>
+                <setter>
+                    <cmd>ENERGY_PERF_MODE_3</cmd>
+                    <value>Balanced Power</value>
+                </setter>
+                <setter>
+                    <cmd>ENERGY_PERF_MODE_4</cmd>
+                    <value>Power</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Workload Configuration</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU_Advanced PM Tuning-Energy
+                    Perf BIAS
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>WorkLdConfig</getter>
+            <setters>
+                <setter>
+                    <cmd>BALANCE</cmd>
+                    <value>Balanced</value>
+                </setter>
+                <setter>
+                    <cmd>IO_SENSITIVE</cmd>
+                    <value>I/O sensitive</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PCIE hotplug</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-IIO Configuration</location>
+            </name>
+            <parent>SocketIioConfig</parent>
+            <getter>PcieHotPlugEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link L1 Enable</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>KtiLinkL1En</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SNC (Sub NUMA)</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>SncEn</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>KTI_DISABLE</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_SNC2</cmd>
+                    <value>Enable SNC2 (2-clusters)</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_ENABLE</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_SNC4</cmd>
+                    <value>Enable SNC4 (4-clusters)</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>KTI Prefetch</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>KtiPrefetchEn</getter>
+            <conditions>
+                <condition>
+                    <key>PowerProfile</key>
+                    <value>CUSTOM</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <!--UEFI-->
+                <description>VmdOnStack</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-IIO Configuration</location>
+            </name>
+            <parent>SocketIioConfig</parent>
+            <getter>VMDEnabled</getter>
+            <list>64</list>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>AddEFIShellToBoot</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>AddShellToBoot</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Boot Option Retry</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>BootRetry</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Fixed Boot Order Control</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>FixedBootOrderEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <!--Fixed Boot Order Control选项Disabled时可选-->
+        <cfgItem>
+            <name>
+                <description>UEFI Boot Option 1</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>UefiPriorities0</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Uefi</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>UEFI Boot Option 2</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>UefiPriorities1</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Uefi</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>UEFI Boot Option 3</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>UefiPriorities2</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Uefi</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>UEFI Boot Option 4</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>UefiPriorities3</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Uefi</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy Boot Option 1</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>LegacyPriorities0</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Legacy</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy Boot Option 2</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>LegacyPriorities1</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Legacy</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy Boot Option 3</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>LegacyPriorities2</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Legacy</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy Boot Option 4</description>
+                <belongto>Boot</belongto>
+                <location>Boot</location>
+            </name>
+            <parent>FixedBootPriorities</parent>
+            <getter>LegacyPriorities3</getter>
+            <match>False</match>
+            <conditions>
+                <condition>
+                    <key>FixedBootOrderEn</key>
+                    <value>Disabled</value>
+                </condition>
+                <condition>
+                    <key>BootOptionFilter</key>
+                    <value>Legacy</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>Hdd</cmd>
+                    <value>Hard Disk</value>
+                </setter>
+                <setter>
+                    <cmd>Network</cmd>
+                    <value>Network</value>
+                </setter>
+                <setter>
+                    <cmd>Odd</cmd>
+                    <value>CD/DVD</value>
+                </setter>
+                <setter>
+                    <cmd>Other</cmd>
+                    <value>Other Device</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link Speed Mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Uncore Configuration/Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>QpiLinkSpeedMode</getter>
+            <setters>
+                <setter>
+                    <cmd>KTI_MODE_FAST</cmd>
+                    <value>Fast</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_MODE_SLOW</cmd>
+                    <value>Slow</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Memory Frequency</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Memory Configuration/Memory Frequency</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>DdrFreqLimit</getter>
+            <setters>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>DDR_FREQ_3200_STRING</cmd>
+                    <value>3200</value>
+                </setter>
+                <setter>
+                    <cmd>DDR_FREQ_3600_STRING_OVRCLK</cmd>
+                    <value>3600</value>
+                </setter>
+                <setter>
+                    <cmd>DDR_FREQ_4000_STRING_OVRCLK</cmd>
+                    <value>4000</value>
+                </setter>
+                <setter>
+                    <cmd>DDR_FREQ_4400_STRING_OVRCLK</cmd>
+                    <value>4400</value>
+                </setter>
+                <setter>
+                    <cmd>DDR_FREQ_4800_STRING</cmd>
+                    <value>4800</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>MMIO High Base</description>
+                <belongto>Advanced</belongto>
+                <location>Socket Configuration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>MmiohBase</getter>
+            <setters>
+                <setter>
+                    <cmd>56T</cmd>
+                    <value>56T</value>
+                </setter>
+                <setter>
+                    <cmd>40T</cmd>
+                    <value>40T</value>
+                </setter>
+                <setter>
+                    <cmd>32T</cmd>
+                    <value>32T</value>
+                </setter>
+                <setter>
+                    <cmd>24T</cmd>
+                    <value>24T</value>
+                </setter>
+                <setter>
+                    <cmd>16T</cmd>
+                    <value>16T</value>
+                </setter>
+                <setter>
+                    <cmd>4T</cmd>
+                    <value>4T</value>
+                </setter>
+                <setter>
+                    <cmd>2T</cmd>
+                    <value>2T</value>
+                </setter>
+                <setter>
+                    <cmd>1T</cmd>
+                    <value>1T</value>
+                </setter>
+                <setter>
+                    <cmd>512G</cmd>
+                    <value>512G</value>
+                </setter>
+                 <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>MMIO High Granularity Size</description>
+                <belongto>Advanced</belongto>
+                <location>Socket Configuration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>MmiohSize</getter>
+            <setters>
+                <setter>
+                    <cmd>1G</cmd>
+                    <value>1G</value>
+                </setter>
+                <setter>
+                    <cmd>4G</cmd>
+                    <value>4G</value>
+                </setter>
+                <setter>
+                    <cmd>16G</cmd>
+                    <value>16G</value>
+                </setter>
+                <setter>
+                    <cmd>64G</cmd>
+                    <value>64G</value>
+                </setter>
+                <setter>
+                    <cmd>256G</cmd>
+                    <value>256G</value>
+                </setter>
+                <setter>
+                    <cmd>1024G</cmd>
+                    <value>1024G</value>
+                </setter>
+                <setter>
+                    <cmd>2048G</cmd>
+                    <value>2048G</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>System Errors</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>SystemErrorEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IPv4 HTTP Support</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Network Stack Configuration/IPv4 HTTP Support</location>
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>Ipv4Http</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IPv6 HTTP Support</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Network Stack Configuration/IPv6 HTTP Support</location>
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>Ipv6Http</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Quiet Boot</description>
+                <belongto>Boot</belongto>
+                <location>Boot/Quiet Boot</location>
+            </name>
+            <parent>AMITSESetup</parent>
+            <getter>AMISilentBoot</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Restore AC Power Loss</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/PCH-IO Configuration/Restore AC Power Loss</location>
+            </name>
+            <parent>PchSetup</parent>
+            <getter>StateAfterG3</getter>
+            <setters>
+                <setter>
+                    <cmd>S0_AFTER_G3</cmd>
+                    <value>Power On</value>
+                </setter>
+                <setter>
+                    <cmd>S5_AFTER_G3</cmd>
+                    <value>Power Off</value>
+                </setter>
+                <setter>
+                    <cmd>UNCHANGED_AFTER_G3</cmd>
+                    <value>Last State</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Console Redirection</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>ConsoleRedirectionEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Terminal Type</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>DebuggerTerminalType</getter>
+            <setters>
+                <setter>
+                    <cmd>STR_VT100</cmd>
+                    <value>VT100</value>
+                </setter>
+                <setter>
+                    <cmd>STR_VT100_PLUS</cmd>
+                    <value>VT100PLUS</value>
+                </setter>
+                <setter>
+                    <cmd>STR_VT_UTF8</cmd>
+                    <value>VT-UTF8</value>
+                </setter>
+                <setter>
+                    <cmd>STR_ANSI</cmd>
+                    <value>ANSI</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Bits per second</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>BaudRate</getter>
+            <list>2</list>
+            <setters>
+                <setter>
+                    <cmd>STR_9600</cmd>
+                    <value>9600</value>
+                </setter>
+                <setter>
+                    <cmd>STR_19200</cmd>
+                    <value>19200</value>
+                </setter>
+                <setter>
+                    <cmd>STR_38400</cmd>
+                    <value>38400</value>
+                </setter>
+                <setter>
+                    <cmd>STR_57600</cmd>
+                    <value>57600</value>
+                </setter>
+                <setter>
+                    <cmd>STR_115200</cmd>
+                    <value>115200</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Flow Control</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>FlowControl</getter>
+            <list>2</list>
+            <setters>
+                <setter>
+                    <cmd>STR_NONE</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>STR_HARDWARE_FLOW_CTRL</cmd>
+                    <value>Hardware RTS/CTS</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Data Bits</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>DataBits</getter>
+            <list>2</list>
+            <setters>
+                <setter>
+                    <cmd>STR_7</cmd>
+                    <value>7</value>
+                </setter>
+                <setter>
+                    <cmd>STR_8</cmd>
+                    <value>8</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Parity</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>Parity</getter>
+            <list>2</list>
+            <setters>
+                <setter>
+                    <cmd>STR_NONE</cmd>
+                    <value>None</value>
+                </setter>
+                <setter>
+                    <cmd>STR_EVEN</cmd>
+                    <value>Even</value>
+                </setter>
+                <setter>
+                    <cmd>STR_ODD</cmd>
+                    <value>Odd</value>
+                </setter>
+                <setter>
+                    <cmd>STR_MARK</cmd>
+                    <value>Mark</value>
+                </setter>
+                <setter>
+                    <cmd>STR_SPACE</cmd>
+                    <value>Space</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Stop Bits</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Serial Port Console Redirection/Console Redirection Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>StopBits</getter>
+            <list>2</list>
+            <setters>
+                <setter>
+                    <cmd>STR_1</cmd>
+                    <value>1</value>
+                </setter>
+                <setter>
+                    <cmd>STR_2</cmd>
+                    <value>2</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Boot performance mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>BootPState</getter>
+            <setters>
+                <setter>
+                    <cmd>BOOT_P_STATE_MAX</cmd>
+                    <value>Max Performance</value>
+                </setter>
+                <setter>
+                    <cmd>BOOT_P_STATE_MINt</cmd>
+                    <value>Max Efficient</value>
+                </setter>
+                <setter>
+                    <cmd>BOOT_P_STATE_SPS_NM</cmd>
+                    <value>Set by Intel Node Manager</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>CPU Flex Ratio Override</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>AllowMixedPowerOnCpuRatio</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>CPU Core Flex Ratio</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-CPU P State Control</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorFlexibleRatio</getter>
+            <conditions>
+                <condition>
+                    <key>AllowMixedPowerOnCpuRatio</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0-100</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>EPP Enable</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Hardware PM State Control
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>ProcessorEPPEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Native ASPM</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Hardware PM State Control
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>NativeAspmEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <!--(ICX)-->
+                <description>Register Access Low Latency Mode</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-Package C State Control
+                </location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>EnableLowerLatencyMode</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PL1 Power Limit</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-SOCKET RAPL Config</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>PowerLimit1Power</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0-32767</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PL2 Power Limit</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Advanced Power Management Configuration-SOCKET RAPL Config</location>
+            </name>
+            <parent>SocketPowerManagementConfig</parent>
+            <getter>PowerLimit2Power</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0-32767</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>System Memory Poison</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/System Memory Poison</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>PoisonEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>EMCA Logging Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/eMCA Settings/EMCA Logging Support</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>EmcaEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>WHEA Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/Whea Settings/WHEA Support</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>WheaSupportEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>WHEA Log Memory Error</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/Whea Settings/WHEA Log Memory Error</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>WheaLogMemoryEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>IIO eDPC Support</description>
+                <belongto>Processor</belongto>
+                <location>Platform Configuration/Runtime Error Logging/IIO Error Enabling/IIO eDPC Support</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>EdpcEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>On Fatal Error</cmd>
+                    <value>On Fatal Error</value>
+                </setter>
+                <setter>
+                    <cmd>On Fatal and Non-Fatal Errors</cmd>
+                    <value>On Fatal and Non-Fatal Errors</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>SGX</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration/Processor Configuration/SW Guard Extensions (SGX)(Only for ICX)
+                </location>
+            </name>
+            <parent>SocketSecurityConfig</parent>
+            <getter>EnableSgx</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Core Disable Number</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Processor Configuration-Core Disable Number</location>
+            </name>
+            <parent>XCradleSocketSetup</parent>
+            <getter>OemActiveCoreNumber</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0~44</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>LMCE Support</description>
+                <belongto>Processor</belongto>
+                <location>Socket Configuration-Runtime Error Logging-eMCA Settings-LMCE Support</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>LmceEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>TPM State</description>
+                <belongto>Advanced</belongto>
+                <location>Trusted Computing</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>TpmEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Above 4G Decoding</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-PCI Subsystem Settings</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>Above4gDecode</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>PXE boot wait time</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-Network Stack Configuration</location>
+                <!--Network Stack为Enabled时显示-->
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>PxeBootWaitTime</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0-5</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Media detect count</description>
+                <belongto>Processor</belongto>
+                <location>Advanced/Network Stack Configuration/IPv4 HTTP Support</location>
+                <!--Network Stack为Enabled时显示-->
+            </name>
+            <parent>NetworkStackVar</parent>
+            <getter>MediaDetectCount</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>1-50</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>CSM Support</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>CsmSupport</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>GateA20 Active</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>KeepGA20Active</getter>
+            <setters>
+                <setter>
+                    <cmd>CSM_GA20_ACTIVE_UPONREQUEST</cmd>
+                    <value>Upon Request</value>
+                </setter>
+                <setter>
+                    <cmd>CSM_GA20_ACTIVE_ALWAYS</cmd>
+                    <value>Always</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>INT19 Trap Response</description>
+                <belongto>Advanced</belongto>
+                <location>Advanced-CSM Configuration</location>
+            </name>
+            <parent>Setup</parent>
+            <getter>I19Trap</getter>
+            <setters>
+                <setter>
+                    <cmd>CSM_I19_TRAP_IMMEDIATE</cmd>
+                    <value>Immediate</value>
+                </setter>
+                <setter>
+                    <cmd>CSM_I19_TRAP_POSTPONED</cmd>
+                    <value>Postponed</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <!--<cfgItem>-->
+            <!--<name>-->
+                <!--<description>SATA Mode Selection0</description>-->
+                <!--<belongto>Advanced</belongto>-->
+                <!--<location>PlatformConfiguration-PCH-IO Configuration-SATA And RST Configuration-Controller N SATA And-->
+                    <!--RST Configuration(N:1~3)-->
+                <!--</location>-->
+                <!--&lt;!&ndash;                （SATA Controller(s)为Disable的时候隐藏）&ndash;&gt;-->
+            <!--</name>-->
+            <!--<getter>SataInterfaceMode0</getter>-->
+            <!--<setters>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_AHCI</cmd>-->
+                    <!--<value>AHCI</value>-->
+                <!--</setter>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_RAID</cmd>-->
+                    <!--<value>RAID</value>-->
+                <!--</setter>-->
+            <!--</setters>-->
+        <!--</cfgItem>-->
+        <!--<cfgItem>-->
+            <!--<name>-->
+                <!--<description>SATA Mode Selection1</description>-->
+                <!--<belongto>Advanced</belongto>-->
+                <!--<location>PlatformConfiguration-PCH-IO Configuration-SATA And RST Configuration-Controller N SATA And-->
+                    <!--RST Configuration(N:1~3)-->
+                <!--</location>-->
+                <!--&lt;!&ndash;                （SATA Controller(s)为Disable的时候隐藏）&ndash;&gt;-->
+            <!--</name>-->
+            <!--<getter>SataInterfaceMode1</getter>-->
+            <!--<setters>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_AHCI</cmd>-->
+                    <!--<value>AHCI</value>-->
+                <!--</setter>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_RAID</cmd>-->
+                    <!--<value>RAID</value>-->
+                <!--</setter>-->
+            <!--</setters>-->
+        <!--</cfgItem>-->
+        <!--<cfgItem>-->
+            <!--<name>-->
+                <!--<description>SATA Mode Selection2</description>-->
+                <!--<belongto>Advanced</belongto>-->
+                <!--<location>PlatformConfiguration-PCH-IO Configuration-SATA And RST Configuration-Controller N SATA And-->
+                    <!--RST Configuration(N:1~3)-->
+                <!--</location>-->
+                <!--&lt;!&ndash;                （SATA Controller(s)为Disable的时候隐藏）&ndash;&gt;-->
+            <!--</name>-->
+            <!--<getter>SataInterfaceMode2</getter>-->
+            <!--<setters>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_AHCI</cmd>-->
+                    <!--<value>AHCI</value>-->
+                <!--</setter>-->
+                <!--<setter>-->
+                    <!--<cmd>SATA_RAID</cmd>-->
+                    <!--<value>RAID</value>-->
+                <!--</setter>-->
+            <!--</setters>-->
+        <!--</cfgItem>-->
+        <cfgItem>
+            <name>
+                <description>Dirty Warm Reset</description>
+                <belongto>Advanced</belongto>
+                <location>PlatformConfiguration-Runtime Error Logging-DWR Configuration</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>DwrEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>DWR/IERR Error harvesting stall</description>
+                <belongto>Advanced</belongto>
+                <location>PlatformConfiguration-Runtime Error Logging-DWR Configuration</location>
+            </name>
+            <parent>IntelSetup</parent>
+            <getter>DwrStall</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>MCTP Bus Owner Selection</description>
+                <belongto>Advanced</belongto>
+                <location>SocketConfiguration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>MctpBusOwner</getter>
+            <setters>
+                <setter>
+                    <cmd>PCH_SPS_BUS_OWNER</cmd>
+                    <value>PCH SPS as Bus Owner (Proxy)</value>
+                </setter>
+                <setter>
+                    <cmd>CPU_BUS_OWNER</cmd>
+                    <value>CPU as Bus Owner</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Enable SMX</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Processor Configuration</location>
+                <!--                (Enable Intel(R) TXT为Enabled时，选项不可选) 跟vmx应该一致-->
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>ProcessorSmxEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>AES-NI</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Processor Configuration</location>
+            </name>
+            <parent>SocketProcessorCoreConfig</parent>
+            <getter>AesEnable</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Degrade Precedence</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Processor Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>DegradePrecedence</getter>
+            <setters>
+                <setter>
+                    <cmd>KTI_TOPOLOGY_PRECEDENCE</cmd>
+                    <value>Topology Precedence</value>
+                </setter>
+                <setter>
+                    <cmd>KTI_FEATURE_PRECEDENCE</cmd>
+                    <value>Feature Precedence</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Link Frequency Select</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Processor Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>QpiLinkSpeed</getter>
+            <setters>
+                <setter>
+                    <cmd>KTI_PERLINK_SETTING</cmd>
+                    <value>Use Per Link Setting</value>
+                </setter>
+                <setter>
+                    <cmd>LINKSPEED_AUTO</cmd>
+                    <value>Auto</value>
+                </setter>
+                <setter>
+                    <cmd>LINKSPEED_160G</cmd>
+                    <value>16.0GT/s</value>
+                </setter>
+                <setter>
+                    <cmd>LINKSPEED_144G</cmd>
+                    <value>14.4GT/s</value>
+                </setter>
+                <setter>
+                    <cmd>LINKSPEED_128G</cmd>
+                    <value>12.8GT/s</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy VGA Socket</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Uncore Configuration-Uncore General Configuration</location>
+            </name>
+            <parent>SocketMpLinkConfig</parent>
+            <getter>LegacyVgaSoc</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0-3</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Data Scrambling for DDR4/5</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>ScrambleEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Enable ADR</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>ADREn</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Legacy ADR Mode</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>LegacyADRMode</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Auto</cmd>
+                    <value>Auto</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Check PCH_PM_STS</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>check_pm_sts</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Check PlatformDetectADR</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>check_platform_detect</getter>
+            <setters>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Volatile Memory Mode</description>
+                <belongto>Processor</belongto>
+                <!--     需要前置(选项Numa 选项为Disabled时隐藏)-->
+                <location>SocketConfiguration-Memory Configuration-Memory Map</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>volMemMode</getter>
+            <conditions>
+                <condition>
+                    <key>NumaEn</key>
+                    <value>Enabled</value>
+                </condition>
+            </conditions>
+            <setters>
+                <setter>
+                    <cmd>1LM</cmd>
+                    <value>1LM</value>
+                </setter>
+                <setter>
+                    <cmd>2LM</cmd>
+                    <value>2LM</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Mirror mode</description>
+                <belongto>Processor</belongto>
+                <!--  实际可以设置（ADDDC Sparing为Enabled时不可选，当支持HBM时隐藏）-->
+                <location>SocketConfiguration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketCommonRcConfig</parent>
+            <getter>MirrorMode</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>PMIRR_ENABLE</cmd>
+                    <value>Partial Mirror Mode</value>
+                </setter>
+                <setter>
+                    <cmd>MIRROR_ENABLE</cmd>
+                    <value>Full Mirror Mode</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Mirror TAD0</description>
+                <belongto>Processor</belongto>
+                <!--  实际可以设置（Mirror Mode选项非Full Mirror Mode时可选；ADDDC Sparing为Enabled时不可选）-->
+                <location>SocketConfiguration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>partialmirrorsad0</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>UEFI ARM Mirror</description>
+                <belongto>Processor</belongto>
+                <!--  实际可以设置（Mirror Mode选项为Disabled时可选；ADDDC Sparing为Enabled时不可选）-->
+                <location>SocketConfiguration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>PartialMirrorUefi</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>ADDDC Sparing</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>ADDDCEn</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>Patrol Scrub Interval</description>
+                <belongto>Processor</belongto>
+                <location>SocketConfiguration-Memory Configuration-Memory RAS Configuration</location>
+            </name>
+            <parent>SocketMemoryConfig</parent>
+            <getter>PatrolScrubDuration</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>0~24</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>FRB-2 Timer</description>
+                <belongto>ServerMgmt</belongto>
+                <location>ServerMgmt</location>
+            </name>
+            <parent>ServerSetup</parent>
+            <getter>Frb2Enable</getter>
+            <setters>
+                <setter>
+                    <cmd>Disabled</cmd>
+                    <value>Disabled</value>
+                </setter>
+                <setter>
+                    <cmd>Enabled</cmd>
+                    <value>Enabled</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>FRB-2 Timer timeout</description>
+                <belongto>ServerMgmt</belongto>
+<!--                FRB-2 Timer选项Enabled时可选-->
+                <location>ServerMgmt</location>
+            </name>
+            <parent>ServerSetup</parent>
+            <getter>Frb2Timeout</getter>
+            <setters>
+                <setter>
+                    <cmd>$in</cmd>
+                    <value>3~30</value>
+                </setter>
+            </setters>
+        </cfgItem>
+        <cfgItem>
+            <name>
+                <description>FRB-2 Timer Policy</description>
+                <belongto>ServerMgmt</belongto>
+                <location>ServerMgmt</location>
+            </name>
+            <parent>ServerSetup</parent>
+            <getter>Frb2TimeoutPolicy</getter>
+            <setters>
+                <setter>
+                    <cmd>Do Nothing</cmd>
+                    <value>Do Nothing</value>
+                </setter>
+                <setter>
+                    <cmd>Reset</cmd>
+                    <value>Reset</value>
+                </setter>
+                <setter>
+                    <cmd>Power Down</cmd>
+                    <value>Power Off</value>
+                </setter>
+                <setter>
+                    <cmd>Power Cycle</cmd>
+                    <value>Power Cycle</value>
+                </setter>
+            </setters>
+        </cfgItem>
+    </cfgItems>
+</server>
